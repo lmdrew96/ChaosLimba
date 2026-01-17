@@ -1,0 +1,20 @@
+flowchart TD
+    A[User Input: Speech & Text] --> B[Grading Panel]
+
+    subgraph B[Grading Panel - Parallel Processing]
+        B1[Speech Recognition Model<br>e.g., Fine-tuned Whisper]
+        B2[Pronunciation Model<br>Custom Acoustic Analyzer]
+        B3[Grammar Correction Model<br>e.g., Fine-tuned T5/BART]
+        B4[Semantic Analysis Model<br>e.g., Romanian BERT]
+    end
+
+    B1 -- "Text Transcript" --> B3
+    B1 -- "Audio Features" --> B2
+    
+    B2 --> C1[Phonological Score<br>& Feedback]
+    B3 --> C2[Grammatical Score<br>& Corrected Text]
+    B4 --> C3[Semantic/Dialectical<br>Analysis]
+
+    C1 & C2 & C3 --> D{Feedback Aggregator}
+    D --> E[Unified Grading Report<br>for User & User Profile]
+    E --> F[User Profile Database<br>Stores Progress & Weaknesses]

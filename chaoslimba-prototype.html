@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChaosLimbă - Interactive Prototype</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        
+        const ChaosLimbaPrototype = () => {
+            const [activeTab, setActiveTab] = useState('overview');
+            const [userInput, setUserInput] = useState('');
+            const [errors, setErrors] = useState([]);
+            const [proficiencyLevel, setProficiencyLevel] = useState(3);
+            const [showFeedback, setShowFeedback] = useState(false);
+            const [chaosMode, setChaosMode] = useState(false);
+            const [deepFogContent, setDeepFogContent] = useState('');
+            const [mysteryItems, setMysteryItems] = useState([
+                { id: 1, word: 'îndoielnic', context: 'Este îndoielnic că...', collected: new Date().toISOString(), explored: false },
+                { id: 2, word: 'răbdător', context: 'Trebuie să fii răbdător', collected: new Date().toISOString(), explored: false },
+                { id: 3, word: 'înfricoșător', context: 'O experiență înfricoșătoare', collected: new Date().toISOString(), explored: true }
+            ]);
+            const [selectedMystery, setSelectedMystery] = useState(null);
+            const [chaosTimer, setChaosTimer] = useState(300);
+            const [chaosActive, setChaosActive] = useState(false);
+            
+            // Simulated error patterns
+            const errorPatterns = [
+                { type: 'Genitive Case', frequency: 0.7, category: 'Grammar' },
+                { type: 'Pronunciation: î/â', frequency: 0.6, category: 'Phonology' },
+                { type: 'Verb Conjugation', frequency: 0.5, category: 'Morphology' },
+                { type: 'Word Order', frequency: 0.4, category: 'Syntax' },
+            ];
+            
+            const simulateAnalysis = () => {
+                if (userInput.length < 5) return;
+                
+                setShowFeedback(true);
+                const newErrors = [
+                    {
+                        text: userInput.substring(0, 10),
+                        type: 'Genitive case error',
+                        suggestion: 'Consider using genitive form',
+                        confidence: 0.85
+                    }
+                ];
+                setErrors(newErrors);
+            };
+            
+            return (
+                <div className="min-h-screen bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 text-white">
+                    {/* Header */}
+                    <header className="p-6 border-b border-purple-500/30">
+                        <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-purple-300 to-blue-300 bg-clip-text text-transparent">
+                            ChaosLimbă
+                        </h1>
+                        <p className="text-purple-200">AI-Native Language Learning Through Productive Confusion</p>
+                    </header>
+                    
+                    {/* Navigation */}
+                    <nav className="flex flex-wrap gap-2 p-4 bg-black/20">
+                        {['overview', 'error-garden', 'adaptive-system', 'deep-fog', 'chaos-window', 'mystery-shelf', 'demo'].map(tab => (
+                            <button
+                                key={tab}
+                                onClick={() => setActiveTab(tab)}
+                                className={`px-4 py-2 rounded-lg transition-all ${
+                                    activeTab === tab
+                                        ? 'bg-purple-500 text-white'
+                                        : 'bg-white/10 hover:bg-white/20'
+                                }`}
+                            >
+                                {tab.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                            </button>
+                        ))}
+                    </nav>
+                    
+                    {/* Content */}
+                    <main className="p-6">
+                        {activeTab === 'overview' && (
+                            <div className="space-y-6">
+                                <div className="bg-white/10 rounded-xl p-6 backdrop-blur">
+                                    <h2 className="text-2xl font-bold mb-4 text-purple-300">🧭 Core Philosophy: Structured Chaos</h2>
+                                    <p className="text-lg mb-4">
+                                        ChaosLimbă operates on the radical premise that <strong>optimal language acquisition 
+                                        occurs not through sterile, linear progression, but through managed, productive confusion.</strong>
+                                    </p>
+                                    
+                                    <div className="grid md:grid-cols-2 gap-4 mt-6">
+                                        <div className="bg-purple-500/20 p-4 rounded-lg border border-purple-400/30">
+                                            <h3 className="font-bold text-purple-200 mb-2">✨ Productive Confusion</h3>
+                                            <p className="text-sm">Being slightly lost and actively piecing together meaning creates deep cognitive engagement</p>
+                                        </div>
+                                        
+                                        <div className="bg-blue-500/20 p-4 rounded-lg border border-blue-400/30">
+                                            <h3 className="font-bold text-blue-200 mb-2">🌱 Error Harvesting</h3>
+                                            <p className="text-sm">Mistakes are the most valuable data points for personalized learning</p>
+                                        </div>
+                                        
+                                        <div className="bg-indigo-500/20 p-4 rounded-lg border border-indigo-400/30">
+                                            <h3 className="font-bold text-indigo-200 mb-2">🔍 Exploratory Agency</h3>
+                                            <p className="text-sm">Learners retain more when they follow curiosity and make personal connections</p>
+                                        </div>
+                                        
+                                        <div className="bg-cyan-500/20 p-4 rounded-lg border border-cyan-400/30">
+                                            <h3 className="font-bold text-cyan-200 mb-2">⚡ Adaptive, Not Prescriptive</h3>
+                                            <p className="text-sm">The system morphs to your evolving proficiency and error patterns</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div className="bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-xl p-6 border border-purple-400/30">
+                                    <h3 className="text-xl font-bold mb-3">🎯 The Mantra</h3>
+                                    <p className="text-2xl italic text-center py-4">
+                                        "We provide the method. You provide the mess."
+                                    </p>
+                                </div>
+                                
+                                <div className="bg-white/10 rounded-xl p-6">
+                                    <h3 className="text-xl font-bold mb-4 text-purple-300">System Architecture</h3>
+                                    <div className="space-y-3">
+                                        <div className="flex items-start gap-3">
+                                            <div className="bg-purple-500 text-white rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0">1</div>
+                                            <div>
+                                                <strong>Grading & Harvesting Engine</strong>
+                                                <p className="text-sm text-purple-200">Parallel AI processing: Whisper (speech), BERT (semantics), T5/BART (grammar)</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-start gap-3">
+                                            <div className="bg-blue-500 text-white rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0">2</div>
+                                            <div>
+                                                <strong>Error Garden</strong>
+                                                <p className="text-sm text-blue-200">Pattern clustering engine that transforms your mistakes into a personalized curriculum</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-start gap-3">
+                                            <div className="bg-indigo-500 text-white rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0">3</div>
+                                            <div>
+                                                <strong>Adaptive Tutoring System</strong>
+                                                <p className="text-sm text-indigo-200">DeepSeek-R1 powered responses that create "productive confusion" based on your patterns</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        
+                        {activeTab === 'error-garden' && (
+                            <div className="space-y-6">
+                                <div className="bg-white/10 rounded-xl p-6">
+                                    <h2 className="text-2xl font-bold mb-4 text-green-300">🌱 Error Garden</h2>
+                                    <p className="mb-6">
+                                        The Error Garden transforms your mistakes into a reviewable, adaptive curriculum. 
+                                        It clusters error patterns and identifies fossilization risks.
+                                    </p>
+                                    
+                                    <div className="bg-black/30 rounded-lg p-4 mb-4">
+                                        <h3 className="font-bold mb-3 text-green-200">Your Current Error Patterns</h3>
+                                        <div className="space-y-3">
+                                            {errorPatterns.map((pattern, idx) => (
+                                                <div key={idx} className="bg-white/5 rounded p-3">
+                                                    <div className="flex justify-between items-center mb-2">
+                                                        <span className="font-semibold">{pattern.type}</span>
+                                                        <span className="text-xs bg-purple-500/50 px-2 py-1 rounded">{pattern.category}</span>
+                                                    </div>
+                                                    <div className="w-full bg-gray-700 rounded-full h-2">
+                                                        <div 
+                                                            className="bg-gradient-to-r from-red-500 to-yellow-500 h-2 rounded-full transition-all"
+                                                            style={{ width: `${pattern.frequency * 100}%` }}
+                                                        />
+                                                    </div>
+                                                    <p className="text-xs text-gray-400 mt-1">
+                                                        Frequency: {(pattern.frequency * 100).toFixed(0)}% of production opportunities
+                                                    </p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="bg-gradient-to-r from-yellow-500/20 to-red-500/20 rounded-lg p-4 border border-yellow-400/30">
+                                        <h4 className="font-bold text-yellow-200 mb-2">⚠️ Fossilization Risk Detected</h4>
+                                        <p className="text-sm">
+                                            Genitive case errors appear in 70% of your production. The system will inject 
+                                            targeted "chaos" to destabilize this pattern.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        
+                        {activeTab === 'adaptive-system' && (
+                            <div className="space-y-6">
+                                <div className="bg-white/10 rounded-xl p-6">
+                                    <h2 className="text-2xl font-bold mb-4 text-blue-300">⚡ Adaptive Tutoring System</h2>
+                                    
+                                    <div className="mb-6">
+                                        <label className="block mb-2 text-sm">Your Proficiency Level: {proficiencyLevel}/10</label>
+                                        <input 
+                                            type="range" 
+                                            min="1" 
+                                            max="10" 
+                                            value={proficiencyLevel}
+                                            onChange={(e) => setProficiencyLevel(parseInt(e.target.value))}
+                                            className="w-full"
+                                        />
+                                        <div className="flex justify-between text-xs text-gray-400 mt-1">
+                                            <span>A1 (Beginner)</span>
+                                            <span>B2 (Intermediate)</span>
+                                            <span>C1 (Advanced)</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="grid md:grid-cols-3 gap-4 mb-6">
+                                        <div className="bg-purple-500/20 p-4 rounded-lg text-center">
+                                            <div className="text-3xl font-bold text-purple-300">
+                                                {proficiencyLevel <= 3 ? '70%' : proficiencyLevel <= 7 ? '50%' : '30%'}
+                                            </div>
+                                            <div className="text-sm">Receptive Skills</div>
+                                            <div className="text-xs text-gray-400">Listening/Reading</div>
+                                        </div>
+                                        
+                                        <div className="bg-blue-500/20 p-4 rounded-lg text-center">
+                                            <div className="text-3xl font-bold text-blue-300">
+                                                {proficiencyLevel <= 3 ? '30%' : proficiencyLevel <= 7 ? '50%' : '70%'}
+                                            </div>
+                                            <div className="text-sm">Productive Skills</div>
+                                            <div className="text-xs text-gray-400">Speaking/Writing</div>
+                                        </div>
+                                        
+                                        <div className="bg-indigo-500/20 p-4 rounded-lg text-center">
+                                            <div className="text-3xl font-bold text-indigo-300">60-80%</div>
+                                            <div className="text-sm">Target Accuracy</div>
+                                            <div className="text-xs text-gray-400">Zone of Proximal Development</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="bg-black/30 rounded-lg p-4">
+                                        <h3 className="font-bold mb-3 text-blue-200">Adaptation Engine Logic</h3>
+                                        <div className="space-y-2 text-sm font-mono">
+                                            <div className="text-purple-300">IF Error_Garden.genitive_errors &gt; 70%</div>
+                                            <div className="pl-4 text-blue-300">THEN assign podcast_rich_in_genitive</div>
+                                            <div className="pl-4 text-blue-300">THEN create_speaking_task(force_genitive_use)</div>
+                                            <div className="pl-4 text-blue-300">THEN inject_chaos("Cui îi dai cartea?")</div>
+                                            <div className="text-purple-300">MONITOR accuracy_improvement</div>
+                                            <div className="text-green-300">IF accuracy &gt; 80% THEN advance_to_next_structure</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        
+                        {activeTab === 'deep-fog' && (
+                            <div className="space-y-6">
+                                <div className="bg-white/10 rounded-xl p-6">
+                                    <h2 className="text-2xl font-bold mb-4 text-indigo-300">🌫️ Deep Fog Mode</h2>
+                                    <p className="mb-6 text-indigo-200">
+                                        Immerse yourself in <strong>above-level</strong> content. Don't understand everything?
+                                        Perfect. Collect unknowns to your Mystery Shelf and let productive confusion do its work.
+                                    </p>
+
+                                    <div className="bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-lg p-4 mb-6 border border-indigo-400/30">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <span className="text-2xl">📚</span>
+                                            <h3 className="font-bold text-indigo-200">Currently Reading: Advanced Article (C1 Level)</h3>
+                                        </div>
+                                        <p className="text-xs text-gray-400 mb-3">Your level: B1 (Intermediate) • This content is 2 levels above you</p>
+
+                                        <div className="bg-black/40 rounded-lg p-4 text-sm leading-relaxed">
+                                            <p className="mb-3">
+                                                <em>Complexitatea sistemului educațional românesc reflectă <span className="bg-yellow-500/30 border-b-2 border-yellow-400 cursor-pointer" title="Click to add to Mystery Shelf">tensiunile inerente</span> dintre tradiție și modernitate. Deși reformele <span className="bg-yellow-500/30 border-b-2 border-yellow-400 cursor-pointer">succesive</span> au încercat să <span className="bg-yellow-500/30 border-b-2 border-yellow-400 cursor-pointer">atenueze</span> aceste contradicții, <span className="bg-yellow-500/30 border-b-2 border-yellow-400 cursor-pointer">persistența</span> unor practici <span className="bg-yellow-500/30 border-b-2 border-yellow-400 cursor-pointer">învechite</span> continuă să <span className="bg-yellow-500/30 border-b-2 border-yellow-400 cursor-pointer">împiedice</span> progresul...</em>
+                                            </p>
+                                        </div>
+
+                                        <div className="mt-4 flex gap-3">
+                                            <button className="px-4 py-2 bg-yellow-500/30 hover:bg-yellow-500/40 rounded-lg text-sm border border-yellow-400/30 transition-all">
+                                                📌 Add Selection to Mystery Shelf
+                                            </button>
+                                            <button className="px-4 py-2 bg-indigo-500/30 hover:bg-indigo-500/40 rounded-lg text-sm border border-indigo-400/30 transition-all">
+                                                🔄 Load New Above-Level Content
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid md:grid-cols-2 gap-4">
+                                        <div className="bg-black/30 rounded-lg p-4">
+                                            <h4 className="font-bold text-indigo-200 mb-3">How Deep Fog Works</h4>
+                                            <ul className="text-sm space-y-2">
+                                                <li className="flex items-start gap-2">
+                                                    <span className="text-indigo-400">•</span>
+                                                    <span>Content is intentionally <strong>above your current level</strong></span>
+                                                </li>
+                                                <li className="flex items-start gap-2">
+                                                    <span className="text-indigo-400">•</span>
+                                                    <span>Click unknown words/phrases to collect them</span>
+                                                </li>
+                                                <li className="flex items-start gap-2">
+                                                    <span className="text-indigo-400">•</span>
+                                                    <span>No pressure to understand everything now</span>
+                                                </li>
+                                                <li className="flex items-start gap-2">
+                                                    <span className="text-indigo-400">•</span>
+                                                    <span>Build contextual awareness through immersion</span>
+                                                </li>
+                                            </ul>
+                                        </div>
+
+                                        <div className="bg-black/30 rounded-lg p-4">
+                                            <h4 className="font-bold text-purple-200 mb-3">Mystery Shelf Status</h4>
+                                            <div className="space-y-2">
+                                                <div className="flex justify-between items-center">
+                                                    <span className="text-sm">Items Collected:</span>
+                                                    <span className="font-bold text-purple-300">{mysteryItems.length}</span>
+                                                </div>
+                                                <div className="flex justify-between items-center">
+                                                    <span className="text-sm">Ready to Explore:</span>
+                                                    <span className="font-bold text-yellow-300">{mysteryItems.filter(i => !i.explored).length}</span>
+                                                </div>
+                                                <div className="flex justify-between items-center">
+                                                    <span className="text-sm">Already Explored:</span>
+                                                    <span className="font-bold text-green-300">{mysteryItems.filter(i => i.explored).length}</span>
+                                                </div>
+                                                <button
+                                                    onClick={() => setActiveTab('mystery-shelf')}
+                                                    className="w-full mt-3 px-4 py-2 bg-purple-500/30 hover:bg-purple-500/40 rounded-lg text-sm border border-purple-400/30 transition-all"
+                                                >
+                                                    → View Mystery Shelf
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'chaos-window' && (
+                            <div className="space-y-6">
+                                <div className="bg-white/10 rounded-xl p-6">
+                                    <h2 className="text-2xl font-bold mb-4 text-pink-300">🎲 Chaos Window</h2>
+                                    <p className="mb-6 text-pink-200">
+                                        Randomized, <strong>targeted content</strong> at or slightly above your level,
+                                        paired with an <strong>AI tutor</strong> for real-time interaction and challenge.
+                                    </p>
+
+                                    <div className="bg-gradient-to-r from-pink-500/20 to-orange-500/20 rounded-lg p-4 mb-6 border border-pink-400/30">
+                                        <div className="flex justify-between items-center mb-4">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-2xl">⏱️</span>
+                                                <h3 className="font-bold text-pink-200">Active Session</h3>
+                                            </div>
+                                            <div className="text-2xl font-mono font-bold text-orange-300">
+                                                {Math.floor(chaosTimer / 60)}:{(chaosTimer % 60).toString().padStart(2, '0')}
+                                            </div>
+                                        </div>
+
+                                        {!chaosActive ? (
+                                            <div className="text-center py-8">
+                                                <p className="mb-4 text-gray-300">Start a Chaos Window session to receive randomized content and AI tutoring</p>
+                                                <button
+                                                    onClick={() => setChaosActive(true)}
+                                                    className="px-6 py-3 bg-gradient-to-r from-pink-500 to-orange-500 hover:from-pink-600 hover:to-orange-600 rounded-lg font-semibold transition-all"
+                                                >
+                                                    🎲 Start Chaos Session
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <div>
+                                                <div className="bg-black/40 rounded-lg p-4 mb-4">
+                                                    <div className="flex items-center gap-2 mb-3">
+                                                        <span className="text-xl">🎧</span>
+                                                        <h4 className="font-bold text-orange-200">Random Content: Podcast Clip</h4>
+                                                        <span className="ml-auto text-xs bg-green-500/30 px-2 py-1 rounded">At Your Level (B1)</span>
+                                                    </div>
+                                                    <p className="text-sm italic mb-3">
+                                                        "...și atunci mi-am dat seama că trebuie să iau o decizie. Era imposibil să rămân
+                                                        în situația aceea pentru totdeauna..."
+                                                    </p>
+                                                    <div className="flex gap-2">
+                                                        <button className="px-3 py-1 bg-pink-500/30 rounded text-xs">▶️ Play</button>
+                                                        <button className="px-3 py-1 bg-pink-500/30 rounded text-xs">🔄 Replay</button>
+                                                        <button className="px-3 py-1 bg-pink-500/30 rounded text-xs">📝 Transcript</button>
+                                                    </div>
+                                                </div>
+
+                                                <div className="bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-lg p-4 border border-purple-400/30">
+                                                    <div className="flex items-center gap-2 mb-3">
+                                                        <span className="text-xl">🤖</span>
+                                                        <h4 className="font-bold text-purple-200">AI Tutor Response</h4>
+                                                    </div>
+                                                    <p className="text-sm mb-3">
+                                                        Foarte bine! Ai înțeles contextul. Acum, poți să-mi spui: De ce crezi că
+                                                        personajul trebuia să ia o decizie? Folosește conjunctivul în răspunsul tău.
+                                                    </p>
+                                                    <textarea
+                                                        className="w-full h-24 bg-black/30 border border-purple-400/30 rounded-lg p-3 text-white text-sm placeholder-gray-400"
+                                                        placeholder="Răspunde aici..."
+                                                    />
+                                                    <button className="mt-2 px-4 py-2 bg-purple-500 hover:bg-purple-600 rounded-lg text-sm transition-all">
+                                                        Submit Response
+                                                    </button>
+                                                </div>
+
+                                                <div className="mt-4 flex gap-3">
+                                                    <button className="px-4 py-2 bg-orange-500/30 hover:bg-orange-500/40 rounded-lg text-sm border border-orange-400/30 transition-all">
+                                                        🎲 Next Random Content
+                                                    </button>
+                                                    <button
+                                                        onClick={() => setChaosActive(false)}
+                                                        className="px-4 py-2 bg-red-500/30 hover:bg-red-500/40 rounded-lg text-sm border border-red-400/30 transition-all"
+                                                    >
+                                                        ⏸️ End Session
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="grid md:grid-cols-2 gap-4">
+                                        <div className="bg-black/30 rounded-lg p-4">
+                                            <h4 className="font-bold text-pink-200 mb-3">How Chaos Window Works</h4>
+                                            <ul className="text-sm space-y-2">
+                                                <li className="flex items-start gap-2">
+                                                    <span className="text-pink-400">•</span>
+                                                    <span><strong>Randomized</strong> content selection (video, audio, text)</span>
+                                                </li>
+                                                <li className="flex items-start gap-2">
+                                                    <span className="text-pink-400">•</span>
+                                                    <span>Content is <strong>at or slightly above</strong> your level</span>
+                                                </li>
+                                                <li className="flex items-start gap-2">
+                                                    <span className="text-pink-400">•</span>
+                                                    <span>AI tutor asks <strong>targeted questions</strong> based on your Error Garden</span>
+                                                </li>
+                                                <li className="flex items-start gap-2">
+                                                    <span className="text-pink-400">•</span>
+                                                    <span>Timed sessions encourage <strong>focused engagement</strong></span>
+                                                </li>
+                                            </ul>
+                                        </div>
+
+                                        <div className="bg-black/30 rounded-lg p-4">
+                                            <h4 className="font-bold text-orange-200 mb-3">Key Differences from Deep Fog</h4>
+                                            <div className="space-y-3 text-sm">
+                                                <div className="flex items-start gap-2">
+                                                    <span className="text-green-400">✓</span>
+                                                    <div>
+                                                        <strong>Chaos Window:</strong> At/above level with AI interaction
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-start gap-2">
+                                                    <span className="text-blue-400">✓</span>
+                                                    <div>
+                                                        <strong>Deep Fog:</strong> Above level, passive immersion
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-start gap-2">
+                                                    <span className="text-purple-400">✓</span>
+                                                    <div>
+                                                        Chaos Window uses <strong>Error Garden data</strong> to target weaknesses
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'mystery-shelf' && (
+                            <div className="space-y-6">
+                                <div className="bg-white/10 rounded-xl p-6">
+                                    <h2 className="text-2xl font-bold mb-4 text-amber-300">📚 Mystery Shelf</h2>
+                                    <p className="mb-6 text-amber-200">
+                                        Your collection of <strong>unknowns</strong> from Deep Fog mode.
+                                        Review them quickly or explore them deeply - your choice.
+                                    </p>
+
+                                    <div className="mb-6">
+                                        <div className="flex gap-3 mb-4">
+                                            <button className="px-4 py-2 bg-amber-500 rounded-lg text-sm font-semibold">
+                                                All Items ({mysteryItems.length})
+                                            </button>
+                                            <button className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm transition-all">
+                                                Not Explored ({mysteryItems.filter(i => !i.explored).length})
+                                            </button>
+                                            <button className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm transition-all">
+                                                Explored ({mysteryItems.filter(i => i.explored).length})
+                                            </button>
+                                        </div>
+
+                                        <div className="space-y-3">
+                                            {mysteryItems.map(item => (
+                                                <div key={item.id} className="bg-black/30 rounded-lg p-4 border border-amber-400/30">
+                                                    <div className="flex justify-between items-start mb-2">
+                                                        <div className="flex-1">
+                                                            <h3 className="font-bold text-xl text-amber-200">{item.word}</h3>
+                                                            <p className="text-sm text-gray-400 italic mt-1">"{item.context}"</p>
+                                                            <p className="text-xs text-gray-500 mt-2">
+                                                                Collected: {new Date(item.collected).toLocaleDateString()}
+                                                            </p>
+                                                        </div>
+                                                        <div className="flex gap-2">
+                                                            {item.explored ? (
+                                                                <span className="px-2 py-1 bg-green-500/30 text-green-300 text-xs rounded">
+                                                                    ✓ Explored
+                                                                </span>
+                                                            ) : (
+                                                                <span className="px-2 py-1 bg-yellow-500/30 text-yellow-300 text-xs rounded">
+                                                                    ⏳ New
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex gap-2 mt-3">
+                                                        <button
+                                                            onClick={() => setSelectedMystery(item)}
+                                                            className="px-3 py-1 bg-amber-500/30 hover:bg-amber-500/40 rounded text-sm border border-amber-400/30 transition-all"
+                                                        >
+                                                            🔍 Deep Explore
+                                                        </button>
+                                                        <button className="px-3 py-1 bg-blue-500/30 hover:bg-blue-500/40 rounded text-sm border border-blue-400/30 transition-all">
+                                                            ⚡ Quick Review
+                                                        </button>
+                                                        <button className="px-3 py-1 bg-red-500/30 hover:bg-red-500/40 rounded text-sm border border-red-400/30 transition-all">
+                                                            🗑️ Remove
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {selectedMystery && (
+                                        <div className="bg-gradient-to-r from-amber-500/20 to-yellow-500/20 rounded-lg p-6 border-2 border-amber-400/50">
+                                            <div className="flex justify-between items-start mb-4">
+                                                <h3 className="text-2xl font-bold text-amber-200">Deep Exploration: {selectedMystery.word}</h3>
+                                                <button
+                                                    onClick={() => setSelectedMystery(null)}
+                                                    className="text-gray-400 hover:text-white"
+                                                >
+                                                    ✕
+                                                </button>
+                                            </div>
+
+                                            <div className="space-y-4">
+                                                <div className="bg-black/40 rounded-lg p-4">
+                                                    <h4 className="font-bold text-amber-200 mb-2">Definition</h4>
+                                                    <p className="text-sm">
+                                                        <strong>îndoielnic</strong> (adj.) - doubtful, questionable, uncertain
+                                                    </p>
+                                                </div>
+
+                                                <div className="bg-black/40 rounded-lg p-4">
+                                                    <h4 className="font-bold text-amber-200 mb-2">Usage Examples</h4>
+                                                    <ul className="text-sm space-y-2">
+                                                        <li className="italic">"Calitatea acestui produs este îndoielnică."</li>
+                                                        <li className="italic">"E îndoielnic că va veni la timp."</li>
+                                                        <li className="italic">"Rezultatele sunt îndoielnice."</li>
+                                                    </ul>
+                                                </div>
+
+                                                <div className="bg-black/40 rounded-lg p-4">
+                                                    <h4 className="font-bold text-amber-200 mb-2">Grammar Notes</h4>
+                                                    <p className="text-sm">
+                                                        Forms: îndoielnic (m), îndoielnică (f), îndoielnici (m.pl), îndoielnice (f.pl)
+                                                    </p>
+                                                </div>
+
+                                                <div className="bg-black/40 rounded-lg p-4">
+                                                    <h4 className="font-bold text-amber-200 mb-2">Practice Prompt</h4>
+                                                    <p className="text-sm mb-3">
+                                                        Try using "îndoielnic" in a sentence about a situation where you're uncertain about something:
+                                                    </p>
+                                                    <textarea
+                                                        className="w-full h-20 bg-black/30 border border-amber-400/30 rounded-lg p-3 text-white text-sm placeholder-gray-400"
+                                                        placeholder="Write your sentence here..."
+                                                    />
+                                                    <button className="mt-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 rounded-lg text-sm transition-all">
+                                                        Submit & Get Feedback
+                                                    </button>
+                                                </div>
+
+                                                <button
+                                                    onClick={() => {
+                                                        setMysteryItems(mysteryItems.map(i =>
+                                                            i.id === selectedMystery.id ? {...i, explored: true} : i
+                                                        ));
+                                                        setSelectedMystery(null);
+                                                    }}
+                                                    className="w-full px-4 py-3 bg-green-500/30 hover:bg-green-500/40 rounded-lg font-semibold border border-green-400/30 transition-all"
+                                                >
+                                                    ✓ Mark as Explored & Close
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div className="grid md:grid-cols-2 gap-4 mt-6">
+                                        <div className="bg-black/30 rounded-lg p-4">
+                                            <h4 className="font-bold text-amber-200 mb-3">Mystery Shelf Features</h4>
+                                            <ul className="text-sm space-y-2">
+                                                <li className="flex items-start gap-2">
+                                                    <span className="text-amber-400">•</span>
+                                                    <span><strong>Quick Review:</strong> See definition and move on</span>
+                                                </li>
+                                                <li className="flex items-start gap-2">
+                                                    <span className="text-amber-400">•</span>
+                                                    <span><strong>Deep Explore:</strong> Examples, grammar, and practice</span>
+                                                </li>
+                                                <li className="flex items-start gap-2">
+                                                    <span className="text-amber-400">•</span>
+                                                    <span>Track what you've explored vs. what's new</span>
+                                                </li>
+                                                <li className="flex items-start gap-2">
+                                                    <span className="text-amber-400">•</span>
+                                                    <span>Items feed into Error Garden for spaced repetition</span>
+                                                </li>
+                                            </ul>
+                                        </div>
+
+                                        <div className="bg-black/30 rounded-lg p-4">
+                                            <h4 className="font-bold text-purple-200 mb-3">Learning Flow</h4>
+                                            <div className="space-y-2 text-sm">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-indigo-400">1.</span>
+                                                    <span>Encounter unknown in Deep Fog</span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-indigo-400">2.</span>
+                                                    <span>Collect to Mystery Shelf</span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-indigo-400">3.</span>
+                                                    <span>Quick review or deep explore</span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-indigo-400">4.</span>
+                                                    <span>Practice in Chaos Window</span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-indigo-400">5.</span>
+                                                    <span>Master through Error Garden</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'demo' && (
+                            <div className="space-y-6">
+                                <div className="bg-white/10 rounded-xl p-6">
+                                    <h2 className="text-2xl font-bold mb-4 text-purple-300">🎮 Interactive Demo</h2>
+                                    <p className="mb-4 text-purple-200">
+                                        Try writing a sentence in Romanian. The system will analyze it and provide 
+                                        "productive confusion" feedback.
+                                    </p>
+                                    
+                                    <div className="mb-4">
+                                        <label className="flex items-center gap-2 mb-3 cursor-pointer">
+                                            <input 
+                                                type="checkbox" 
+                                                checked={chaosMode}
+                                                onChange={(e) => setChaosMode(e.target.checked)}
+                                                className="w-5 h-5"
+                                            />
+                                            <span className="font-semibold">
+                                                🌀 Enable "Chaos Injection" Mode
+                                            </span>
+                                        </label>
+                                    </div>
+                                    
+                                    <textarea
+                                        className="w-full h-32 bg-black/30 border border-purple-400/30 rounded-lg p-4 text-white placeholder-gray-400"
+                                        placeholder="Scrie ceva în română... (Write something in Romanian...)"
+                                        value={userInput}
+                                        onChange={(e) => {
+                                            setUserInput(e.target.value);
+                                            setShowFeedback(false);
+                                        }}
+                                    />
+                                    
+                                    <button
+                                        onClick={simulateAnalysis}
+                                        className="mt-4 px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg font-semibold hover:from-purple-600 hover:to-blue-600 transition-all"
+                                    >
+                                        Analyze My Input
+                                    </button>
+                                    
+                                    {showFeedback && userInput.length > 0 && (
+                                        <div className="mt-6 space-y-4">
+                                            {/* Grading Panel Results */}
+                                            <div className="bg-black/30 rounded-lg p-4">
+                                                <h3 className="font-bold mb-3 text-green-300">📊 Grading Panel Analysis</h3>
+                                                <div className="grid md:grid-cols-3 gap-3">
+                                                    <div className="bg-green-500/20 p-3 rounded border border-green-400/30">
+                                                        <div className="text-sm text-gray-300">Pronunciation</div>
+                                                        <div className="text-2xl font-bold text-green-300">78%</div>
+                                                    </div>
+                                                    <div className="bg-yellow-500/20 p-3 rounded border border-yellow-400/30">
+                                                        <div className="text-sm text-gray-300">Grammar</div>
+                                                        <div className="text-2xl font-bold text-yellow-300">65%</div>
+                                                    </div>
+                                                    <div className="bg-blue-500/20 p-3 rounded border border-blue-400/30">
+                                                        <div className="text-sm text-gray-300">Semantics</div>
+                                                        <div className="text-2xl font-bold text-blue-300">82%</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            {/* Error Detection */}
+                                            <div className="bg-red-500/20 rounded-lg p-4 border border-red-400/30">
+                                                <h3 className="font-bold mb-2 text-red-300">🔍 Pattern Detected</h3>
+                                                <p className="text-sm">
+                                                    Genitive case error detected. This pattern has appeared in 7 of your last 10 submissions.
+                                                    Adding to Error Garden for targeted practice.
+                                                </p>
+                                            </div>
+                                            
+                                            {/* Productive Confusion Response */}
+                                            {chaosMode && (
+                                                <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-lg p-4 border border-purple-400/30">
+                                                    <h3 className="font-bold mb-2 text-purple-300">🌀 Chaos Injection Response</h3>
+                                                    <p className="mb-3">
+                                                        Based on your error pattern, try responding to this challenge:
+                                                    </p>
+                                                    <div className="bg-black/30 p-3 rounded italic">
+                                                        "Cui îi dai cartea pe care ai citit-o aseară? Și de ce crezi că ar fi 
+                                                        interesat de ea?"
+                                                    </div>
+                                                    <p className="text-xs text-gray-400 mt-2">
+                                                        This question forces you to use the dative case (cui îi) which you've 
+                                                        been avoiding. Embrace the confusion!
+                                                    </p>
+                                                </div>
+                                            )}
+                                            
+                                            {/* Next Steps */}
+                                            <div className="bg-blue-500/20 rounded-lg p-4 border border-blue-400/30">
+                                                <h3 className="font-bold mb-2 text-blue-300">📚 Recommended Next Content</h3>
+                                                <ul className="text-sm space-y-2">
+                                                    <li>🎧 Podcast: "Genitive case in everyday Romanian" (15 min)</li>
+                                                    <li>📝 Writing exercise: Describe possession relationships</li>
+                                                    <li>💬 AI Conversation: Practice genitive pronouns in context</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                    </main>
+                    
+                    {/* Footer */}
+                    <footer className="p-6 border-t border-purple-500/30 text-center text-sm text-purple-300">
+                        <p>ChaosLimbă: Data-Driven, AI-Native CALL Program</p>
+                        <p className="text-xs text-gray-400 mt-2">
+                            Powered by Interlanguage Theory • Output Hypothesis • Cognitive Disequilibrium • Chaos/Complexity Theory
+                        </p>
+                    </footer>
+                </div>
+            );
+        };
+        
+        ReactDOM.render(<ChaosLimbaPrototype />, document.getElementById('root'));
+    </script>
+</body>
+</html>

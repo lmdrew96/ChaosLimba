@@ -1,0 +1,16 @@
+flowchart LR
+    %% Adaptive Tutoring System Flowchart
+    A[User Query] --> B
+    P[User Profile DB<br>Weaknesses, Progress] --> B
+    
+    subgraph B[Tutoring System]
+        direction TB
+        B1[Adaptation Engine<br>Rules-Based Logic]
+        B2[Knowledge Base<br>Grammar Rules, Error Examples]
+        B3[Conversational Core LLM<br>e.g., OpenLLM-Ro]
+    end
+
+    B1 -- "Dynamic Prompt with<br>User Context & Relevant Knowledge" --> B3
+    B2 -- "Retrieved Data on<br>User's Weak Topics" --> B1
+    
+    B3 --> C[Personalized Tutor Response]

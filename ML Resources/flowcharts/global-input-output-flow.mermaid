@@ -1,0 +1,43 @@
+flowchart TD
+    %% Global Inputs
+    A[User Input: Speech & Text] --> B
+    U_Hist[(User Profile DB: Weaknesses & History)] --> G_Agg
+    U_Hist --> T_Engine
+
+    %% SUBGRAPH 1: THE GRADING & HARVESTING ENGINE (The Source of Chaos)
+    subgraph B[Grading Panel: Parallel Diagnostic Processing]
+        B1[Speech Recognition: Fine-tuned Whisper]
+        B2[Pronunciation: Acoustic Analyzer]
+        B3[Grammar: Fine-tuned T5/BART]
+        B4[Semantic/Pragmatic: Romanian BERT]
+    end
+
+    B1 -- "Transcript" --> B3
+    B1 -- "Audio Features" --> B2
+    
+    B2 --> C1[Phonological Score]
+    B3 --> C2[Grammatical Score]
+    B4 --> C3[Semantic/Cultural Analysis]
+
+    C1 & C2 & C3 --> G_Agg{Feedback Aggregator}
+
+    %% THE SYNERGY LINK (The DeepSeek-R1 Logic Layer)
+    G_Agg -- "Unified Grading Report" --> E_Garden[Error Garden: Analysis & Pattern Clustering]
+    E_Garden -- "Interlanguage Patterns" --> U_Hist
+
+    %% SUBGRAPH 2: THE ADAPTIVE TUTORING SYSTEM (The Structured Application)
+    subgraph T_System[Tutoring & Adaptation System]
+        T_Engine[Adaptation Engine: Rules-Based Logic]
+        T_KB[Knowledge Base: SLA Frameworks & CEFR]
+        T_Core[[Conversational Core: DeepSeek-R1 Reasoning]]
+    end
+
+    U_Hist -- "Current Weaknesses & Error Clusters" --> T_Engine
+    T_KB -- "Pedagogical Scaffolding" --> T_Engine
+    
+    T_Engine -- "Dynamic Prompt: Push to Deep Fog" --> T_Core
+    T_Core -- "Productive Confusion Response" --> T_Out[Personalized Tutor Output]
+
+    %% Feedback Loop
+    T_Out --> |User Engagement| A
+    E_Garden -.-> |Curated Chaos| T_KB

@@ -1,0 +1,45 @@
+# Large data files
+*.txt
+*.db
+*.wav
+*.mp3
+*.mp4
+*.avi
+*.mov
+*.parquet
+*.zip
+
+# Model files
+*.bin
+*.safetensors
+*.pt
+*.pth
+*.h5
+*.onnx
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.venv/
+venv/
+env/
+
+# System files
+.DS_Store
+**/.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Content directories
+content/text/*.txt
+content/audio/*
+content/video/*
+ML Resources/models/*.zip
+ML Resources/models/*.bin
+ML Resources/models/*.safetensors
