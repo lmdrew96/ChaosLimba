@@ -1622,6 +1622,71 @@ Genitive Case Errors:
 - [ ] All major bugs fixed
 - [ ] Landing page is live
 
+### Privacy-First Analytics (Umami)
+
+**Strategy: Opt-in only, self-hosted, zero third parties**
+
+ChaosLimbă implements privacy-first analytics using **Umami** (self-hosted open-source analytics):
+
+**What Umami Is:**
+- Open-source analytics platform
+- Self-hosted (you own all data)
+- Privacy-focused (no cookies, GDPR compliant)
+- Simple, beautiful dashboard
+
+**Implementation Timeline:**
+- **Months 1-6:** No analytics (focus on building)
+- **Month 7:** Set up Umami server (Railway or Render, $5-10/mo)
+- **Beta launch:** Deploy opt-in consent dialog
+
+**What Gets Tracked (Only If User Opts In):**
+```typescript
+// ✅ Feature usage (anonymous)
+trackEvent('chaos_window_started', { duration: 600 })
+trackEvent('error_garden_viewed')
+trackEvent('content_played', { type: 'video', difficulty: 5.2 })
+
+// ❌ NEVER tracked (even with consent)
+// - Romanian text/audio content
+// - Error patterns
+// - Personal information
+// - IP addresses
+```
+
+**Consent Flow:**
+1. **OFF by default** - No tracking until explicit consent
+2. **Clear dialog** - Explains exactly what's tracked
+3. **Easy disable** - Toggle in Settings anytime
+4. **Data ownership** - User can request deletion
+
+**Privacy Policy Statement:**
+```
+Optional Anonymous Analytics:
+• Completely optional (opt-in only)
+• Tracks feature usage, NOT content
+• Self-hosted (no third parties)
+• Easily disabled in Settings
+• Never sold or shared
+```
+
+**Umami Setup (Month 7):**
+```bash
+# Deploy to Railway/Render
+docker run -d \
+  -p 3000:3000 \
+  -e DATABASE_URL="postgresql://..." \
+  ghcr.io/umami-software/umami:postgresql-latest
+
+# Add tracking script to Next.js
+<Script 
+  src="https://analytics.chaoslimba.adhdesigns.dev/script.js" 
+  data-website-id="YOUR-WEBSITE-ID"
+/>
+
+# Respect user choice
+{user.analyticsEnabled && <UmamiScript />}
+```
+
 ---
 
 ## Budget & Resource Management
@@ -1643,10 +1708,11 @@ Genitive Case Errors:
 | **Storage** | Cloudflare R2 Free Tier | $0 | 10GB storage, 1M operations/mo |
 | **Auth** | Clerk Free Tier | $0 | 10,000 MAU |
 | **AI Inference** | RunPod Serverless | $15-25/mo | ~50-100 hrs @ $0.29/hr for GPU |
+| **Analytics Server** | Railway/Render | $5-10/mo | Self-hosted Umami (opt-in only, Month 7+) |
 | **Email** | Resend Free Tier | $0 | 3,000 emails/month |
 | **Monitoring** | Sentry Free Tier (optional) | $0 | 5,000 events/month |
-| **TOTAL NEW COSTS** | | **$15-25/mo** | **~$140 for 7 months MVP** |
-| **TOTAL INCLUDING BASELINE** | | **$35-45/mo** | **Vercel Pro already budgeted** |
+| **TOTAL NEW COSTS** | | **$20-35/mo** | **~$175 for 7 months MVP** |
+| **TOTAL INCLUDING BASELINE** | | **$40-55/mo** | **Vercel Pro already budgeted** |
 
 ### Open-Source AI Models (Zero Subscription Costs)
 
@@ -2020,8 +2086,10 @@ async function batchGrammarAnalysis(sentences: string[]) {
 | **AI - Semantic (Post-MVP)** | Romanian BERT → RunPod | Open-source, self-hosted |
 | **Hosting** | Vercel Pro | Already subscribed ($20/mo baseline) |
 | **Domain** | chaoslimba.adhdesigns.dev | Already owned (adhdesigns.dev) |
-| **State Management** | Zustand | Lightweight, simple for solo dev |
+| **State Management** | Zustand | Lightweight, React hooks-based state |
+| **Analytics** | Umami (self-hosted) | Privacy-first, opt-in only, open-source |
 | **Video/Audio** | YouTube iframe API + Howler.js | Embedded videos, audio playback |
+| **Development Tools** | Windsurf + Replit | Agentic coding (Windsurf primary, Replit for prototyping) |
 
 ### Appendix B: Key Milestones & Deadlines
 

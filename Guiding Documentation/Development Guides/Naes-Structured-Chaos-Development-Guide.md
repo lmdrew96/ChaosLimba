@@ -696,6 +696,20 @@ You're not "cheating" by using Windsurf, Claude Code, Cline. You're **working wi
 
 **Sustainability matters.** Open-source keeps costs near-zero forever.
 
+### 5. Privacy Is Non-Negotiable
+
+**Good:** Opt-in analytics, self-hosted Umami, track feature usage only  
+**Bad:** Default-on tracking, third-party analytics, tracking user content
+
+**User data principles:**
+- ✅ **OFF by default** - No tracking without explicit consent
+- ✅ **Clear consent** - Users know exactly what's tracked
+- ✅ **Easy disable** - Toggle in Settings anytime
+- ✅ **You own it** - Self-hosted, no third parties
+- ❌ **NEVER track** - Romanian text/audio, errors, personal info
+
+**If it violates user privacy or autonomy, it doesn't belong in ChaosLimbă.**
+
 ---
 
 ## The "Should I Build This?" Decision Tree
@@ -781,6 +795,29 @@ You built the AI tutor before the database. You built the UI before auth. You bu
 **It won't be perfect.** It will be **beautiful chaos**.
 
 And that's exactly what it should be.
+
+---
+
+## 🛠️ Tech Stack Quick Reference
+
+**These decisions are LOCKED. No more analysis paralysis.**
+
+| Layer | Choice | Why |
+|-------|--------|-----|
+| **Frontend** | React + TypeScript + Tailwind + shadcn/ui | Industry standard, best agentic tool support |
+| **State** | Zustand | Simple, lightweight, TypeScript-friendly |
+| **Backend** | Next.js 14 API Routes | Built-in, serverless, Vercel optimized |
+| **Database** | Neon PostgreSQL + Drizzle ORM | Serverless, type-safe, SQL-like |
+| **Auth** | Clerk (Google + Email) | Free 10k MAU, easy setup |
+| **AI Hosting** | RunPod (all open-source models) | Pay-per-use, no subscriptions |
+| **Storage** | Cloudflare R2 (audio) + YouTube embeds (video) | Free tiers, zero costs |
+| **Analytics** | Umami (self-hosted, opt-in only) | Privacy-first, you own the data |
+| **Dev Tools** | Windsurf (primary) + Replit (prototyping) | Best agentic coding support |
+| **Deployment** | Vercel (auto-deploy from main) | Already paying $20/mo, seamless |
+
+**Budget: $20-35/mo for MVP (RunPod AI + Umami server)**
+
+**Don't second-guess these. Just build.** 🔥
 
 ---
 
