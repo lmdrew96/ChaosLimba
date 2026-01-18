@@ -35,5 +35,5 @@ externalPort = 80
 
 [deployment]
 deploymentTarget = "autoscale"
-run = ["npm", "run", "start"]
-build = ["npm", "run", "build"]
+run = ["bash", "-c", "cd chaoslimba && npm run start"]
+build = ["bash", "-c", "cd chaoslimba && npm run build"]
