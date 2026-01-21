@@ -408,25 +408,47 @@ You record yourself saying "Bună ziua, mă numesc Nae" → System transcribes i
 
 ---
 
-## Milestone 5: ✅ AI Tutor Asks Questions in Chaos Window
+## Milestone 5: ✅ AI Grading Ensemble Works + AI Tutor Asks Questions
 
 **What "done" looks like:**
-- [ ] DeepSeek R1 (or Llama/Mistral) deployed to RunPod
-- [ ] Chaos Window shows randomized content
-- [ ] After content, AI asks 1-2 follow-up questions
-- [ ] Questions are informed by Error Garden (e.g., force genitive usage if user struggles with it)
-- [ ] User can respond (text or speech)
+- [ ] All 7 MVP AI components deployed (Phase 1: 50% SPAM coverage)
+- [ ] Speech→text works via Groq (FREE!)
+- [ ] Grammar feedback highlights errors automatically
+- [ ] SPAM-A checks if your meaning matches the expected answer
+- [ ] SPAM-D warns if you say "torTUri" (tortures) instead of "TORturi" (cakes)
+- [ ] DeepSeek R1 formats feedback in encouraging, approachable way
+- [ ] Chaos Window shows AI tutor questions informed by Error Garden
+
+**The 7 Components (you don't need to understand them all, just know they work together):**
+1. **Speech Recognition** (Groq, FREE) - Audio → Text
+2. **Pronunciation** (RunPod, $2-3/mo) - Are you saying sounds right?
+3. **Grammar** (RunPod, $3-5/mo) - Finds errors, suggests fixes
+4. **SPAM-A** (HuggingFace, FREE) - Does your meaning match?
+5. **SPAM-D** (In-app, FREE) - Does stress change the word meaning?
+6. **Router** (In-app, FREE) - Detects speech vs text, routes correctly
+7. **Aggregator** (In-app, FREE) - Combines everything into one report
+
+**Plus:** DeepSeek R1 ($5-10/mo) - Takes all that technical feedback and makes it friendly
 
 **Why this matters:**  
-This is **where Output Hypothesis + Cognitive Disequilibrium happen**. AI forces production of weak structures.
+This is **where Output Hypothesis + Cognitive Disequilibrium happen**. AI forces production, grades it, and adapts questions to your weak structures.
 
 **Dopamine-driven approach:**
-- Love prompt engineering? Build the AI tutor logic, test in terminal
-- Want to see conversations? Build UI for chat-style interaction first
-- Hate both? Start with canned questions (manually written), add AI later
+- **Loves seeing it work?** Deploy speech first (immediate audio→text magic!)
+- **Hates deployment?** Start with grammar only (already trained!), add others later
+- **Overwhelmed by 7 components?** Just get Router + Grammar working, add components one by one
+- **Want instant gratification?** Test grammar model in terminal before building UI
+
+**Timeline:** ~13 days spread across Months 5-6 (but you can hyperfocus and do it in 5 days if the stars align)
 
 **How you'll know it's ready:**  
-After watching a video, AI asks "Cui îi dai cartea?" and you realize it's targeting your dative case weakness.
+You say something in Romanian, get back: "Good meaning match! But you said 'la' instead of 'în'. Also, careful with stress on 'torturi' - you said tortures, not cakes! 😅"
+
+**Post-MVP (add later if needed):**
+- **Phase 2 (SPAM-B):** Detects if you go off-topic (+3 days, FREE)
+- **Phase 3 (SPAM-C):** Recognizes regional variants + formality issues (+7 days, +$2-3/mo)
+
+**Total MVP Cost:** $10-18/month for all 7 components + DeepSeek R1
 
 ---
 
@@ -809,13 +831,18 @@ And that's exactly what it should be.
 | **Backend** | Next.js 14 API Routes | Built-in, serverless, Vercel optimized |
 | **Database** | Neon PostgreSQL + Drizzle ORM | Serverless, type-safe, SQL-like |
 | **Auth** | Clerk (Google + Email) | Free 10k MAU, easy setup |
-| **AI Hosting** | RunPod (all open-source models) | Pay-per-use, no subscriptions |
+| **AI Ensemble** | **9 components (7 MVP + 2 Post-MVP)** | **Dual-path routing, phased rollout** |
+| **AI - Speech** | Groq API (whisper-medium-romanian) | **FREE tier** (massive savings!) |
+| **AI - Other** | RunPod + HuggingFace (all open-source) | Grammar/pronunciation on RunPod, semantic on HF FREE |
 | **Storage** | Cloudflare R2 (audio) + YouTube embeds (video) | Free tiers, zero costs |
 | **Analytics** | Umami (self-hosted, opt-in only) | Privacy-first, you own the data |
 | **Dev Tools** | Windsurf (primary) + Replit (prototyping) | Best agentic coding support |
 | **Deployment** | Vercel (auto-deploy from main) | Already paying $20/mo, seamless |
 
-**Budget: $20-35/mo for MVP (RunPod AI + Umami server)**
+**MVP Budget (Phase 1):** $10-18/mo (RunPod $5-8 + DeepSeek $5-10) + Umami $5-10 = **$15-28/mo total**  
+**Full Ensemble (Phase 3):** $12-21/mo AI + Umami $5-10 = **$17-31/mo total**
+
+**Groq = FREE speech recognition saved you $5-8/mo!** 🎉
 
 **Don't second-guess these. Just build.** 🔥
 

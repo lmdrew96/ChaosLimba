@@ -16,5 +16,5 @@
 # Your custom rules:
 rules:
   - name: "API responses must include proper error context"
-   description: "Verify that API error responses include sufficient context for debugging (request ID, timestamp, user context) without exposing sensitive information.
+    description: "Verify that API error responses include sufficient context for debugging (request ID, timestamp, user context) without exposing sensitive information."
 

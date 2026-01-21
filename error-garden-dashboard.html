@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error Garden Dashboard - ChaosLimbă</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body class="bg-gradient-to-br from-emerald-900 via-green-900 to-teal-900">
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+        
+        // Mock error data based on Interlanguage Theory (Selinker, 1972)
+        const mockErrorPatterns = [
+            {
+                id: 1,
+                type: 'Genitive Case Overuse',
+                category: 'Morphosyntax',
+                frequency: 0.73,
+                totalOccurrences: 42,
+                correctUsage: 15,
+                incorrectUsage: 27,
+                fossilizationRisk: 'HIGH',
+                interlanguageRule: 'Uses "de + nominative" instead of genitive inflection',
+                transferSource: 'English "of" construction',
+                examples: [
+                    { incorrect: 'casa de mama', correct: 'casa mamei', context: 'possession', timestamp: '2026-01-15' },
+                    { incorrect: 'cartea de prietenul meu', correct: 'cartea prietenului meu', context: 'possession', timestamp: '2026-01-17' },
+                    { incorrect: 'mașina de tata', correct: 'mașina tatei', context: 'possession', timestamp: '2026-01-18' }
+                ],
+                trend: [0.45, 0.52, 0.61, 0.68, 0.73],
+                trendLabels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5'],
+                intervention: 'Inject targeted genitive exercises in Chaos Window',
+                theoreticalBasis: 'Interlanguage fossilization (Selinker, 1972)'
+            },
+            {
+                id: 2,
+                type: 'Subjunctive Avoidance',
+                category: 'Morphosyntax',
+                frequency: 0.82,
+                totalOccurrences: 28,
+                correctUsage: 5,
+                incorrectUsage: 23,
+                fossilizationRisk: 'CRITICAL',
+                interlanguageRule: 'Replaces subjunctive with infinitive or indicative',
+                transferSource: 'English infinitive after "want/need"',
+                examples: [
+                    { incorrect: 'Vreau că tu vii', correct: 'Vreau să vii', context: 'desire expression', timestamp: '2026-01-14' },
+                    { incorrect: 'E important că înveți', correct: 'E important să înveți', context: 'necessity', timestamp: '2026-01-16' },
+                    { incorrect: 'Trebuie că pleci', correct: 'Trebuie să pleci', context: 'obligation', timestamp: '2026-01-19' }
+                ],
+                trend: [0.75, 0.78, 0.79, 0.81, 0.82],
+                trendLabels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5'],
+                intervention: 'Force subjunctive production in AI tutor questions',
+                theoreticalBasis: 'Output Hypothesis (Swain, 1985) - forced production required'
+            },
+            {
+                id: 3,
+                type: 'Pronunciation: î/â Confusion',
+                category: 'Phonology',
+                frequency: 0.58,
+                totalOccurrences: 65,
+                correctUsage: 27,
+                incorrectUsage: 38,
+                fossilizationRisk: 'MEDIUM',
+                interlanguageRule: 'Treats î and â as interchangeable phonemes',
+                transferSource: 'L1 phonemic inventory lacks this distinction',
+                examples: [
+                    { incorrect: 'rîu [rɨu]', correct: 'râu [rɨu]', context: 'river (orthographic only)', timestamp: '2026-01-12' },
+                    { incorrect: 'mîine [mɨine]', correct: 'mâine [mɨine]', context: 'tomorrow (orthographic only)', timestamp: '2026-01-15' }
+                ],
+                trend: [0.62, 0.61, 0.59, 0.58, 0.58],
+                trendLabels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5'],
+                intervention: 'Orthographic pattern recognition exercises',
+                theoreticalBasis: 'Phonological transfer (Flege, 1995)'
+            },
+            {
+                id: 4,
+                type: 'Dative Case Avoidance',
+                category: 'Morphosyntax',
+                frequency: 0.71,
+                totalOccurrences: 34,
+                correctUsage: 10,
+                incorrectUsage: 24,
+                fossilizationRisk: 'HIGH',
+                interlanguageRule: 'Uses "pentru + nominative" instead of dative inflection',
+                transferSource: 'English "to/for" prepositional phrases',
+                examples: [
+                    { incorrect: 'Dau pentru mama', correct: 'Îi dau mamei', context: 'indirect object', timestamp: '2026-01-13' },
+                    { incorrect: 'Scriu pentru prietenul', correct: 'Îi scriu prietenului', context: 'indirect object', timestamp: '2026-01-16' },
+                    { incorrect: 'Vorbesc pentru tine', correct: 'Îți vorbesc', context: 'indirect object', timestamp: '2026-01-18' }
+                ],
+                trend: [0.68, 0.70, 0.71, 0.71, 0.71],
+                trendLabels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5'],
+                intervention: 'Dative-rich content in Deep Fog Mode',
+                theoreticalBasis: 'Cognitive Disequilibrium (Piaget) - destabilize pattern'
+            },
+            {
+                id: 5,
+                type: 'Verb Aspect Confusion',
+                category: 'Morphosyntax',
+                frequency: 0.44,
+                totalOccurrences: 52,
+                correctUsage: 29,
+                incorrectUsage: 23,
+                fossilizationRisk: 'LOW',
+                interlanguageRule: 'Inconsistent perfective/imperfective selection',
+                transferSource: 'English simple past = Romanian perfective (overgeneralization)',
+                examples: [
+                    { incorrect: 'Am citit când ai venit', correct: 'Citeam când ai venit', context: 'ongoing past action', timestamp: '2026-01-11' },
+                    { incorrect: 'Am mâncat când m-ai sunat', correct: 'Mâncam când m-ai sunat', context: 'interrupted action', timestamp: '2026-01-14' }
+                ],
+                trend: [0.52, 0.48, 0.46, 0.45, 0.44],
+                trendLabels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5'],
+                intervention: 'Continue current approach - improving naturally',
+                theoreticalBasis: 'Natural acquisition order (Krashen, 1982)'
+            },
+            {
+                id: 6,
+                type: 'Clitic Pronoun Placement',
+                category: 'Syntax',
+                frequency: 0.65,
+                totalOccurrences: 38,
+                correctUsage: 13,
+                incorrectUsage: 25,
+                fossilizationRisk: 'MEDIUM',
+                interlanguageRule: 'Places clitics post-verbally (like Spanish/Italian)',
+                transferSource: 'Romance language transfer (if applicable)',
+                examples: [
+                    { incorrect: 'Văd-o', correct: 'O văd', context: 'present tense clitic', timestamp: '2026-01-12' },
+                    { incorrect: 'Dau-i', correct: 'Îi dau', context: 'dative clitic', timestamp: '2026-01-15' }
+                ],
+                trend: [0.70, 0.68, 0.67, 0.66, 0.65],
+                trendLabels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5'],
+                intervention: 'Clitic-focused comprehension exercises',
+                theoreticalBasis: 'Processability Theory (Pienemann, 1998)'
+            }
+        ];
+
+        const ErrorGardenDashboard = () => {
+            const [selectedPattern, setSelectedPattern] = useState(null);
+            const [sortBy, setSortBy] = useState('frequency');
+            const [viewMode, setViewMode] = useState('grid');
+            const chartRef = useRef(null);
+            const chartInstance = useRef(null);
+
+            const sortedPatterns = [...mockErrorPatterns].sort((a, b) => {
+                if (sortBy === 'frequency') return b.frequency - a.frequency;
+                if (sortBy === 'risk') {
+                    const riskOrder = { CRITICAL: 3, HIGH: 2, MEDIUM: 1, LOW: 0 };
+                    return riskOrder[b.fossilizationRisk] - riskOrder[a.fossilizationRisk];
+                }
+                return b.totalOccurrences - a.totalOccurrences;
+            });
+
+            const getRiskColor = (risk) => {
+                switch(risk) {
+                    case 'CRITICAL': return 'from-red-500 to-orange-500';
+                    case 'HIGH': return 'from-orange-500 to-yellow-500';
+                    case 'MEDIUM': return 'from-yellow-500 to-green-500';
+                    case 'LOW': return 'from-green-500 to-emerald-500';
+                    default: return 'from-gray-500 to-gray-600';
+                }
+            };
+
+            const getRiskBadgeColor = (risk) => {
+                switch(risk) {
+                    case 'CRITICAL': return 'bg-red-500/30 text-red-200 border-red-400/50';
+                    case 'HIGH': return 'bg-orange-500/30 text-orange-200 border-orange-400/50';
+                    case 'MEDIUM': return 'bg-yellow-500/30 text-yellow-200 border-yellow-400/50';
+                    case 'LOW': return 'bg-green-500/30 text-green-200 border-green-400/50';
+                    default: return 'bg-gray-500/30 text-gray-200 border-gray-400/50';
+                }
+            };
+
+            const getCategoryColor = (category) => {
+                switch(category) {
+                    case 'Morphosyntax': return 'bg-purple-500/20 text-purple-200 border-purple-400/30';
+                    case 'Phonology': return 'bg-blue-500/20 text-blue-200 border-blue-400/30';
+                    case 'Syntax': return 'bg-indigo-500/20 text-indigo-200 border-indigo-400/30';
+                    default: return 'bg-gray-500/20 text-gray-200 border-gray-400/30';
+                }
+            };
+
+            useEffect(() => {
+                if (selectedPattern && chartRef.current) {
+                    if (chartInstance.current) {
+                        chartInstance.current.destroy();
+                    }
+
+                    const ctx = chartRef.current.getContext('2d');
+                    chartInstance.current = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: selectedPattern.trendLabels,
+                            datasets: [{
+                                label: 'Error Frequency',
+                                data: selectedPattern.trend,
+                                borderColor: 'rgb(239, 68, 68)',
+                                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                                tension: 0.4,
+                                fill: true
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    display: false
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: (context) => `Frequency: ${(context.parsed.y * 100).toFixed(0)}%`
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    max: 1,
+                                    ticks: {
+                                        callback: (value) => `${(value * 100).toFixed(0)}%`,
+                                        color: 'rgba(255, 255, 255, 0.7)'
+                                    },
+                                    grid: {
+                                        color: 'rgba(255, 255, 255, 0.1)'
+                                    }
+                                },
+                                x: {
+                                    ticks: {
+                                        color: 'rgba(255, 255, 255, 0.7)'
+                                    },
+                                    grid: {
+                                        color: 'rgba(255, 255, 255, 0.1)'
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+
+                return () => {
+                    if (chartInstance.current) {
+                        chartInstance.current.destroy();
+                    }
+                };
+            }, [selectedPattern]);
+
+            const totalErrors = mockErrorPatterns.reduce((sum, p) => sum + p.totalOccurrences, 0);
+            const criticalPatterns = mockErrorPatterns.filter(p => p.fossilizationRisk === 'CRITICAL' || p.fossilizationRisk === 'HIGH').length;
+            const avgFrequency = mockErrorPatterns.reduce((sum, p) => sum + p.frequency, 0) / mockErrorPatterns.length;
+
+            return (
+                <div className="min-h-screen p-6 text-white">
+                    {/* Header */}
+                    <header className="mb-8">
+                        <div className="flex items-center justify-between mb-4">
+                            <div>
+                                <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-emerald-300 to-teal-300 bg-clip-text text-transparent">
+                                    🌱 Error Garden
+                                </h1>
+                                <p className="text-emerald-200 text-lg">
+                                    Your mistakes are your curriculum
+                                </p>
+                            </div>
+                            <div className="text-right">
+                                <div className="text-sm text-emerald-300 mb-1">Milestone 3</div>
+                                <div className="text-xs text-emerald-400/70">Interlanguage Theory (Selinker, 1972)</div>
+                            </div>
+                        </div>
+
+                        {/* Stats Overview */}
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                            <div className="bg-white/10 backdrop-blur rounded-xl p-4 border border-emerald-400/30">
+                                <div className="text-3xl font-bold text-emerald-300">{mockErrorPatterns.length}</div>
+                                <div className="text-sm text-emerald-200">Error Patterns</div>
+                                <div className="text-xs text-emerald-400/70 mt-1">Clustered by ML</div>
+                            </div>
+                            <div className="bg-white/10 backdrop-blur rounded-xl p-4 border border-orange-400/30">
+                                <div className="text-3xl font-bold text-orange-300">{criticalPatterns}</div>
+                                <div className="text-sm text-orange-200">Fossilization Risks</div>
+                                <div className="text-xs text-orange-400/70 mt-1">&gt;70% frequency</div>
+                            </div>
+                            <div className="bg-white/10 backdrop-blur rounded-xl p-4 border border-blue-400/30">
+                                <div className="text-3xl font-bold text-blue-300">{totalErrors}</div>
+                                <div className="text-sm text-blue-200">Total Occurrences</div>
+                                <div className="text-xs text-blue-400/70 mt-1">Last 5 weeks</div>
+                            </div>
+                            <div className="bg-white/10 backdrop-blur rounded-xl p-4 border border-purple-400/30">
+                                <div className="text-3xl font-bold text-purple-300">{(avgFrequency * 100).toFixed(0)}%</div>
+                                <div className="text-sm text-purple-200">Avg Frequency</div>
+                                <div className="text-xs text-purple-400/70 mt-1">Across all patterns</div>
+                            </div>
+                        </div>
+
+                        {/* Controls */}
+                        <div className="flex flex-wrap gap-3 items-center">
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => setSortBy('frequency')}
+                                    className={`px-4 py-2 rounded-lg text-sm transition-all ${
+                                        sortBy === 'frequency'
+                                            ? 'bg-emerald-500 text-white'
+                                            : 'bg-white/10 hover:bg-white/20'
+                                    }`}
+                                >
+                                    Sort by Frequency
+                                </button>
+                                <button
+                                    onClick={() => setSortBy('risk')}
+                                    className={`px-4 py-2 rounded-lg text-sm transition-all ${
+                                        sortBy === 'risk'
+                                            ? 'bg-emerald-500 text-white'
+                                            : 'bg-white/10 hover:bg-white/20'
+                                    }`}
+                                >
+                                    Sort by Risk
+                                </button>
+                                <button
+                                    onClick={() => setSortBy('occurrences')}
+                                    className={`px-4 py-2 rounded-lg text-sm transition-all ${
+                                        sortBy === 'occurrences'
+                                            ? 'bg-emerald-500 text-white'
+                                            : 'bg-white/10 hover:bg-white/20'
+                                    }`}
+                                >
+                                    Sort by Count
+                                </button>
+                            </div>
+                            <div className="flex gap-2 ml-auto">
+                                <button
+                                    onClick={() => setViewMode('grid')}
+                                    className={`px-4 py-2 rounded-lg text-sm transition-all ${
+                                        viewMode === 'grid'
+                                            ? 'bg-teal-500 text-white'
+                                            : 'bg-white/10 hover:bg-white/20'
+                                    }`}
+                                >
+                                    Grid View
+                                </button>
+                                <button
+                                    onClick={() => setViewMode('list')}
+                                    className={`px-4 py-2 rounded-lg text-sm transition-all ${
+                                        viewMode === 'list'
+                                            ? 'bg-teal-500 text-white'
+                                            : 'bg-white/10 hover:bg-white/20'
+                                    }`}
+                                >
+                                    List View
+                                </button>
+                            </div>
+                        </div>
+                    </header>
+
+                    {/* Error Patterns Grid/List */}
+                    <div className={viewMode === 'grid' ? 'grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8' : 'space-y-4 mb-8'}>
+                        {sortedPatterns.map((pattern) => (
+                            <div
+                                key={pattern.id}
+                                onClick={() => setSelectedPattern(pattern)}
+                                className="bg-white/10 backdrop-blur rounded-xl p-5 border border-emerald-400/30 hover:border-emerald-400/60 transition-all cursor-pointer hover:scale-[1.02]"
+                            >
+                                <div className="flex items-start justify-between mb-3">
+                                    <div className="flex-1">
+                                        <h3 className="text-xl font-bold text-emerald-100 mb-2">
+                                            {pattern.type}
+                                        </h3>
+                                        <div className="flex gap-2 mb-3">
+                                            <span className={`text-xs px-2 py-1 rounded border ${getCategoryColor(pattern.category)}`}>
+                                                {pattern.category}
+                                            </span>
+                                            <span className={`text-xs px-2 py-1 rounded border font-semibold ${getRiskBadgeColor(pattern.fossilizationRisk)}`}>
+                                                {pattern.fossilizationRisk} RISK
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <div className="text-3xl font-bold text-emerald-300">
+                                            {(pattern.frequency * 100).toFixed(0)}%
+                                        </div>
+                                        <div className="text-xs text-emerald-400/70">frequency</div>
+                                    </div>
+                                </div>
+
+                                {/* Frequency Bar */}
+                                <div className="mb-4">
+                                    <div className="w-full bg-gray-700/50 rounded-full h-3 overflow-hidden">
+                                        <div 
+                                            className={`h-3 rounded-full bg-gradient-to-r ${getRiskColor(pattern.fossilizationRisk)} transition-all duration-500`}
+                                            style={{ width: `${pattern.frequency * 100}%` }}
+                                        />
+                                    </div>
+                                    <div className="flex justify-between text-xs text-emerald-400/70 mt-1">
+                                        <span>{pattern.incorrectUsage} errors</span>
+                                        <span>{pattern.correctUsage} correct</span>
+                                    </div>
+                                </div>
+
+                                {/* Interlanguage Rule */}
+                                <div className="bg-black/30 rounded-lg p-3 mb-3">
+                                    <div className="text-xs text-emerald-300 font-semibold mb-1">Interlanguage Rule:</div>
+                                    <div className="text-sm text-emerald-100 italic">"{pattern.interlanguageRule}"</div>
+                                    <div className="text-xs text-emerald-400/70 mt-1">Transfer: {pattern.transferSource}</div>
+                                </div>
+
+                                {/* Example */}
+                                {pattern.examples.length > 0 && (
+                                    <div className="bg-red-500/10 border border-red-400/30 rounded-lg p-3 mb-3">
+                                        <div className="text-xs text-red-300 font-semibold mb-1">Recent Error:</div>
+                                        <div className="text-sm">
+                                            <span className="line-through text-red-300">{pattern.examples[0].incorrect}</span>
+                                            <span className="mx-2 text-emerald-400">→</span>
+                                            <span className="text-green-300">{pattern.examples[0].correct}</span>
+                                        </div>
+                                        <div className="text-xs text-gray-400 mt-1">{pattern.examples[0].context}</div>
+                                    </div>
+                                )}
+
+                                {/* Intervention */}
+                                <div className="bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-400/30 rounded-lg p-3">
+                                    <div className="text-xs text-purple-300 font-semibold mb-1">🎯 Intervention:</div>
+                                    <div className="text-sm text-purple-100">{pattern.intervention}</div>
+                                    <div className="text-xs text-purple-400/70 mt-1">{pattern.theoreticalBasis}</div>
+                                </div>
+
+                                {/* Mini Trend Indicator */}
+                                <div className="mt-3 flex items-center gap-2">
+                                    <div className="text-xs text-emerald-400/70">Trend:</div>
+                                    <div className="flex gap-1 flex-1">
+                                        {pattern.trend.map((val, idx) => (
+                                            <div
+                                                key={idx}
+                                                className="flex-1 bg-gray-700/50 rounded-sm overflow-hidden"
+                                                style={{ height: '20px' }}
+                                            >
+                                                <div
+                                                    className={`bg-gradient-to-t ${getRiskColor(pattern.fossilizationRisk)} transition-all`}
+                                                    style={{ height: `${val * 100}%` }}
+                                                />
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="text-xs text-emerald-400/70">
+                                        {pattern.trend[pattern.trend.length - 1] > pattern.trend[0] ? '📈 Worsening' : '📉 Improving'}
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Detailed Pattern Modal */}
+                    {selectedPattern && (
+                        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-6 z-50" onClick={() => setSelectedPattern(null)}>
+                            <div className="bg-gradient-to-br from-emerald-900 to-teal-900 rounded-2xl p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto border-2 border-emerald-400/50" onClick={(e) => e.stopPropagation()}>
+                                <div className="flex items-start justify-between mb-6">
+                                    <div>
+                                        <h2 className="text-3xl font-bold text-emerald-100 mb-2">
+                                            {selectedPattern.type}
+                                        </h2>
+                                        <div className="flex gap-2">
+                                            <span className={`text-sm px-3 py-1 rounded border ${getCategoryColor(selectedPattern.category)}`}>
+                                                {selectedPattern.category}
+                                            </span>
+                                            <span className={`text-sm px-3 py-1 rounded border font-semibold ${getRiskBadgeColor(selectedPattern.fossilizationRisk)}`}>
+                                                {selectedPattern.fossilizationRisk} FOSSILIZATION RISK
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => setSelectedPattern(null)}
+                                        className="text-emerald-300 hover:text-emerald-100 text-3xl leading-none"
+                                    >
+                                        ×
+                                    </button>
+                                </div>
+
+                                {/* Trend Chart */}
+                                <div className="bg-black/30 rounded-xl p-6 mb-6">
+                                    <h3 className="text-xl font-bold text-emerald-200 mb-4">Error Frequency Trend</h3>
+                                    <div style={{ height: '250px' }}>
+                                        <canvas ref={chartRef}></canvas>
+                                    </div>
+                                </div>
+
+                                {/* Interlanguage Analysis */}
+                                <div className="bg-white/10 rounded-xl p-6 mb-6 border border-emerald-400/30">
+                                    <h3 className="text-xl font-bold text-emerald-200 mb-4">🧠 Interlanguage Analysis</h3>
+                                    <div className="space-y-3">
+                                        <div>
+                                            <div className="text-sm text-emerald-300 font-semibold mb-1">Current Interlanguage Rule:</div>
+                                            <div className="text-lg text-emerald-100 italic bg-black/30 rounded p-3">
+                                                "{selectedPattern.interlanguageRule}"
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div className="text-sm text-emerald-300 font-semibold mb-1">Transfer Source:</div>
+                                            <div className="text-emerald-100 bg-black/30 rounded p-3">
+                                                {selectedPattern.transferSource}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div className="text-sm text-emerald-300 font-semibold mb-1">Theoretical Basis:</div>
+                                            <div className="text-emerald-100 bg-black/30 rounded p-3">
+                                                {selectedPattern.theoreticalBasis}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* All Examples */}
+                                <div className="bg-white/10 rounded-xl p-6 mb-6 border border-red-400/30">
+                                    <h3 className="text-xl font-bold text-red-200 mb-4">📝 Error Examples</h3>
+                                    <div className="space-y-3">
+                                        {selectedPattern.examples.map((example, idx) => (
+                                            <div key={idx} className="bg-black/30 rounded-lg p-4">
+                                                <div className="flex items-start gap-3 mb-2">
+                                                    <div className="flex-1">
+                                                        <div className="text-sm mb-1">
+                                                            <span className="line-through text-red-300 font-mono">{example.incorrect}</span>
+                                                        </div>
+                                                        <div className="text-sm">
+                                                            <span className="text-green-300 font-mono">{example.correct}</span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-xs text-gray-400">
+                                                        {example.timestamp}
+                                                    </div>
+                                                </div>
+                                                <div className="text-xs text-gray-400 italic">Context: {example.context}</div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Intervention Strategy */}
+                                <div className="bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-xl p-6 border border-purple-400/50">
+                                    <h3 className="text-xl font-bold text-purple-200 mb-4">🎯 Adaptive Intervention</h3>
+                                    <div className="bg-black/30 rounded-lg p-4 mb-4">
+                                        <div className="text-purple-100 text-lg mb-2">{selectedPattern.intervention}</div>
+                                        <div className="text-sm text-purple-300">
+                                            This intervention is designed to create <strong>cognitive disequilibrium</strong> and 
+                                            destabilize the fossilized pattern through targeted exposure and forced production.
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="bg-purple-500/20 rounded-lg p-3 border border-purple-400/30">
+                                            <div className="text-sm text-purple-200 font-semibold mb-1">Frequency Target:</div>
+                                            <div className="text-2xl font-bold text-purple-100">&lt; 30%</div>
+                                            <div className="text-xs text-purple-300">Acceptable error rate</div>
+                                        </div>
+                                        <div className="bg-blue-500/20 rounded-lg p-3 border border-blue-400/30">
+                                            <div className="text-sm text-blue-200 font-semibold mb-1">Intervention Phase:</div>
+                                            <div className="text-2xl font-bold text-blue-100">Active</div>
+                                            <div className="text-xs text-blue-300">Chaos injection enabled</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Theory Footer */}
+                    <footer className="mt-12 bg-white/5 backdrop-blur rounded-xl p-6 border border-emerald-400/20">
+                        <h3 className="text-lg font-bold text-emerald-200 mb-3">💡 Theoretical Foundation</h3>
+                        <div className="grid md:grid-cols-2 gap-4 text-sm">
+                            <div>
+                                <div className="font-semibold text-emerald-300 mb-1">Interlanguage Theory (Selinker, 1972)</div>
+                                <div className="text-emerald-100/80">
+                                    Learners develop systematic intermediate grammars. Error patterns reveal these interlanguage rules.
+                                </div>
+                            </div>
+                            <div>
+                                <div className="font-semibold text-emerald-300 mb-1">Fossilization Detection</div>
+                                <div className="text-emerald-100/80">
+                                    Patterns appearing in &gt;70% of production opportunities indicate fossilization risk requiring intervention.
+                                </div>
+                            </div>
+                        </div>
+                    </footer>
+                </div>
+            );
+        };
+
+        ReactDOM.render(<ErrorGardenDashboard />, document.getElementById('root'));
+    </script>
+</body>
+</html>
