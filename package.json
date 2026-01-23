@@ -9,11 +9,17 @@
     "lint": "eslint",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "curate": "npx tsx scripts/curate.ts",
+    "curate:add": "npx tsx scripts/curate.ts add",
+    "curate:video": "npx tsx scripts/curate.ts video",
+    "curate:stats": "npx tsx scripts/curate.ts stats",
+    "curate:list": "npx tsx scripts/curate.ts list"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.974.0",
     "@clerk/nextjs": "^6.36.8",
+    "@inquirer/prompts": "^8.2.0",
     "@neondatabase/serverless": "^1.0.2",
     "@radix-ui/react-avatar": "^1.1.11",
     "@radix-ui/react-dropdown-menu": "^2.1.16",
@@ -21,6 +27,7 @@
     "@radix-ui/react-switch": "^1.2.6",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "commander": "^14.0.2",
     "dotenv": "^17.2.3",
     "drizzle-orm": "^0.45.1",
     "lucide-react": "^0.562.0",

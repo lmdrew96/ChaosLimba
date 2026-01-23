@@ -1,0 +1,72 @@
+[
+  {
+    "type": "video",
+    "youtubeUrl": "https://youtube.com/watch?v=EXAMPLE_ID",
+    "level": "B1",
+    "topic": "cooking",
+    "durationSeconds": 420,
+    "languageFeatures": {
+      "grammar": ["imperative mood", "accusative case"],
+      "vocabulary": {
+        "keywords": ["bucătărie", "ingrediente", "a găti", "sare", "piper"],
+        "requiredVocabSize": 800
+      },
+      "structures": ["commands", "questions"]
+    },
+    "culturalNotes": "Traditional Romanian cooking techniques"
+  },
+  {
+    "type": "video",
+    "youtubeUrl": "https://youtu.be/EXAMPLE_ID_2",
+    "title": "Custom title override",
+    "level": "A2",
+    "topic": "daily life",
+    "durationSeconds": 180
+  },
+  {
+    "type": "audio",
+    "audioUrl": "https://your-r2-bucket.r2.dev/podcast-ep1.mp3",
+    "title": "Romanian Podcast - Episode 1",
+    "level": "A2",
+    "topic": "daily life",
+    "durationSeconds": 900,
+    "creator": "Podcast Host Name",
+    "license": "Creative Commons",
+    "languageFeatures": {
+      "grammar": ["present tense", "basic questions"],
+      "vocabulary": {
+        "keywords": ["bună ziua", "ce faci", "mulțumesc"],
+        "requiredVocabSize": 400
+      },
+      "structures": ["greetings", "simple questions"]
+    }
+  },
+  {
+    "type": "text",
+    "title": "Romanian Folk Tale - Făt-Frumos",
+    "textUrl": "https://example.com/povesti/fat-frumos",
+    "level": "B2",
+    "topic": "literature",
+    "durationSeconds": 600,
+    "creator": "Public Domain",
+    "license": "Public Domain",
+    "culturalNotes": "Classic Romanian fairy tale, great for learning formal narrative style"
+  },
+  {
+    "type": "text",
+    "title": "News Article - Weather Report",
+    "textContent": "Vremea va fi frumoasă în toată țara. Temperaturile vor ajunge la 25 de grade în București.",
+    "level": "A1",
+    "topic": "news",
+    "durationSeconds": 60,
+    "creator": "Example News",
+    "languageFeatures": {
+      "grammar": ["future tense", "numbers"],
+      "vocabulary": {
+        "keywords": ["vremea", "temperatura", "grade", "frumos"],
+        "requiredVocabSize": 200
+      },
+      "structures": ["simple sentences"]
+    }
+  }
+]
