@@ -28,6 +28,53 @@ export default function MysteryShelfPage() {
   const [filter, setFilter] = useState<"all" | "new" | "explored">("all")
   const [selectedItem, setSelectedItem] = useState<MysteryItem | null>(null)
 
+  // AI Analysis Logic
+  const [analyzingIds, setAnalyzingIds] = useState<Set<string>>(new Set())
+
+  const runAIAnalysis = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation() // Prevent card click
+
+    setAnalyzingIds(prev => new Set(prev).add(id))
+
+    try {
+      const res = await fetch("/api/ai/analyze-mystery-item", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ itemId: id })
+      })
+
+      if (res.ok) {
+        const updatedItem = await res.json()
+        setItems(items.map(item =>
+          item.id === id ? {
+            ...item,
+            definition: updatedItem.definition,
+            examples: updatedItem.examples,
+            context: updatedItem.context, // Update context if it changed
+            isExplored: true // Auto-mark explored if analyzed? Maybe. Let's just update content.
+          } : item
+        ))
+        // Also update selected item if it's the one being analyzed
+        if (selectedItem?.id === id) {
+          setSelectedItem(prev => prev ? {
+            ...prev,
+            definition: updatedItem.definition,
+            examples: updatedItem.examples,
+            context: updatedItem.context
+          } : null)
+        }
+      }
+    } catch (error) {
+      console.error("AI Analysis failed", error)
+    } finally {
+      setAnalyzingIds(prev => {
+        const next = new Set(prev)
+        next.delete(id)
+        return next
+      })
+    }
+  }
+
   // Add Item Form State
   const [isAddOpen, setIsAddOpen] = useState(false)
   const [newItemWord, setNewItemWord] = useState("")
@@ -212,8 +259,8 @@ export default function MysteryShelfPage() {
               <Card
                 key={item.id}
                 className={`rounded-xl border-amber-500/20 cursor-pointer transition-all hover:border-amber-500/40 hover:shadow-lg hover:shadow-amber-500/5 ${selectedItem?.id === item.id
-                    ? "ring-2 ring-amber-500/50"
-                    : ""
+                  ? "ring-2 ring-amber-500/50"
+                  : ""
                   }`}
                 onClick={() => setSelectedItem(item)}
               >
@@ -330,11 +377,16 @@ export default function MysteryShelfPage() {
                     <Button
                       variant="secondary"
                       size="sm"
-                      className="mt-2 w-full"
-                    // disabled={true}
+                      className="mt-2 w-full bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/50 text-amber-200"
+                      onClick={(e) => runAIAnalysis(selectedItem.id, e)}
+                      disabled={analyzingIds.has(selectedItem.id)}
                     >
-                      <Sparkles className="h-3 w-3 mr-2" />
-                      Run AI Analysis (Coming Soon)
+                      {analyzingIds.has(selectedItem.id) ? (
+                        <Loader2 className="h-3 w-3 mr-2 animate-spin" />
+                      ) : (
+                        <Sparkles className="h-3 w-3 mr-2" />
+                      )}
+                      Run AI Analysis
                     </Button>
                   </div>
                 )}

@@ -6,7 +6,7 @@ export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
     const audioFile = formData.get('audio') as File;
-    
+
     if (!audioFile) {
       return NextResponse.json(
         { error: 'No audio file provided' },
@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
     }
 
     const result = await response.json();
-    
+
     return NextResponse.json({
       success: true,
       transcription: result.text,
