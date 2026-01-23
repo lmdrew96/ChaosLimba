@@ -46,6 +46,7 @@ export function ContentPlayer({
       }
       return (
         <VideoPlayer
+          key={content.youtubeId}
           youtubeId={content.youtubeId}
           startTime={content.startTime ?? undefined}
           endTime={content.endTime ?? undefined}
