@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, type FormEvent } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import {
@@ -18,6 +18,8 @@ export default function ChaosWindowPage() {
   const [isActive, setIsActive] = useState(false)
   const [timer, setTimer] = useState(300)
   const [response, setResponse] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null
@@ -40,6 +42,30 @@ export default function ChaosWindowPage() {
   const resetTimer = () => {
     setTimer(300)
     setIsActive(false)
+  }
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const trimmed = response.trim()
+
+    if (trimmed.length < 5) {
+      setError("Răspunsul trebuie să aibă cel puțin 5 caractere.")
+      return
+    }
+
+    setError(null)
+    setIsSubmitting(true)
+
+    try {
+      // TODO: Integrate with Chaos Window submission endpoint
+      await new Promise((resolve) => setTimeout(resolve, 400))
+      setResponse("")
+    } catch (submitError) {
+      console.error("Failed to submit response", submitError)
+      setError("Nu am putut trimite răspunsul. Încearcă din nou.")
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -142,18 +168,28 @@ export default function ChaosWindowPage() {
                     ce crezi că personajul trebuia să ia o decizie? Folosește
                     conjunctivul în răspunsul tău.
                   </p>
-                  <div className="space-y-3">
+                  <form onSubmit={handleSubmit} className="space-y-3">
                     <textarea
                       value={response}
                       onChange={(e) => setResponse(e.target.value)}
                       className="w-full h-24 rounded-xl bg-background border border-purple-500/30 p-4 focus:ring-2 focus:ring-purple-500/30 focus:outline-none resize-none"
                       placeholder="Răspunde aici..."
+                      disabled={isSubmitting}
+                      aria-invalid={!!error}
                     />
-                    <Button className="bg-purple-600 hover:bg-purple-700 rounded-xl">
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span>Minim 5 caractere</span>
+                      {error && <span className="text-red-400">{error}</span>}
+                    </div>
+                    <Button
+                      type="submit"
+                      className="bg-purple-600 hover:bg-purple-700 rounded-xl"
+                      disabled={isSubmitting}
+                    >
                       <Send className="mr-2 h-4 w-4" />
-                      Submit Response
+                      {isSubmitting ? "Se trimite..." : "Submit Response"}
                     </Button>
-                  </div>
+                  </form>
                 </CardContent>
               </Card>
 
