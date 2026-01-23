@@ -1,80 +1,109 @@
 import { HfInference } from "@huggingface/inference";
 
-const MODEL_ID = "dumitrescustefan/bert-base-romanian-cased-v1";
+/**
+ * Using a robust multilingual sentence transformer model
+ * This model supports Romanian and is reliable on HF Inference API
+ */
+const MODEL_ID = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2";
 const CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes
-const MAX_TEXT_LENGTH = 5000;
+const MAX_TEXT_LENGTH = 512;
 
-type CacheEntry = {
+type SimilarityCache = {
   expiresAt: number;
-  result: SpamAResult;
+  similarity: number;
 };
 
 export interface SpamAResult {
-  label: string;
-  score: number;
-  raw: unknown;
+  similarity: number; // 0-1
+  semanticMatch: boolean; // true if similarity >= threshold
+  threshold: number;
   fallbackUsed: boolean;
+  modelUsed?: string;
 }
 
-export class ValidationError extends Error {}
+export class ValidationError extends Error { }
 
-const cache = new Map<string, CacheEntry>();
-let client: HfInference | null = null;
-
-function getClient(): HfInference {
-  const token = process.env.HUGGINGFACE_API_KEY || process.env.HUGGINGFACE_API_TOKEN;
-  if (!token) {
-    throw new Error("HUGGINGFACE_API_KEY (or HUGGINGFACE_API_TOKEN) is not set");
-  }
-  if (!client) {
-    client = new HfInference(token);
-  }
-  return client;
-}
+// Cache key: "userText|expectedText"
+const similarityCache = new Map<string, SimilarityCache>();
 
 function normalizeText(text: string): string {
   return text.trim().replace(/\s+/g, " ");
 }
 
-function setCache(key: string, result: SpamAResult) {
-  cache.set(key, { expiresAt: Date.now() + CACHE_TTL_MS, result });
+function getCacheKey(userText: string, expectedText: string): string {
+  // Sort to ensure "A vs B" is same as "B vs A" for caching efficiency
+  const parts = [userText, expectedText].sort();
+  return `${parts[0]}|${parts[1]}`;
 }
 
-function getCache(key: string): SpamAResult | null {
-  const hit = cache.get(key);
+function setCache(key: string, similarity: number) {
+  similarityCache.set(key, { expiresAt: Date.now() + CACHE_TTL_MS, similarity });
+}
+
+function getCache(key: string): number | null {
+  const hit = similarityCache.get(key);
   if (!hit) return null;
   if (hit.expiresAt < Date.now()) {
-    cache.delete(key);
+    similarityCache.delete(key);
     return null;
   }
-  return hit.result;
+  return hit.similarity;
 }
 
 export function clearSpamACache() {
-  cache.clear();
+  similarityCache.clear();
 }
 
-export async function analyzeSpamA(text: string): Promise<SpamAResult> {
-  const normalized = normalizeText(text || "");
+/**
+ * Analyze semantic similarity between user input and expected answer
+ * Uses HF Inference API via Sentence Similarity task
+ * @param userText - The user's Romanian text
+ * @param expectedText - The expected Romanian text
+ * @param threshold - Similarity threshold (default 0.75 = 75% match)
+ */
+export async function compareSemanticSimilarity(
+  userText: string,
+  expectedText: string,
+  threshold: number = 0.75
+): Promise<SpamAResult> {
+  const normalizedUser = normalizeText(userText || "");
+  const normalizedExpected = normalizeText(expectedText || "");
 
-  if (!normalized) {
-    throw new ValidationError("Text cannot be empty");
+  if (!normalizedUser) {
+    throw new ValidationError("User text cannot be empty");
   }
 
-  if (normalized.length > MAX_TEXT_LENGTH) {
-    throw new ValidationError(`Text is too long (max ${MAX_TEXT_LENGTH} characters)`);
+  if (!normalizedExpected) {
+    throw new ValidationError("Expected text cannot be empty");
   }
 
-  const cached = getCache(normalized);
-  if (cached) {
-    return cached;
+  if (normalizedUser.length > MAX_TEXT_LENGTH) {
+    throw new ValidationError(`User text is too long (max ${MAX_TEXT_LENGTH} characters)`);
   }
 
-  const hf = getClient();
-  const token = process.env.HUGGINGFACE_API_KEY || process.env.HUGGINGFACE_API_TOKEN;
+  if (normalizedExpected.length > MAX_TEXT_LENGTH) {
+    throw new ValidationError(`Expected text is too long (max ${MAX_TEXT_LENGTH} characters)`);
+  }
+
+  // Check cache
+  const cacheKey = getCacheKey(normalizedUser, normalizedExpected);
+  const cachedScore = getCache(cacheKey);
+
+  if (cachedScore !== null) {
+    return {
+      similarity: cachedScore,
+      semanticMatch: cachedScore >= threshold,
+      threshold,
+      fallbackUsed: false
+    };
+  }
+
   const start = Date.now();
+  const token = process.env.HUGGINGFACE_API_KEY || process.env.HUGGINGFACE_API_TOKEN;
 
   try {
+    // The model is loaded as a SentenceSimilarityPipeline
+    // We must send inputs in the format: { source_sentence: "...", sentences: ["..."] }
     const response = await fetch(
       `https://router.huggingface.co/hf-inference/models/${MODEL_ID}`,
       {
@@ -83,7 +112,13 @@ export async function analyzeSpamA(text: string): Promise<SpamAResult> {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ inputs: normalized }),
+        body: JSON.stringify({
+          inputs: {
+            source_sentence: normalizedUser,
+            sentences: [normalizedExpected]
+          },
+          options: { wait_for_model: true },
+        }),
       }
     );
 
@@ -92,37 +127,41 @@ export async function analyzeSpamA(text: string): Promise<SpamAResult> {
       throw new Error(`HF API error: ${response.status} ${err}`);
     }
 
-    const data = await response.json();
+    // Output is a list of scores, e.g. [0.985]
+    const output = await response.json();
 
-    // HF returns either an array of predictions or an array of arrays depending on task
-    const predictions = Array.isArray(data) ? data : [];
-    const primary = Array.isArray(predictions[0]) ? predictions[0][0] : predictions[0];
+    let similarity = 0;
+    if (Array.isArray(output) && typeof output[0] === 'number') {
+      similarity = output[0];
+    } else {
+      // Sometimes it might return object with 'score' key?
+      // But usually sentence-similarity returns a list of scores corresponding to 'sentences' list
+      console.warn("Unexpected HF output format:", output);
+      // Safety fallback for unknown formats if any
+      similarity = 0;
+    }
 
-    const label = typeof primary?.label === "string" ? primary.label : "unknown";
-    const score = typeof primary?.score === "number" ? primary.score : 0;
+    setCache(cacheKey, similarity);
 
-    const result: SpamAResult = {
-      label,
-      score,
-      raw: data,
-      fallbackUsed: false,
-    };
-
-    setCache(normalized, result);
     console.log(
-      `HF SPAM-A call (${MODEL_ID}) took ${Date.now() - start}ms, label=${label}, score=${score}`
+      `SPAM-A similarity computed in ${Date.now() - start}ms: ${(similarity * 100).toFixed(1)}%`
     );
 
-    return result;
+    return {
+      similarity,
+      semanticMatch: similarity >= threshold,
+      threshold,
+      fallbackUsed: false,
+      modelUsed: MODEL_ID
+    };
+
   } catch (error) {
-    console.error("SPAM-A inference failed:", error);
-    const fallback: SpamAResult = {
-      label: "unknown",
-      score: 0,
-      raw: null,
+    console.error("SPAM-A semantic similarity failed:", error);
+    return {
+      similarity: 0,
+      semanticMatch: false,
+      threshold,
       fallbackUsed: true,
     };
-    setCache(normalized, fallback);
-    return fallback;
   }
 }

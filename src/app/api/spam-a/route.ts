@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import { analyzeSpamA, ValidationError } from "@/lib/ai/spamA";
+import { compareSemanticSimilarity, ValidationError } from "@/lib/ai/spamA";
 
 export async function POST(req: NextRequest) {
   try {
@@ -10,9 +10,11 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const text = typeof body?.text === "string" ? body.text : "";
+    const userText = typeof body?.userText === "string" ? body.userText : "";
+    const expectedText = typeof body?.expectedText === "string" ? body.expectedText : "";
+    const threshold = typeof body?.threshold === "number" ? body.threshold : 0.75;
 
-    const result = await analyzeSpamA(text);
+    const result = await compareSemanticSimilarity(userText, expectedText, threshold);
 
     return NextResponse.json({ result });
   } catch (error) {
@@ -21,7 +23,7 @@ export async function POST(req: NextRequest) {
     }
 
     console.error("SPAM-A API error:", error);
-    return NextResponse.json({ error: "Failed to analyze text" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to analyze semantic similarity" }, { status: 500 });
   }
 }
 
