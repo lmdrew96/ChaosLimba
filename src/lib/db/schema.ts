@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, timestamp, decimal, integer, jsonb } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, text, timestamp, decimal, integer, jsonb, boolean as pgBoolean } from 'drizzle-orm/pg-core';
 
 // Type definitions for JSONB fields
 export type LanguageFeatures = {
@@ -99,3 +99,20 @@ export type NewErrorLog = typeof errorLogs.$inferInsert;
 // Infer types for sessions
 export type Session = typeof sessions.$inferSelect;
 export type NewSession = typeof sessions.$inferInsert;
+
+// Mystery Shelf Items table
+export const mysteryItems = pgTable('mystery_items', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: text('user_id').notNull(),
+  word: text('word').notNull(),
+  context: text('context'),
+  definition: text('definition'),
+  examples: jsonb('examples').$type<string[]>(),
+  isExplored: pgBoolean('is_explored').default(false).notNull(),
+  source: text('source').default('manual').notNull(), // 'manual', 'deep_fog'
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// Infer types for mystery items
+export type MysteryItem = typeof mysteryItems.$inferSelect;
+export type NewMysteryItem = typeof mysteryItems.$inferInsert;
