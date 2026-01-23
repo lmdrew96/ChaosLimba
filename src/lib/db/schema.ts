@@ -54,3 +54,48 @@ export const contentItems = pgTable('content_items', {
 // Infer types for use in application
 export type ContentItem = typeof contentItems.$inferSelect;
 export type NewContentItem = typeof contentItems.$inferInsert;
+
+// Error type enum
+export const errorTypeEnum = ['grammar', 'pronunciation', 'vocabulary', 'word_order'] as const;
+export type ErrorType = (typeof errorTypeEnum)[number];
+
+// Error source enum
+export const errorSourceEnum = ['chaos_window', 'content_player', 'deep_fog', 'manual'] as const;
+export type ErrorSource = (typeof errorSourceEnum)[number];
+
+// Session type enum
+export const sessionTypeEnum = ['chaos_window', 'deep_fog', 'content', 'mystery_shelf'] as const;
+export type SessionType = (typeof sessionTypeEnum)[number];
+
+// Error logs table - tracks user errors for Error Garden
+export const errorLogs = pgTable('error_logs', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: text('user_id').notNull(),
+  errorType: text('error_type').$type<ErrorType>().notNull(),
+  category: text('category'), // subcategory like 'genitive_case', 'verb_conjugation'
+  context: text('context'), // the sentence/phrase where error occurred
+  correction: text('correction'), // the correct form
+  source: text('source').$type<ErrorSource>().notNull(),
+  contentId: uuid('content_id').references(() => contentItems.id),
+  sessionId: uuid('session_id').references(() => sessions.id),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// Sessions table - tracks user learning sessions
+export const sessions = pgTable('sessions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: text('user_id').notNull(),
+  sessionType: text('session_type').$type<SessionType>().notNull(),
+  contentId: uuid('content_id').references(() => contentItems.id),
+  startedAt: timestamp('started_at').defaultNow().notNull(),
+  endedAt: timestamp('ended_at'),
+  durationSeconds: integer('duration_seconds'),
+});
+
+// Infer types for error logs
+export type ErrorLog = typeof errorLogs.$inferSelect;
+export type NewErrorLog = typeof errorLogs.$inferInsert;
+
+// Infer types for sessions
+export type Session = typeof sessions.$inferSelect;
+export type NewSession = typeof sessions.$inferInsert;
