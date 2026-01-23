@@ -11,6 +11,7 @@ import {
   Clock,
   Target,
   Zap,
+  Shield,
 } from "lucide-react"
 import Link from "next/link"
 
@@ -77,6 +78,14 @@ const quickActions = [
     icon: Flower2,
     gradient: "from-green-500/20 to-emerald-500/10",
     iconColor: "text-green-400",
+  },
+  {
+    name: "SPAM-A Test",
+    description: "Test Romanian spam analysis",
+    href: "/spam-a-test",
+    icon: Shield,
+    gradient: "from-red-500/20 to-orange-500/10",
+    iconColor: "text-red-400",
   },
 ]
 
