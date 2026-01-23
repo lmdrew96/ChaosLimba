@@ -14,12 +14,35 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Switch } from "@/components/ui/switch"
 import { useEffect, useState } from "react"
-import { useClerk } from "@clerk/nextjs"
+import { useClerk, useUser } from "@clerk/nextjs"
 
 export function TopBar() {
   const { theme, setTheme, resolvedTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
   const { signOut } = useClerk()
+  const { user, isLoaded } = useUser()
+
+  // Get user initials for avatar fallback
+  const getInitials = () => {
+    if (!user) return "CL"
+    if (user.firstName && user.lastName) {
+      return `${user.firstName[0]}${user.lastName[0]}`.toUpperCase()
+    }
+    if (user.firstName) return user.firstName[0].toUpperCase()
+    if (user.emailAddresses?.[0]?.emailAddress) {
+      return user.emailAddresses[0].emailAddress[0].toUpperCase()
+    }
+    return "CL"
+  }
+
+  // Get display name
+  const getDisplayName = () => {
+    if (!user) return "Chaos Learner"
+    if (user.firstName) {
+      return user.lastName ? `${user.firstName} ${user.lastName}` : user.firstName
+    }
+    return user.emailAddresses?.[0]?.emailAddress || "Chaos Learner"
+  }
 
   useEffect(() => {
     setMounted(true)
@@ -66,9 +89,9 @@ export function TopBar() {
               className="relative h-10 w-10 rounded-full ring-2 ring-purple-500/20 hover:ring-purple-500/40 transition-all"
             >
               <Avatar className="h-9 w-9">
-                <AvatarImage src="" alt="User" />
+                <AvatarImage src={user?.imageUrl || ""} alt={getDisplayName()} />
                 <AvatarFallback className="bg-gradient-to-br from-purple-500 to-violet-600 text-white text-sm">
-                  CL
+                  {getInitials()}
                 </AvatarFallback>
               </Avatar>
             </Button>
@@ -80,9 +103,9 @@ export function TopBar() {
           >
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium">Chaos Learner</p>
+                <p className="text-sm font-medium">{getDisplayName()}</p>
                 <p className="text-xs text-muted-foreground">
-                  Level: B1 Intermediate
+                  {user?.emailAddresses?.[0]?.emailAddress || "Chaos Learner"}
                 </p>
               </div>
             </DropdownMenuLabel>

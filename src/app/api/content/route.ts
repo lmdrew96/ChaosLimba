@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '@clerk/nextjs/server';
 import { db } from '@/lib/db';
 import { contentItems, NewContentItem, contentTypeEnum } from '@/lib/db/schema';
 import { and, gte, lte, eq, desc } from 'drizzle-orm';
@@ -6,6 +7,10 @@ import { and, gte, lte, eq, desc } from 'drizzle-orm';
 // GET /api/content - List content with optional filters
 export async function GET(req: NextRequest) {
   try {
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     const { searchParams } = new URL(req.url);
     const type = searchParams.get('type') as (typeof contentTypeEnum)[number] | null;
     const minDifficulty = searchParams.get('minDifficulty');
@@ -51,6 +56,11 @@ export async function GET(req: NextRequest) {
 // POST /api/content - Create new content item
 export async function POST(req: NextRequest) {
   try {
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body: NewContentItem = await req.json();
 
     // Validate required fields
