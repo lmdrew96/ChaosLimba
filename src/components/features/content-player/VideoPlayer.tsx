@@ -160,24 +160,28 @@ export function VideoPlayer({
 
   // Update current time periodically
   useEffect(() => {
-    if (!isPlaying || !playerRef.current) return;
+    if (!isPlaying || !isReady || !playerRef.current) return;
 
     const interval = setInterval(() => {
-      const time = playerRef.current?.getCurrentTime() || 0;
+      // Ensure the player methods exist before calling them
+      const player = playerRef.current;
+      if (!player || typeof player.getCurrentTime !== 'function') return;
+
+      const time = player.getCurrentTime() || 0;
       setCurrentTime(time);
 
       // Enforce boundaries
       if (time < startTime) {
-        playerRef.current?.seekTo(startTime, true);
+        player.seekTo(startTime, true);
       }
       if (endTime && time >= endTime) {
-        playerRef.current?.pauseVideo();
-        playerRef.current?.seekTo(startTime, true);
+        player.pauseVideo();
+        player.seekTo(startTime, true);
       }
     }, 250);
 
     return () => clearInterval(interval);
-  }, [isPlaying, startTime, endTime]);
+  }, [isPlaying, isReady, startTime, endTime]);
 
   // Hide controls after inactivity
   useEffect(() => {
