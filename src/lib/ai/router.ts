@@ -1,5 +1,7 @@
 import { analyzeMysteryItem, MysteryAnalysis } from "./tutor";
 import { compareSemanticSimilarity, SpamAResult } from "./spamA";
+import { checkIntonationShift } from "./spamD";
+import { IntonationWarning } from "../../types/intonation";
 
 /**
  * The Central Brain of ChaosLimbă
@@ -9,6 +11,7 @@ import { compareSemanticSimilarity, SpamAResult } from "./spamA";
 export type AIIntent =
     | "analyze_mystery_item"
     | "semantic_similarity"
+    | "intonation_analysis"
     | "chaos_tutor_chat"; // Future
 
 type AIPayload = {
@@ -26,6 +29,9 @@ export class AIRouter {
             case "semantic_similarity":
                 return this.handleSemanticSimilarity(payload);
 
+            case "intonation_analysis":
+                return this.handleIntonationAnalysis(payload);
+
             default:
                 throw new Error(`Unknown AI intent: ${intent}`);
         }
@@ -41,5 +47,14 @@ export class AIRouter {
     private static async handleSemanticSimilarity(payload: AIPayload): Promise<SpamAResult> {
         const { userText, expectedText } = payload;
         return compareSemanticSimilarity(userText, expectedText);
+    }
+
+    private static async handleIntonationAnalysis(payload: AIPayload): Promise<{ warnings: IntonationWarning[] }> {
+        const { transcript, stressPatterns } = payload;
+        if (!transcript || !stressPatterns) {
+            throw new Error("Transcript and stressPatterns are required for intonation analysis");
+        }
+
+        return checkIntonationShift(transcript, stressPatterns);
     }
 }
