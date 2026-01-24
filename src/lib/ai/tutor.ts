@@ -12,6 +12,32 @@ export type MysteryAnalysis = {
     etymology?: string;
 };
 
+export type TutorResponse = {
+    feedback: {
+        overall: string;
+        grammar: GrammarError[];
+        semantic: SemanticMatch;
+        encouragement: string;
+    };
+    nextQuestion: string;
+    errorPatterns: string[];
+    isCorrect: boolean;
+};
+
+export type GrammarError = {
+    type: string;
+    incorrect: string;
+    correct: string;
+    explanation: string;
+    severity: "minor" | "major" | "critical";
+};
+
+export type SemanticMatch = {
+    score: number;
+    matches: boolean;
+    feedback: string;
+};
+
 /**
  * Analyzes a mystery item using DeepSeek-R1 (via Groq)
  */
@@ -66,6 +92,91 @@ export async function analyzeMysteryItem(
             definition: "The Oracle is meditating (Groq Error).",
             context: userContext || "",
             examples: ["Try again later."],
+        };
+    }
+}
+
+/**
+ * Generates AI tutor response for Chaos Window interactions
+ */
+export async function generateTutorResponse(
+    userResponse: string,
+    context: string,
+    errorPatterns: string[] = []
+): Promise<TutorResponse> {
+
+    const prompt = `
+You are the ChaosLimbă Tutor, a brilliant but slightly chaotic Romanian language expert.
+Your goal is to help learners master Romanian through "productive confusion".
+
+Context: The user just heard/read: "${context}"
+User's response: "${userResponse}"
+${errorPatterns.length > 0 ? `Known error patterns to watch for: ${errorPatterns.join(', ')}` : ''}
+
+Analyze the response and provide feedback in this JSON format:
+{
+  "feedback": {
+    "overall": "Brief overall assessment (encouraging but honest)",
+    "grammar": [
+      {
+        "type": "error_type",
+        "incorrect": "incorrect_part",
+        "correct": "correct_form", 
+        "explanation": "clear_explanation",
+        "severity": "minor|major|critical"
+      }
+    ],
+    "semantic": {
+      "score": 0.85,
+      "matches": true,
+      "feedback": "semantic_feedback"
+    },
+    "encouragement": "motivational_comment"
+  },
+  "nextQuestion": "follow_up_question_that_targets_weaknesses",
+  "errorPatterns": ["any_new_error_patterns_detected"],
+  "isCorrect": false
+}
+
+Focus on:
+1. Grammar accuracy with specific corrections
+2. Semantic understanding of the context
+3. Encouragement that maintains motivation
+4. Next question that addresses identified weaknesses
+5. Error patterns that should go to the Error Garden
+`;
+
+    try {
+        const output = await callGroq([
+            { role: "system", content: SYSTEM_PROMPT },
+            { role: "user", content: prompt }
+        ]);
+
+        // Clean any markdown formatting
+        const cleanJson = output.replace(/```json/g, "").replace(/```/g, "").trim();
+        const effectiveJson = cleanJson.replace(/<think>[\s\S]*?<\/think>/g, "").trim();
+
+        const parsed = JSON.parse(effectiveJson);
+
+        return {
+            feedback: parsed.feedback,
+            nextQuestion: parsed.nextQuestion,
+            errorPatterns: parsed.errorPatterns || [],
+            isCorrect: parsed.isCorrect || false
+        };
+
+    } catch (error) {
+        console.error("[Tutor] Response generation failed:", error);
+        return {
+            feedback: {
+                overall: "The Oracle is meditating on your response...",
+                grammar: [],
+                semantic: { score: 0, matches: false, feedback: "Unable to analyze" },
+                encouragement: "Try again - the AI spirits are busy!"
+            },
+            nextQuestion: "Can you try that again in a different way?",
+            errorPatterns: [],
+            isCorrect: false
         };
     }
 }

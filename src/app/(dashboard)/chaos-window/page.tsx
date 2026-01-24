@@ -13,6 +13,9 @@ import {
   Headphones,
   MessageSquare,
 } from "lucide-react"
+import { AIResponse } from "@/components/features/chaos-window/AIResponse"
+import { ConversationHistory, ConversationMessage } from "@/components/features/chaos-window/ConversationHistory"
+import { TutorResponse } from "@/lib/ai/tutor"
 
 export default function ChaosWindowPage() {
   const [isActive, setIsActive] = useState(false)
@@ -20,6 +23,14 @@ export default function ChaosWindowPage() {
   const [response, setResponse] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  
+  // AI Response state
+  const [currentAIResponse, setCurrentAIResponse] = useState<TutorResponse | null>(null)
+  const [isLoadingAI, setIsLoadingAI] = useState(false)
+  const [conversationHistory, setConversationHistory] = useState<ConversationMessage[]>([])
+  const [currentContext, setCurrentContext] = useState(
+    "...și atunci mi-am dat seama că trebuie să iau o decizie. Era imposibil să rămân în situația aceea pentru totdeauna..."
+  )
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null
@@ -55,16 +66,61 @@ export default function ChaosWindowPage() {
 
     setError(null)
     setIsSubmitting(true)
+    setIsLoadingAI(true)
+
+    // Add user message to conversation history
+    const userMessage: ConversationMessage = {
+      id: Date.now().toString(),
+      type: "user",
+      content: trimmed,
+      timestamp: new Date()
+    }
+    setConversationHistory(prev => [...prev, userMessage])
 
     try {
-      // TODO: Integrate with Chaos Window submission endpoint
-      await new Promise((resolve) => setTimeout(resolve, 400))
+      // Call AI API
+      const res = await fetch("/api/chaos-window/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userResponse: trimmed,
+          context: currentContext,
+          errorPatterns: [], // TODO: Get from Error Garden
+          sessionId: "demo-session" // TODO: Real session management
+        })
+      })
+
+      if (!res.ok) {
+        throw new Error("AI response failed")
+      }
+
+      const data = await res.json()
+      const aiResponse: TutorResponse = data.response
+
+      // Add AI message to conversation history
+      const aiMessage: ConversationMessage = {
+        id: (Date.now() + 1).toString(),
+        type: "ai",
+        content: aiResponse.feedback.overall,
+        timestamp: new Date(),
+        aiResponse
+      }
+      
+      setConversationHistory(prev => [...prev, aiMessage])
+      setCurrentAIResponse(aiResponse)
       setResponse("")
+      
+      // Update context if there's a next question
+      if (aiResponse.nextQuestion) {
+        setCurrentContext(aiResponse.nextQuestion)
+      }
+
     } catch (submitError) {
       console.error("Failed to submit response", submitError)
       setError("Nu am putut trimite răspunsul. Încearcă din nou.")
     } finally {
       setIsSubmitting(false)
+      setIsLoadingAI(false)
     }
   }
 
@@ -163,11 +219,12 @@ export default function ChaosWindowPage() {
                     </div>
                     <h4 className="font-medium">AI Tutor</h4>
                   </div>
-                  <p className="text-muted-foreground mb-4">
-                    Foarte bine! Ai înțeles contextul. Acum, poți să-mi spui: De
-                    ce crezi că personajul trebuia să ia o decizie? Folosește
-                    conjunctivul în răspunsul tău.
-                  </p>
+                  
+                  {/* Show current context/question */}
+                  <div className="p-4 rounded-lg bg-muted/30 italic text-muted-foreground mb-4">
+                    {currentContext}
+                  </div>
+                  
                   <form onSubmit={handleSubmit} className="space-y-3">
                     <textarea
                       value={response}
@@ -192,6 +249,30 @@ export default function ChaosWindowPage() {
                   </form>
                 </CardContent>
               </Card>
+
+              {/* AI Response Display */}
+              {isLoadingAI && (
+                <AIResponse isLoading={true} />
+              )}
+              
+              {currentAIResponse && !isLoadingAI && (
+                <AIResponse response={currentAIResponse} />
+              )}
+
+              {/* Conversation History */}
+              {conversationHistory.length > 1 && (
+                <Card className="rounded-xl border-border/40">
+                  <CardHeader>
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <MessageSquare className="h-4 w-4 text-purple-400" />
+                      Conversation History
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ConversationHistory messages={conversationHistory.slice(-3)} />
+                  </CardContent>
+                </Card>
+              )}
 
               <div className="flex gap-3 justify-center">
                 <Button
