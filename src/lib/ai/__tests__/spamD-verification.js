@@ -108,5 +108,5 @@ console.log('\n📊 Summary:');
 console.log('- 10 minimal pairs implemented');
 console.log('- Rule-based detection (no API costs)');
 console.log('- Performance: <10ms processing');
-console.log('- Integration ready with AI router');
+console.log('- Integration ready with AI Conductor');
 console.log('- Comprehensive error handling');

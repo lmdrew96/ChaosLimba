@@ -1,7 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
 import { mysteryItems } from "@/lib/db/schema";
-import { AIRouter } from "@/lib/ai/router";
+import { AIConductor } from "@/lib/ai/conductor";
 import { and, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
@@ -32,8 +32,8 @@ export async function POST(req: Request) {
 
         const item = items[0];
 
-        // 2. Call AI Router
-        const analysis = await AIRouter.process("analyze_mystery_item", {
+        // 2. Call AI Conductor
+        const analysis = await AIConductor.process("analyze_mystery_item", {
             word: item.word,
             context: item.context
         });

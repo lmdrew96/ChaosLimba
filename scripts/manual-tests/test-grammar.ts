@@ -1,6 +1,6 @@
-// scripts/test-grammar.ts
+// scripts/manual-tests/test-grammar.ts
 import 'dotenv/config';
-import { analyzeGrammar } from '../src/lib/ai/grammar';
+import { analyzeGrammar } from '../../src/lib/ai/grammar';
 
 async function testGrammar() {
   console.log('🧪 Testing YOUR trained mt5-small grammar model!\n');

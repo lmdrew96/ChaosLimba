@@ -6,8 +6,10 @@ import { IntonationWarning } from "../../types/intonation";
 import { FeedbackAggregator, AggregatorInput, AggregatedReport } from "./aggregator";
 
 /**
- * The Central Brain of ChaosLimbă
- * Routes requests to the appropriate specialized AI module
+ * The AI Conductor - Orchestrates Component Activation
+ *
+ * Routes requests to appropriate AI components based on input type and intent.
+ * Handles dual-path orchestration for speech vs text input.
  */
 
 export type AIIntent =
@@ -22,9 +24,9 @@ type AIPayload = {
     [key: string]: any;
 };
 
-export class AIRouter {
+export class AIConductor {
     static async process(intent: AIIntent, payload: AIPayload): Promise<any> {
-        console.log(`[AIRouter] Processing intent: ${intent}`);
+        console.log(`[AIConductor] Processing intent: ${intent}`);
 
         switch (intent) {
             case "analyze_mystery_item":
