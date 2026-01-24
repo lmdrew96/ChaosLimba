@@ -420,15 +420,15 @@ You record yourself saying "Bună ziua, mă numesc Nae" → System transcribes i
 - [ ] Chaos Window shows AI tutor questions informed by Error Garden
 
 **The 7 Components (you don't need to understand them all, just know they work together):**
-1. **Speech Recognition** (Groq, FREE) - Audio → Text
+1. ✅ **Speech Recognition** (Groq, FREE) - Audio → Text 
 2. **Pronunciation** (RunPod, $2-3/mo) - Are you saying sounds right?
-3. **Grammar** (RunPod, $3-5/mo) - Finds errors, suggests fixes
-4. **SPAM-A** (HuggingFace, FREE) - Does your meaning match?
+3. ✅ **Grammar** (RunPod, $3-5/mo) - Finds errors, suggests fixes
+4. ✅ **SPAM-A** (HuggingFace, FREE) - Does your meaning match?
 5. **SPAM-D** (In-app, FREE) - Does stress change the word meaning?
 6. **Router** (In-app, FREE) - Detects speech vs text, routes correctly
 7. **Aggregator** (In-app, FREE) - Combines everything into one report
 
-**Plus:** DeepSeek R1 ($5-10/mo) - Takes all that technical feedback and makes it friendly
+✅ **Plus:** DeepSeek R1 ($5-10/mo) - Takes all that technical feedback and makes it friendly
 
 **Why this matters:**  
 This is **where Output Hypothesis + Cognitive Disequilibrium happen**. AI forces production, grades it, and adapts questions to your weak structures.
