@@ -1,8 +1,8 @@
 # ChaosLimbă: Development Documentation
 ## From Inception to MVP and Beyond
 
-**Document Version:** 1.0  
-**Last Updated:** January 17, 2026  
+**Document Version:** 1.1  
+**Last Updated:** January 24, 2026  
 **Author:** Nae Drew  
 **Status:** Living Document
 
@@ -325,7 +325,7 @@ ChaosLimbă employs a sophisticated 9-component AI ensemble (10 including conver
 7. **SPAM-D: Intonation Mapper** - Stress-based meaning shifts (rule-based, **MVP**)
 
 **Integration Layer (2 components):**
-8. **Router** - Detects input type and routes to appropriate path (in-app logic, **MVP**)
+8. **Conductor** - Orchestrates component activation based on input type and intent (in-app logic, **MVP**)
 9. **Feedback Aggregator** - Combines all analyses into unified report (in-app logic, **MVP**)
 
 **Conversational AI (1 component):**
@@ -364,17 +364,17 @@ Pronunciation and intonation components are **automatically skipped** for text i
 #### Phased Rollout Strategy
 
 **Phase 1: MVP Launch (August 2026) - 50% SPAM Coverage**
-- **Components:** 7 (Core Processing + SPAM-A + SPAM-D + Router + Aggregator + DeepSeek)
+- **Components:** 7 (Core Processing + SPAM-A + SPAM-D + Conductor + Aggregator + DeepSeek)
 - **SPAM Coverage:** 50% (semantic similarity + intonation only)
 - **Development Time:** ~13 days for AI components
-- **Monthly Cost:** $10-18 (before Umami server)
+- **Monthly Cost:** $0-5 (before Umami server)
 - **What It Can Do:** Grammar feedback, pronunciation scoring, meaning matching, stress warnings
 
 **Phase 2: Post-MVP Enhancement (Month 8-9) - 75% SPAM Coverage**
 - **New Component:** SPAM-B (Relevance Scorer)
 - **SPAM Coverage:** 75% (adds on-topic detection)
 - **Development Time:** +3 days
-- **Monthly Cost:** Still $10-18 (SPAM-B uses free HuggingFace tier)
+- **Monthly Cost:** Still $0-5 (SPAM-B uses free HuggingFace tier)
 - **What It Adds:** Detects when users go off-topic in Chaos Window
 - **Decision Criteria:** Add if >20% of user responses are off-topic during beta
 
@@ -382,7 +382,7 @@ Pronunciation and intonation components are **automatically skipped** for text i
 - **New Component:** SPAM-C (Dialectal/Pragmatic Analyzer)
 - **SPAM Coverage:** 100% (adds regional variants + formality detection)
 - **Development Time:** +7 days
-- **Monthly Cost:** $12-21 (adds $2-3 for SPAM-C RunPod hosting)
+- **Monthly Cost:** $2-8 (adds $2-3 for SPAM-C RunPod hosting)
 - **What It Adds:** Recognizes valid regional variants, detects formality mismatches
 - **Decision Criteria:** Add if user base expands to multiple regions OR formality errors common in Error Garden
 
@@ -454,10 +454,10 @@ Pronunciation and intonation components are **automatically skipped** for text i
 - **Cost:** **$0/month**
 - **Implementation:** 1-2 days to research and build minimal pairs table
 
-##### Component 8: Router - MVP ✅
-- **Type:** Conditional logic (TypeScript)
+##### Component 8: Conductor - MVP ✅
+- **Type:** Intelligent orchestration logic (TypeScript)
 - **Hosting:** In-app (Next.js API route)
-- **Function:** Detects input type (speech vs text) and routes to appropriate processing path
+- **Function:** Orchestrates component activation based on input type and intent, handles dual-path processing
 - **Cost:** **$0/month**
 - **Implementation:** 1 day
 
@@ -1957,16 +1957,16 @@ docker run -d \
 | **AI - Pronunciation** | RunPod Serverless | $2-3/mo | romanian-wav2vec2 |
 | **AI - Grammar** | RunPod Serverless | $3-5/mo | mt5-small fine-tuned (BLEU 68.92) |
 | **AI - SPAM-A (Semantic)** | HuggingFace Free Tier | **$0** | **Romanian BERT (FREE!)** |
-| **AI - SPAM-D, Router, Aggregator** | In-app logic | **$0** | **Rule-based + integration (FREE!)** |
+| **AI - SPAM-D, Conductor, Aggregator** | In-app logic | **$0** | **Rule-based + integration (FREE!)** |
 | **AI - DeepSeek R1** | RunPod Serverless | $5-10/mo | Chaos Window conversational AI |
 | **Analytics Server** | Railway/Render | $5-10/mo | Self-hosted Umami (opt-in only, Month 7+) |
 | **Email** | Resend Free Tier | $0 | 3,000 emails/month |
 | **Monitoring** | Sentry Free Tier (optional) | $0 | 5,000 events/month |
-| **TOTAL NEW COSTS (MVP)** | | **$10-18/mo** | **Phase 1: 7 components, 50% SPAM coverage** |
+| **TOTAL NEW COSTS (MVP)** | | **$0-5/mo** | **Phase 1: 7 components, 50% SPAM coverage** |
 | **+ Phase 2 (SPAM-B)** | | **+$0/mo** | **HuggingFace Free Tier** |
 | **+ Phase 3 (SPAM-C)** | | **+$2-3/mo** | **Full 100% SPAM coverage** |
-| **TOTAL FULL ENSEMBLE** | | **$12-21/mo** | **All 9 AI components deployed** |
-| **TOTAL INCLUDING BASELINE** | | **$32-41/mo** | **Vercel Pro already budgeted** |
+| **TOTAL FULL ENSEMBLE** | | **$2-8/mo** | **All 9 AI components deployed** |
+| **TOTAL INCLUDING BASELINE** | | **$22-29/mo** | **Vercel Pro already budgeted** |
 
 ### Open-Source AI Models & Hosting Strategy
 
@@ -1981,19 +1981,19 @@ docker run -d \
 | **#3 Grammar** | mt5-small (fine-tuned) | RunPod | $3-5 | ✅ MVP (BLEU 68.92) |
 | **#4 SPAM-A (Semantic)** | dumitrescustefan/bert-base-romanian-cased-v1 | **HF Inference FREE** | **$0** | ✅ MVP |
 | **#5 SPAM-D (Intonation)** | Rule-based minimal pairs | In-app logic | **$0** | ✅ MVP |
-| **#6 Router** | TypeScript conditional logic | In-app logic | **$0** | ✅ MVP |
+| **#6 Conductor** | TypeScript conditional logic | In-app logic | **$0** | ✅ MVP |
 | **#7 Aggregator** | TypeScript integration logic | In-app logic | **$0** | ✅ MVP |
 | **#8 SPAM-B (Relevance)** | readerbench/ro-text-summarization | **HF Inference FREE** | **$0** | 🟡 Post-MVP Phase 2 |
 | **#9 SPAM-C (Dialectal)** | Romanian BERT (fine-tuned) | RunPod | $2-3 | 🟡 Post-MVP Phase 3 |
 | **#10 Conversational AI** | deepseek-ai/DeepSeek-R1 | RunPod | $5-10 | ✅ MVP |
 
-**MVP Total (Phase 1):** $10-18/month  
-**Full Ensemble (Phase 3):** $12-21/month
+**MVP Total (Phase 1):** $0-5/month  
+**Full Ensemble (Phase 3):** $2-8/month
 
 **Key Cost Savings:**
 - **Groq API:** Speech recognition is FREE (was $5-8/mo on RunPod!)
 - **HuggingFace Inference:** SPAM-A and SPAM-B are FREE
-- **In-app logic:** Router, Aggregator, SPAM-D cost $0
+- **In-app logic:** Conductor, Aggregator, SPAM-D cost $0
 
 **Hosting Breakdown:**
 

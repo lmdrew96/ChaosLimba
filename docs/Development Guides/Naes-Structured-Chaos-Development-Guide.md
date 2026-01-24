@@ -1,8 +1,8 @@
 # ChaosLimbă: Nae's Structured Chaos Development Guide
 ## *Your brain works differently. This guide does too.*
 
-**Document Version:** 1.0  
-**Last Updated:** January 17, 2026  
+**Document Version:** 1.1  
+**Last Updated:** January 24, 2026  
 **For:** Nae Drew (and anyone else who codes in beautiful, productive chaos)
 
 ---
@@ -425,7 +425,7 @@ You record yourself saying "Bună ziua, mă numesc Nae" → System transcribes i
 3. ✅ **Grammar** (RunPod, $3-5/mo) - Finds errors, suggests fixes
 4. ✅ **SPAM-A** (HuggingFace, FREE) - Does your meaning match?
 5. **SPAM-D** (In-app, FREE) - Does stress change the word meaning?
-6. **Router** (In-app, FREE) - Detects speech vs text, routes correctly
+6. **Conductor** (In-app, FREE) - Orchestrates component activation based on input type and intent
 7. **Aggregator** (In-app, FREE) - Combines everything into one report
 
 ✅ **Plus:** DeepSeek R1 ($5-10/mo) - Takes all that technical feedback and makes it friendly
@@ -448,7 +448,7 @@ You say something in Romanian, get back: "Good meaning match! But you said 'la' 
 - **Phase 2 (SPAM-B):** Detects if you go off-topic (+3 days, FREE)
 - **Phase 3 (SPAM-C):** Recognizes regional variants + formality issues (+7 days, +$2-3/mo)
 
-**Total MVP Cost:** $10-18/month for all 7 components + DeepSeek R1
+**Total MVP Cost:** $0-5/month for all 7 components + DeepSeek R1
 
 ---
 

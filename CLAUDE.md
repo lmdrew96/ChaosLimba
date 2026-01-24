@@ -266,10 +266,10 @@ async function callRunPodModel(
 
 ## Budget Consciousness
 
-**Current Monthly Budget: $10-18 for AI (MVP Phase 1)**
+**Current Monthly Budget: $0-5 for AI (MVP Phase 1)**
 - Groq API: FREE (speech recognition)
 - HuggingFace: FREE (SPAM-A)
-- RunPod: $10-18 (grammar + pronunciation + DeepSeek R1)
+- RunPod: $0-5 (grammar + pronunciation + DeepSeek R1)
 
 ### Cost Optimization Rules:
 1. **Cache everything** - 40%+ hit rate target
@@ -507,8 +507,8 @@ Now go make something amazing. 🔥
 
 ---
 
-**Document Version:** 1.0
-**Last Updated:** January 22, 2026
+**Document Version:** 1.1
+**Last Updated:** January 24, 2026
 **For:** Claude Code working with Nae Drew on ChaosLimbă
 
 **Next Review:** After Milestone 3 completion (Error Garden)

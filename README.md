@@ -1,12 +1,12 @@
 # ChaosLimbă - Adaptive Romanian Language Learning Platform
 
-**Version:** 2.0
-**Architecture:** 7-Component Ensemble with Dual-Path Routing
-**Status:** MVP Development
+**Version:** 2.1
+**Architecture:** 9-Component Ensemble with Conductor Orchestrator
+**Status:** MVP Development (Phase 1: 50% SPAM Coverage)
 
 ## Overview
 
-ChaosLimbă is a sophisticated adaptive language learning platform designed specifically for Romanian language instruction. The system employs a 7-component ensemble architecture with intelligent dual-path routing that optimizes processing based on input type (speech vs. text).
+ChaosLimbă is a sophisticated adaptive language learning platform designed specifically for Romanian language instruction. The system employs a 9-component ensemble architecture with intelligent Conductor orchestrator that optimizes processing based on input type (speech vs. text).
 
 ### Key Features
 
@@ -14,11 +14,11 @@ ChaosLimbă is a sophisticated adaptive language learning platform designed spec
 - **Intelligent Routing**: Automatically detects input type and activates appropriate analysis components
 - **Comprehensive Assessment**: Grammar, pronunciation, semantic similarity, and intonation analysis
 - **Adaptive Learning**: Personalized instruction based on individual error patterns
-- **Cost Optimized**: $10-18/month hosting costs with per-request costs of $0.001-0.005
+- **Cost Optimized**: $0-5/month hosting costs with per-request costs of $0.001-0.005
 
 ## Architecture Overview
 
-### 7-Component Ensemble
+### 9-Component Ensemble
 
 | # | Component | Model/Technology | Active For | Status |
 |---|-----------|------------------|------------|--------|
@@ -27,8 +27,10 @@ ChaosLimbă is a sophisticated adaptive language learning platform designed spec
 | 3 | Grammar Correction | Fine-tuned mt5-small | Both | ✅ DONE (BLEU 68.92) |
 | 4 | SPAM-A: Semantic Similarity | bert-base-romanian-cased-v1 | Both | ✅ Pre-trained |
 | 5 | SPAM-D: Intonation Mapper | Rule-based lookup (50-100 pairs) | Speech only | 🔧 In Development |
-| 6 | Router | Conditional logic | Both | 🔧 In Development |
+| 6 | Conductor | Intelligent orchestration logic | Both | ✅ Implemented |
 | 7 | Feedback Aggregator | Integration logic | Both | 🔧 In Development |
+| 8 | SPAM-B: Relevance Scorer | readerbench/ro-text-summarization | Both | 🟡 Post-MVP |
+| 9 | DeepSeek R1 | Conversational AI formatter | Both | ✅ MVP |
 
 ### Dual-Path Processing
 
@@ -232,7 +234,7 @@ DeepSeek-R1-powered conversational system that generates "productive confusion" 
 - **Intonation**: >90% minimal pair detection
 
 ### Cost
-- **Monthly Hosting**: $10-18
+- **Monthly Hosting**: $0-5
 - **Per Request**: $0.001-0.005 (depending on input type)
 
 ## Development Timeline
@@ -240,7 +242,7 @@ DeepSeek-R1-powered conversational system that generates "productive confusion" 
 ### MVP Build Order (13-day estimate)
 
 **Phase 1: Text Path (Days 1-4)**
-- ✅ Router (text branch)
+- ✅ Conductor (text branch)
 - 🔧 SPAM-A deployment
 - 🔧 Feedback aggregator (text-only)
 - 🔧 Integration testing
@@ -249,13 +251,38 @@ DeepSeek-R1-powered conversational system that generates "productive confusion" 
 - 🔧 Whisper deployment (Groq)
 - 🔧 Wav2Vec2 deployment (RunPod)
 - 🔧 SPAM-D intonation mapper (research + implement 50-100 minimal pairs)
-- 🔧 Router extension (speech branch)
+- 🔧 Conductor extension (speech branch)
 - 🔧 Aggregator extension (speech data)
 
 **Phase 3: Integration (Days 11-13)**
 - 🔧 Error Garden updates
 - 🔧 End-to-end testing
 - 🔧 Bug fixes and polish
+
+## Current Status
+
+### Completed Components ✅
+- Grammar correction model (BLEU 68.92)
+- Speech recognition via Groq API
+- Semantic similarity analysis
+- Conductor orchestration logic
+- Conversational AI formatter
+
+### In Development 🔧
+- Feedback aggregation system
+- Intonation mapping (SPAM-D)
+- Error Garden clustering
+- Mystery Shelf implementation
+
+### Post-MVP 🟡
+- SPAM-B relevance detection
+- SPAM-C dialectal/pragmatic analysis
+- Advanced analytics dashboard
+
+### MVP Timeline
+- **Phase 1**: Current - Core 7 components ($0-5/month)
+- **Phase 2**: Post-MVP - Add SPAM-B (no cost increase)
+- **Phase 3**: Full Ensemble - Add SPAM-C ($2-3/month increase)
 
 ## Documentation
 
