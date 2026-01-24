@@ -1,0 +1,147 @@
+---
+config:
+  layout: elk
+  theme: neo
+---
+flowchart TB
+ subgraph UserInputs["User Input Methods"]
+    direction LR
+        A1["🎤 Speech Recording"]
+        A2["⌨️ Text Input"]
+        A3["🎵 Audio Content"]
+        A4["📖 Text Content"]
+  end
+ subgraph SpeechPath["Speech Processing Pipeline"]
+    direction TB
+        D1["🔊 Component 1: Speech Recognition<br>Whisper-Medium-Romanian<br>Groq API - FREE"]
+        C1["🧭 Router: Speech Path"]
+        D2["🗣️ Component 2: Pronunciation Analysis<br>Wav2Vec2-Romanian<br>RunPod $2-3/mo"]
+        D3["✍️ Component 3: Grammar Correction<br>Fine-tuned mt5-small<br>RunPod $3-5/mo"]
+        E1["Phonological Score<br>+ Stress Detection"]
+        E2["Grammatical Score<br>+ Error Classification"]
+        F1["🧠 Component 4: SPAM-A Semantic<br>Sentence Transformers<br>HF Inference - FREE"]
+        G1["🎵 Component 7: SPAM-D Intonation<br>Rule-based Stress Mapping<br>In-app Logic - FREE"]
+        H1["Semantic Similarity Score<br>0-1 Scale"]
+        I1["Intonation Warnings<br>Stress Pattern Conflicts"]
+  end
+ subgraph TextPath["Text Processing Pipeline"]
+    direction TB
+        J1["✍️ Component 3: Grammar Correction<br>Fine-tuned mt5-small<br>RunPod $3-5/mo"]
+        C2["🧭 Router: Text Path"]
+        J2["Grammatical Score<br>+ Error Classification"]
+        K1["🧠 Component 4: SPAM-A Semantic<br>Sentence Transformers<br>HF Inference - FREE"]
+        K2["Semantic Similarity Score<br>0-1 Scale"]
+  end
+ subgraph Aggregator["🔄 Component 9: Feedback Aggregator"]
+    direction TB
+        L2["Weighted Scoring System"]
+        L1["Input: Component Results"]
+        L3["Error Pattern Extraction"]
+        L4["Unified Report Generation"]
+        L5{"Input Type"}
+        L6["Grammar: 30%<br>Pronunciation: 25%<br>Semantic: 25%<br>Intonation: 20%"]
+        L7["Grammar: 50%<br>Semantic: 50%"]
+  end
+ subgraph ConversationalAI["🤖 Component 10: DeepSeek R1 Tutor"]
+    direction TB
+        O2["Context Formatting"]
+        O1["Aggregated Report"]
+        O3["Productive Confusion Engine"]
+        O4["Personalized Feedback"]
+        O5["Follow-up Questions"]
+        O6["Error Explanations"]
+  end
+ subgraph UIFeatures["🎮 ChaosLimbă Features"]
+    direction LR
+        P1["🌫️ Deep Fog Mode<br>Above-Level Immersion"]
+        P2["⏰ Chaos Window<br>Randomized AI Sessions"]
+        P3["📚 Mystery Shelf<br>User-Driven Vocab"]
+        P4["🌻 Error Garden<br>Pattern Visualization"]
+        P5["📊 Proficiency Tracker<br>Progress Dashboard"]
+  end
+ subgraph FutureComponents["🔮 Post-MVP Components"]
+    direction TB
+        S1["🎯 Component 5: SPAM-B Relevance<br>Text Summarization Model<br>HF Inference - FREE<br>Phase 2: Month 8-9"]
+        S2["🌍 Component 6: SPAM-C Dialectal<br>Fine-tuned BERT<br>RunPod $2-3/mo<br>Phase 3: Month 10-11"]
+  end
+ subgraph Metrics["📊 System Metrics"]
+    direction LR
+        T1["💰 Speech Path: ~$0.003-0.005/request<br>1.0-1.5s processing"]
+        T2["💰 Text Path: ~$0.001-0.002/request<br>0.5-0.8s processing"]
+        T3["🎯 MVP Total: $10-18/month<br>7/10 components active"]
+        T4["📈 Full System: $12-21/month<br>10/10 components active"]
+  end
+ subgraph Storage["💾 Storage Systems"]
+    direction LR
+        U1[("🗄️ Neon PostgreSQL<br>User Data, Sessions, Errors")]
+        U2[("☁️ Cloudflare R2<br>Audio Recordings, Media")]
+        U3[("🧠 Memory Cache<br>Similarity Scores, Sessions")]
+  end
+    A["👤 User Input"] --> B{"Input Type Detection"} & UserInputs
+    UserInputs --> B
+    B -- Speech --> C1
+    B -- Text --> C2
+    C1 --> D1
+    D1 --> D2 & D3
+    D2 --> E1 & G1
+    D3 --> E2 & F1
+    F1 --> H1 & U3
+    G1 --> I1
+    C2 --> J1
+    J1 --> J2 & K1
+    K1 --> K2 & U3
+    L1 --> L2
+    L2 --> L3 & L5
+    L3 --> L4
+    L5 -- Speech --> L6
+    L5 -- Text --> L7
+    E1 --> Aggregator
+    E2 --> Aggregator
+    H1 --> Aggregator
+    I1 --> Aggregator
+    J2 --> Aggregator
+    K2 --> Aggregator
+    Aggregator --> M1["🌱 Error Garden Analysis"] & ConversationalAI
+    M1 --> M2["Pattern Clustering<br>ML Algorithm"]
+    M2 --> M3["Fossilization Detection<br>70% Threshold"]
+    M3 --> M4["Interlanguage Pattern Mapping"]
+    M4 --> N1[("👤 User Profile DB")]
+    N1 --> N2["Error History"] & N3["Proficiency Tracking"] & N4["Weakness Patterns"] & N5["Learning Progress"] & ConversationalAI & UIFeatures & U1
+    O1 --> O2
+    O2 --> O3
+    O3 --> O4
+    O4 --> O5
+    O5 --> O6
+    ConversationalAI --> UIFeatures
+    UIFeatures --> Q["📱 User Interface"]
+    Q --> R["👤 User Learning Experience"]
+    R --> A
+    A1 --> U2
+    A3 --> U2
+
+     D1:::aiNode
+     D2:::aiNode
+     D3:::aiNode
+     F1:::aiNode
+     G1:::aiNode
+     J1:::aiNode
+     K1:::aiNode
+     O1:::aiNode
+     P1:::featureNode
+     P2:::featureNode
+     P3:::featureNode
+     P4:::featureNode
+     P5:::featureNode
+     S1:::futureNode
+     S2:::futureNode
+     U1:::dbNode
+     U2:::dbNode
+     U3:::dbNode
+     A:::userNode
+     N1:::dbNode
+     R:::userNode
+    classDef userNode fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    classDef aiNode fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+    classDef dbNode fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px
+    classDef featureNode fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    classDef futureNode fill:#f5f5f5,stroke:#616161,stroke-width:2px,stroke-dasharray:5 5

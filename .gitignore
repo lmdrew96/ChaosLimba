@@ -51,3 +51,6 @@ next-env.d.ts
 
 # log files
 *.txt
+
+# database files (local development only)
+*.db
