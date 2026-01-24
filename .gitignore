@@ -42,3 +42,15 @@ next-env.d.ts
 
 # clerk configuration (can include secrets)
 /.clerk/
+
+# compiled output
+/dist/
+
+# planning documents
+/.windsurf/plans/
+
+# development tracking
+*.csv
+
+# log files
+*.txt
