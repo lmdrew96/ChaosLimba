@@ -1,12 +1,12 @@
 # ChaosLimbă - Adaptive Romanian Language Learning Platform
 
-**Version:** 2.1
-**Architecture:** 9-Component Ensemble with Conductor Orchestrator
-**Status:** MVP Development (Phase 1: 50% SPAM Coverage)
+**Version:** 2.0
+**Architecture:** 7-Component Ensemble with Dual-Path Routing
+**Status:** MVP Development
 
 ## Overview
 
-ChaosLimbă is a sophisticated adaptive language learning platform designed specifically for Romanian language instruction. The system employs a 9-component ensemble architecture with intelligent Conductor orchestrator that optimizes processing based on input type (speech vs. text).
+ChaosLimbă is a sophisticated adaptive language learning platform designed specifically for Romanian language instruction. The system employs a 7-component ensemble architecture with intelligent dual-path routing that optimizes processing based on input type (speech vs. text).
 
 ### Key Features
 
@@ -14,35 +14,35 @@ ChaosLimbă is a sophisticated adaptive language learning platform designed spec
 - **Intelligent Routing**: Automatically detects input type and activates appropriate analysis components
 - **Comprehensive Assessment**: Grammar, pronunciation, semantic similarity, and intonation analysis
 - **Adaptive Learning**: Personalized instruction based on individual error patterns
-- **Cost Optimized**: $0-5/month hosting costs with per-request costs of $0.001-0.005
+- **Cost Optimized**: $10-18/month hosting costs with per-request costs of $0.001-0.005
 
 ## Architecture Overview
 
-### 9-Component Ensemble
+### 7-Component Ensemble
 
 | # | Component | Model/Technology | Active For | Status |
 |---|-----------|------------------|------------|--------|
-| 1 | Speech Recognition | gigant/whisper-medium-romanian | Speech only | ✅ Pre-trained |
-| 2 | Pronunciation Analysis | gigant/romanian-wav2vec2 | Speech only | ✅ Pre-trained |
-| 3 | Grammar Correction | Fine-tuned mt5-small | Both | ✅ DONE (BLEU 68.92) |
-| 4 | SPAM-A: Semantic Similarity | bert-base-romanian-cased-v1 | Both | ✅ Pre-trained |
-| 5 | SPAM-D: Intonation Mapper | Rule-based lookup (50-100 pairs) | Speech only | 🔧 In Development |
-| 6 | Conductor | Intelligent orchestration logic | Both | ✅ Implemented |
-| 7 | Feedback Aggregator | Integration logic | Both | 🔧 In Development |
-| 8 | SPAM-B: Relevance Scorer | readerbench/ro-text-summarization | Both | 🟡 Post-MVP |
-| 9 | DeepSeek R1 | Conversational AI formatter | Both | ✅ MVP |
+| 1 | Speech Recognition | whisper-large-v3 (Groq API) | Speech only | ✅ **COMPLETE** |
+| 2 | Pronunciation Analysis | romanian-wav2vec2 (HF Inference) | Speech only | ✅ **COMPLETE** |
+| 3 | Grammar Correction | lmdrew96/ro-grammar-mt5-small (local) | Both | ✅ **COMPLETE** |
+| 4 | SPAM-A: Semantic Similarity | multilingual-MiniLM-L12-v2 (HF) | Both | ✅ **COMPLETE** |
+| 5 | SPAM-D: Intonation Mapper | Rule-based lookup (50-100 pairs) | Speech only | ✅ **COMPLETE** |
+| 6 | Conductor | Conditional logic | Both | ✅ **COMPLETE** |
+| 7 | Feedback Aggregator | Integration logic | Both | ✅ **COMPLETE** |
+
+**Plus:** Llama 3.3 70B (Groq API) - AI Tutor for feedback formatting ✅ **COMPLETE**
 
 ### Dual-Path Processing
 
 **Speech Input Path** (1.0-1.5 seconds)
 ```
-Audio → Speech Recognition → Grammar + Pronunciation (parallel) →
-SPAM-A Semantic → SPAM-D Intonation → Feedback Aggregator
+Audio → Speech Recognition (Groq) → Grammar + Pronunciation (parallel) →
+SPAM-A Semantic → SPAM-D Intonation → Feedback Aggregator → Llama 3.3 Tutor
 ```
 
 **Text Input Path** (0.5-0.8 seconds)
 ```
-Text → Grammar + SPAM-A Semantic (parallel) → Feedback Aggregator
+Text → Grammar (local) + SPAM-A Semantic (parallel) → Feedback Aggregator → Llama 3.3 Tutor
 ```
 
 The text path skips pronunciation and intonation analysis, reducing processing time by 40-50% and API costs by ~40%.
@@ -56,11 +56,11 @@ The text path skips pronunciation and intonation analysis, reducing processing t
 - **UI Components**: shadcn/ui
 
 ### Backend & ML Infrastructure
-- **Speech Recognition**: Groq API (Whisper)
-- **Pronunciation**: RunPod (Wav2Vec2)
-- **Grammar**: RunPod (Fine-tuned mt5-small)
-- **Semantic**: HuggingFace Inference API (Romanian BERT)
-- **Reasoning Engine**: DeepSeek-R1
+- **Speech Recognition**: Groq API (whisper-large-v3) - **FREE**
+- **Pronunciation**: HuggingFace Inference API (romanian-wav2vec2) - **FREE**
+- **Grammar**: @xenova/transformers (local inference) - **FREE**
+- **Semantic**: HuggingFace Inference API (multilingual-MiniLM) - **FREE**
+- **AI Tutor**: Llama 3.3 70B (Groq API) - **FREE**
 - **Database**: PostgreSQL (user profiles, grading reports)
 
 ### API Endpoints
@@ -234,55 +234,33 @@ DeepSeek-R1-powered conversational system that generates "productive confusion" 
 - **Intonation**: >90% minimal pair detection
 
 ### Cost
-- **Monthly Hosting**: $0-5
-- **Per Request**: $0.001-0.005 (depending on input type)
+- **Monthly Hosting**: **$0-5** (all FREE APIs!)
+- **Per Request**: **$0** (all components use free tiers)
+
+> **Major Cost Optimization Success!** Switched from RunPod ($10-18/mo) to free APIs (Groq + HuggingFace + local inference)
 
 ## Development Timeline
 
-### MVP Build Order (13-day estimate)
+### MVP Build Status
 
 **Phase 1: Text Path (Days 1-4)**
 - ✅ Conductor (text branch)
-- 🔧 SPAM-A deployment
-- 🔧 Feedback aggregator (text-only)
-- 🔧 Integration testing
+- ✅ SPAM-A deployment (HF Inference)
+- ✅ Feedback aggregator (text-only)
+- ✅ Integration testing
 
 **Phase 2: Speech Path (Days 5-10)**
-- 🔧 Whisper deployment (Groq)
-- 🔧 Wav2Vec2 deployment (RunPod)
-- 🔧 SPAM-D intonation mapper (research + implement 50-100 minimal pairs)
-- 🔧 Conductor extension (speech branch)
-- 🔧 Aggregator extension (speech data)
+- ✅ Whisper deployment (Groq API)
+- ✅ Wav2Vec2 deployment (HF Inference)
+- ✅ SPAM-D intonation mapper (implemented)
+- ✅ Conductor extension (speech branch)
+- ✅ Aggregator extension (speech data)
 
 **Phase 3: Integration (Days 11-13)**
-- 🔧 Error Garden updates
-- 🔧 End-to-end testing
+- ✅ Llama 3.3 70B tutor integration (Groq API)
+- ✅ End-to-end testing
+- ✅ All 7 components complete!
 - 🔧 Bug fixes and polish
-
-## Current Status
-
-### Completed Components ✅
-- Grammar correction model (BLEU 68.92)
-- Speech recognition via Groq API
-- Semantic similarity analysis
-- Conductor orchestration logic
-- Conversational AI formatter
-
-### In Development 🔧
-- Feedback aggregation system
-- Intonation mapping (SPAM-D)
-- Error Garden clustering
-- Mystery Shelf implementation
-
-### Post-MVP 🟡
-- SPAM-B relevance detection
-- SPAM-C dialectal/pragmatic analysis
-- Advanced analytics dashboard
-
-### MVP Timeline
-- **Phase 1**: Current - Core 7 components ($0-5/month)
-- **Phase 2**: Post-MVP - Add SPAM-B (no cost increase)
-- **Phase 3**: Full Ensemble - Add SPAM-C ($2-3/month increase)
 
 ## Documentation
 

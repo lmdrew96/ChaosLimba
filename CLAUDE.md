@@ -266,10 +266,11 @@ async function callRunPodModel(
 
 ## Budget Consciousness
 
-**Current Monthly Budget: $0-5 for AI (MVP Phase 1)**
-- Groq API: FREE (speech recognition)
-- HuggingFace: FREE (SPAM-A)
-- RunPod: $0-5 (grammar + pronunciation + DeepSeek R1)
+**Current Monthly Budget: $0-5 for AI (MVP Phase 1) - UNDER BUDGET! 🎉**
+- Groq API: FREE (speech recognition + Llama 3.3 70B tutor)
+- HuggingFace: FREE (SPAM-A + pronunciation analysis)
+- @xenova/transformers: FREE (local grammar inference)
+- **Total AI Cost: $0/month** (massive cost optimization success!)
 
 ### Cost Optimization Rules:
 1. **Cache everything** - 40%+ hit rate target
@@ -431,9 +432,9 @@ Your north star when Nae asks "what should I build next?"
 
 1. ✅ **Users Can Sign Up & Browse Content**
 2. ✅ **Grammar Model Grades Written Production** (BLEU 68.92)
-3. ⏳ **Error Garden Displays Patterns** ← CURRENT FOCUS
-4. ⏳ **Speech Recognition Transcribes Audio**
-5. ⏳ **AI Ensemble Works + AI Tutor Asks Questions**
+3. ⏳ **Error Garden Displays Patterns** ← CRITICAL PATH
+4. ✅ **Speech Recognition Transcribes Audio** (Groq API, FREE!)
+5. ✅ **AI Ensemble Works + AI Tutor Asks Questions** (All 7 components complete!)
 6. ⏳ **Mystery Shelf Stores & Displays Unknowns**
 7. ⏳ **50+ Hours of Content Curated**
 
@@ -507,8 +508,8 @@ Now go make something amazing. 🔥
 
 ---
 
-**Document Version:** 1.1
-**Last Updated:** January 24, 2026
+**Document Version:** 1.0
+**Last Updated:** January 22, 2026
 **For:** Claude Code working with Nae Drew on ChaosLimbă
 
 **Next Review:** After Milestone 3 completion (Error Garden)

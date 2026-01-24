@@ -1,8 +1,8 @@
 # ChaosLimbă: Development Documentation
 ## From Inception to MVP and Beyond
 
-**Document Version:** 1.1  
-**Last Updated:** January 24, 2026  
+**Document Version:** 1.0  
+**Last Updated:** January 17, 2026  
 **Author:** Nae Drew  
 **Status:** Living Document
 
@@ -314,9 +314,9 @@ ChaosLimbă employs a sophisticated 9-component AI ensemble (10 including conver
 #### Complete Component Inventory
 
 **Core Processing (3 components):**
-1. **Speech Recognition** - Converts Romanian audio to text (Groq API, free)
-2. **Pronunciation Analysis** - Phoneme accuracy + stress detection (RunPod, $2-3/mo)
-3. **Grammar Correction** - Error detection and correction (RunPod, $3-5/mo)
+1. **Speech Recognition** - Converts Romanian audio to text (Groq API, **whisper-large-v3**, FREE)
+2. **Pronunciation Analysis** - Phoneme accuracy + stress detection (HuggingFace Inference API, **FREE**)
+3. **Grammar Correction** - Error detection and correction (@xenova/transformers, **local inference**, FREE)
 
 **SPAM Ensemble (4 components - Semantic/Pragmatic Analysis Module):**
 4. **SPAM-A: Semantic Similarity** - Meaning matching (HuggingFace free, **MVP**)
@@ -325,11 +325,11 @@ ChaosLimbă employs a sophisticated 9-component AI ensemble (10 including conver
 7. **SPAM-D: Intonation Mapper** - Stress-based meaning shifts (rule-based, **MVP**)
 
 **Integration Layer (2 components):**
-8. **Conductor** - Orchestrates component activation based on input type and intent (in-app logic, **MVP**)
+8. **Conductor** - Orchestrates component activation based on input type (in-app logic, **MVP**)
 9. **Feedback Aggregator** - Combines all analyses into unified report (in-app logic, **MVP**)
 
 **Conversational AI (1 component):**
-10. **DeepSeek R1** - Formats feedback in approachable manner, enables productive confusion in Chaos Window (RunPod $5-10/mo, **MVP**)
+10. **Llama 3.3 70B** - Formats feedback in approachable manner, enables productive confusion in Chaos Window (Groq API, **FREE**)
 
 #### Why 4 SPAM Components Instead of 1?
 
@@ -364,17 +364,17 @@ Pronunciation and intonation components are **automatically skipped** for text i
 #### Phased Rollout Strategy
 
 **Phase 1: MVP Launch (August 2026) - 50% SPAM Coverage**
-- **Components:** 7 (Core Processing + SPAM-A + SPAM-D + Conductor + Aggregator + DeepSeek)
+- **Components:** 7 (Core Processing + SPAM-A + SPAM-D + Conductor + Aggregator + Llama 3.3)
 - **SPAM Coverage:** 50% (semantic similarity + intonation only)
 - **Development Time:** ~13 days for AI components
-- **Monthly Cost:** $0-5 (before Umami server)
+- **Monthly Cost:** **$0-5** (well under budget!)
 - **What It Can Do:** Grammar feedback, pronunciation scoring, meaning matching, stress warnings
 
 **Phase 2: Post-MVP Enhancement (Month 8-9) - 75% SPAM Coverage**
 - **New Component:** SPAM-B (Relevance Scorer)
 - **SPAM Coverage:** 75% (adds on-topic detection)
 - **Development Time:** +3 days
-- **Monthly Cost:** Still $0-5 (SPAM-B uses free HuggingFace tier)
+- **Monthly Cost:** Still **$0-5** (SPAM-B uses free HuggingFace tier)
 - **What It Adds:** Detects when users go off-topic in Chaos Window
 - **Decision Criteria:** Add if >20% of user responses are off-topic during beta
 
@@ -382,7 +382,7 @@ Pronunciation and intonation components are **automatically skipped** for text i
 - **New Component:** SPAM-C (Dialectal/Pragmatic Analyzer)
 - **SPAM Coverage:** 100% (adds regional variants + formality detection)
 - **Development Time:** +7 days
-- **Monthly Cost:** $2-8 (adds $2-3 for SPAM-C RunPod hosting)
+- **Monthly Cost:** **$2-7** (adds $2-3 for SPAM-C hosting if needed)
 - **What It Adds:** Recognizes valid regional variants, detects formality mismatches
 - **Decision Criteria:** Add if user base expands to multiple regions OR formality errors common in Error Garden
 
@@ -391,7 +391,7 @@ Pronunciation and intonation components are **automatically skipped** for text i
 #### Component Specifications
 
 ##### Component 1: Speech Recognition
-- **Model:** `gigant/whisper-medium-romanian` (pre-trained)
+- **Model:** `whisper-large-v3` (Groq API)
 - **Hosting:** **Groq API (FREE tier!)** 🎉
 - **Function:** Romanian audio → text transcription
 - **Activation:** Speech path only
@@ -400,21 +400,23 @@ Pronunciation and intonation components are **automatically skipped** for text i
 
 ##### Component 2: Pronunciation Analysis
 - **Model:** `gigant/romanian-wav2vec2` (pre-trained)
-- **Hosting:** RunPod Serverless (~$2-3/mo)
+- **Hosting:** **HuggingFace Inference API (FREE tier!)**
 - **Function:** Phoneme recognition + stress pattern detection
 - **Activation:** Speech path only
 - **Performance:** 75-85% phoneme accuracy, 80-85% stress detection
+- **Cost:** **$0/month**
 
 ##### Component 3: Grammar Correction
-- **Model:** Fine-tuned `google/mt5-small`
+- **Model:** Fine-tuned `lmdrew96/ro-grammar-mt5-small`
 - **Status:** ✅ **COMPLETE** (BLEU 68.92)
-- **Hosting:** RunPod Serverless (~$3-5/mo)
+- **Hosting:** **@xenova/transformers (local inference)**
 - **Function:** Error detection, correction suggestions, error type classification
 - **Activation:** Both speech and text paths
 - **Performance:** BLEU 68.92, ~85-90% accuracy on common errors
+- **Cost:** **$0/month** (runs locally, ~20MB bundle size)
 
 ##### Component 4: SPAM-A (Semantic Similarity) - MVP ✅
-- **Model:** `dumitrescustefan/bert-base-romanian-cased-v1` (base, no fine-tuning needed)
+- **Model:** `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2`
 - **Hosting:** HuggingFace Inference API (FREE tier!)
 - **Function:** Sentence embedding similarity scoring
 - **Activation:** Both speech and text paths
@@ -455,11 +457,11 @@ Pronunciation and intonation components are **automatically skipped** for text i
 - **Implementation:** 1-2 days to research and build minimal pairs table
 
 ##### Component 8: Conductor - MVP ✅
-- **Type:** Intelligent orchestration logic (TypeScript)
-- **Hosting:** In-app (Next.js API route)
-- **Function:** Orchestrates component activation based on input type and intent, handles dual-path processing
+- **Type:** Conditional logic (TypeScript)
+- **Hosting:** In-app (Next.js API route, `/src/lib/ai/conductor.ts`)
+- **Function:** Orchestrates component activation based on input type (speech vs text)
 - **Cost:** **$0/month**
-- **Implementation:** 1 day
+- **Implementation:** ✅ **COMPLETE** - See `/src/lib/ai/conductor.ts`
 
 ##### Component 9: Feedback Aggregator - MVP ✅
 - **Type:** Integration logic (TypeScript)
@@ -472,16 +474,35 @@ Pronunciation and intonation components are **automatically skipped** for text i
 - **Cost:** **$0/month**
 - **Implementation:** 2-3 days
 
-##### Component 10: DeepSeek R1 Conversational AI - MVP ✅
-- **Model:** DeepSeek R1 (open-source reasoning model)
-- **Hosting:** RunPod Serverless (~$5-10/mo)
+##### Component 10: Llama 3.3 70B Conversational AI - MVP ✅
+- **Model:** Llama 3.3 70B Versatile (via Groq API)
+- **Hosting:** **Groq API (FREE tier!**)
 - **Function:** Receives aggregated feedback and formats it in approachable, encouraging manner
 - **Use Cases:**
   - Chaos Window: Generates follow-up questions, productive confusion prompts
   - Error explanations: Converts technical feedback into learner-friendly language
   - Adaptive tutoring: Adjusts teaching style based on user proficiency
-- **Cost:** $5-10/month
-- **Not Part of Grading:** DeepSeek doesn't analyze language—it formats feedback from the other 9 components
+- **Cost:** **$0/month** (Groq provides free access to Llama 3.3 70B)
+- **Not Part of Grading:** Llama 3.3 doesn't analyze language—it formats feedback from the other 9 components
+
+#### Implementation Status Table
+
+| Component | Status | Implementation File | API Endpoint | Cost/Month |
+|-----------|--------|-------------------|--------------|------------|
+| 1. Speech Recognition | ✅ **COMPLETE** | `/src/lib/ai/groq.ts` | `/api/speech-to-text` | **$0** |
+| 2. Pronunciation Analysis | ✅ **COMPLETE** | `/src/lib/ai/pronunciation.ts` | `/api/analyze-pronunciation` | **$0** |
+| 3. Grammar Correction | ✅ **COMPLETE** | `/src/lib/ai/grammar.ts` | (local inference) | **$0** |
+| 4. SPAM-A: Semantic | ✅ **COMPLETE** | `/src/lib/ai/spamA.ts` | `/api/spam-a` | **$0** |
+| 5. SPAM-B: Relevance | 🟡 **Post-MVP** | (not implemented) | (planned) | **$0** |
+| 6. SPAM-C: Dialectal | 🟡 **Post-MVP** | (not implemented) | (planned) | $2-3 |
+| 7. SPAM-D: Intonation | ✅ **COMPLETE** | `/src/lib/ai/spamD.ts` | (integrated) | **$0** |
+| 8. Conductor | ✅ **COMPLETE** | `/src/lib/ai/conductor.ts` | (orchestration) | **$0** |
+| 9. Feedback Aggregator | ✅ **COMPLETE** | `/src/lib/ai/aggregator.ts` | `/api/aggregate-feedback` | **$0** |
+| 10. Llama 3.3 Tutor | ✅ **COMPLETE** | `/src/lib/ai/tutor.ts` | (via Groq) | **$0** |
+
+**Total MVP Cost:** **$0-5/month** (well under budget! 🎉)
+
+> **Note:** Components 5 (SPAM-B) and 6 (SPAM-C) are marked as **Post-MVP** and will only be implemented if user feedback shows they're needed.
 
 ### Component Specifications
 
@@ -1957,16 +1978,16 @@ docker run -d \
 | **AI - Pronunciation** | RunPod Serverless | $2-3/mo | romanian-wav2vec2 |
 | **AI - Grammar** | RunPod Serverless | $3-5/mo | mt5-small fine-tuned (BLEU 68.92) |
 | **AI - SPAM-A (Semantic)** | HuggingFace Free Tier | **$0** | **Romanian BERT (FREE!)** |
-| **AI - SPAM-D, Conductor, Aggregator** | In-app logic | **$0** | **Rule-based + integration (FREE!)** |
+| **AI - SPAM-D, Router, Aggregator** | In-app logic | **$0** | **Rule-based + integration (FREE!)** |
 | **AI - DeepSeek R1** | RunPod Serverless | $5-10/mo | Chaos Window conversational AI |
 | **Analytics Server** | Railway/Render | $5-10/mo | Self-hosted Umami (opt-in only, Month 7+) |
 | **Email** | Resend Free Tier | $0 | 3,000 emails/month |
 | **Monitoring** | Sentry Free Tier (optional) | $0 | 5,000 events/month |
-| **TOTAL NEW COSTS (MVP)** | | **$0-5/mo** | **Phase 1: 7 components, 50% SPAM coverage** |
+| **TOTAL NEW COSTS (MVP)** | | **$10-18/mo** | **Phase 1: 7 components, 50% SPAM coverage** |
 | **+ Phase 2 (SPAM-B)** | | **+$0/mo** | **HuggingFace Free Tier** |
 | **+ Phase 3 (SPAM-C)** | | **+$2-3/mo** | **Full 100% SPAM coverage** |
-| **TOTAL FULL ENSEMBLE** | | **$2-8/mo** | **All 9 AI components deployed** |
-| **TOTAL INCLUDING BASELINE** | | **$22-29/mo** | **Vercel Pro already budgeted** |
+| **TOTAL FULL ENSEMBLE** | | **$12-21/mo** | **All 9 AI components deployed** |
+| **TOTAL INCLUDING BASELINE** | | **$32-41/mo** | **Vercel Pro already budgeted** |
 
 ### Open-Source AI Models & Hosting Strategy
 
@@ -1981,19 +2002,19 @@ docker run -d \
 | **#3 Grammar** | mt5-small (fine-tuned) | RunPod | $3-5 | ✅ MVP (BLEU 68.92) |
 | **#4 SPAM-A (Semantic)** | dumitrescustefan/bert-base-romanian-cased-v1 | **HF Inference FREE** | **$0** | ✅ MVP |
 | **#5 SPAM-D (Intonation)** | Rule-based minimal pairs | In-app logic | **$0** | ✅ MVP |
-| **#6 Conductor** | TypeScript conditional logic | In-app logic | **$0** | ✅ MVP |
+| **#6 Router** | TypeScript conditional logic | In-app logic | **$0** | ✅ MVP |
 | **#7 Aggregator** | TypeScript integration logic | In-app logic | **$0** | ✅ MVP |
 | **#8 SPAM-B (Relevance)** | readerbench/ro-text-summarization | **HF Inference FREE** | **$0** | 🟡 Post-MVP Phase 2 |
 | **#9 SPAM-C (Dialectal)** | Romanian BERT (fine-tuned) | RunPod | $2-3 | 🟡 Post-MVP Phase 3 |
 | **#10 Conversational AI** | deepseek-ai/DeepSeek-R1 | RunPod | $5-10 | ✅ MVP |
 
-**MVP Total (Phase 1):** $0-5/month  
-**Full Ensemble (Phase 3):** $2-8/month
+**MVP Total (Phase 1):** $10-18/month  
+**Full Ensemble (Phase 3):** $12-21/month
 
 **Key Cost Savings:**
 - **Groq API:** Speech recognition is FREE (was $5-8/mo on RunPod!)
 - **HuggingFace Inference:** SPAM-A and SPAM-B are FREE
-- **In-app logic:** Conductor, Aggregator, SPAM-D cost $0
+- **In-app logic:** Router, Aggregator, SPAM-D cost $0
 
 **Hosting Breakdown:**
 

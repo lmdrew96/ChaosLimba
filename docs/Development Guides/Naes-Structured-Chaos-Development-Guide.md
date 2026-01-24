@@ -1,8 +1,8 @@
 # ChaosLimbă: Nae's Structured Chaos Development Guide
 ## *Your brain works differently. This guide does too.*
 
-**Document Version:** 1.1  
-**Last Updated:** January 24, 2026  
+**Document Version:** 1.0  
+**Last Updated:** January 17, 2026  
 **For:** Nae Drew (and anyone else who codes in beautiful, productive chaos)
 
 ---
@@ -411,24 +411,24 @@ You record yourself saying "Bună ziua, mă numesc Nae" → System transcribes i
 ## Milestone 5: ✅ AI Grading Ensemble Works + AI Tutor Asks Questions
 
 **What "done" looks like:**
-- [ ] All 7 MVP AI components deployed (Phase 1: 50% SPAM coverage)
-- [ ] Speech→text works via Groq (FREE!)
-- [ ] Grammar feedback highlights errors automatically
-- [ ] SPAM-A checks if your meaning matches the expected answer
-- [ ] SPAM-D warns if you say "torTUri" (tortures) instead of "TORturi" (cakes)
-- [ ] DeepSeek R1 formats feedback in encouraging, approachable way
-- [ ] Chaos Window shows AI tutor questions informed by Error Garden
+- [x] All 7 MVP AI components deployed (Phase 1: 50% SPAM coverage)
+- [x] Speech→text works via Groq (FREE!)
+- [x] Grammar feedback highlights errors automatically
+- [x] SPAM-A checks if your meaning matches the expected answer
+- [x] SPAM-D warns if you say "torTUri" (tortures) instead of "TORturi" (cakes)
+- [x] Llama 3.3 70B formats feedback in encouraging, approachable way (FREE!)
+- [x] Chaos Window shows AI tutor questions informed by Error Garden
 
 **The 7 Components (you don't need to understand them all, just know they work together):**
 1. ✅ **Speech Recognition** (Groq, FREE) - Audio → Text 
-2. **Pronunciation** (RunPod, $2-3/mo) - Are you saying sounds right?
-3. ✅ **Grammar** (RunPod, $3-5/mo) - Finds errors, suggests fixes
+2. ✅ **Pronunciation** (HuggingFace, FREE) - Are you saying sounds right?
+3. ✅ **Grammar** (@xenova/transformers, FREE) - Finds errors, suggests fixes
 4. ✅ **SPAM-A** (HuggingFace, FREE) - Does your meaning match?
-5. **SPAM-D** (In-app, FREE) - Does stress change the word meaning?
-6. **Conductor** (In-app, FREE) - Orchestrates component activation based on input type and intent
-7. **Aggregator** (In-app, FREE) - Combines everything into one report
+5. ✅ **SPAM-D** (In-app, FREE) - Does stress change the word meaning?
+6. ✅ **Conductor** (In-app, FREE) - Orchestrates speech vs text routing
+7. ✅ **Aggregator** (In-app, FREE) - Combines everything into one report
 
-✅ **Plus:** DeepSeek R1 ($5-10/mo) - Takes all that technical feedback and makes it friendly
+✅ **Plus:** Llama 3.3 70B (Groq, **FREE**) - Takes all that technical feedback and makes it friendly
 
 **Why this matters:**  
 This is **where Output Hypothesis + Cognitive Disequilibrium happen**. AI forces production, grades it, and adapts questions to your weak structures.
@@ -448,7 +448,7 @@ You say something in Romanian, get back: "Good meaning match! But you said 'la' 
 - **Phase 2 (SPAM-B):** Detects if you go off-topic (+3 days, FREE)
 - **Phase 3 (SPAM-C):** Recognizes regional variants + formality issues (+7 days, +$2-3/mo)
 
-**Total MVP Cost:** $0-5/month for all 7 components + DeepSeek R1
+**Total MVP Cost:** **$0-5/month** for all 7 components + Llama 3.3 70B (well under budget! 🎉)
 
 ---
 
@@ -831,18 +831,21 @@ And that's exactly what it should be.
 | **Backend** | Next.js 14 API Routes | Built-in, serverless, Vercel optimized |
 | **Database** | Neon PostgreSQL + Drizzle ORM | Serverless, type-safe, SQL-like |
 | **Auth** | Clerk (Google + Email) | Free 10k MAU, easy setup |
-| **AI Ensemble** | **9 components (7 MVP + 2 Post-MVP)** | **Dual-path routing, phased rollout** |
-| **AI - Speech** | Groq API (whisper-medium-romanian) | **FREE tier** (massive savings!) |
-| **AI - Other** | RunPod + HuggingFace (all open-source) | Grammar/pronunciation on RunPod, semantic on HF FREE |
+| **AI Ensemble** | **9 components (7 MVP + 2 Post-MVP)** | **Dual-path orchestration, phased rollout** |
+| **AI - Speech** | Groq API (whisper-large-v3) | **FREE tier** (massive savings!) |
+| **AI - Grammar** | @xenova/transformers (local inference) | **FREE** (runs in browser/server) |
+| **AI - Pronunciation** | HuggingFace Inference API | **FREE tier** |
+| **AI - Semantic** | HuggingFace Inference API | **FREE tier** |
+| **AI - Tutor** | Groq API (Llama 3.3 70B) | **FREE tier** |
 | **Storage** | Cloudflare R2 (audio) + YouTube embeds (video) | Free tiers, zero costs |
 | **Analytics** | Umami (self-hosted, opt-in only) | Privacy-first, you own the data |
 | **Dev Tools** | Windsurf (primary) + Replit (prototyping) | Best agentic coding support |
 | **Deployment** | Vercel (auto-deploy from main) | Already paying $20/mo, seamless |
 
-**MVP Budget (Phase 1):** $10-18/mo (RunPod $5-8 + DeepSeek $5-10) + Umami $5-10 = **$15-28/mo total**  
-**Full Ensemble (Phase 3):** $12-21/mo AI + Umami $5-10 = **$17-31/mo total**
+**MVP Budget (Phase 1):** **$0-5/mo** (all FREE tiers!) + Umami $5-10 = **$5-15/mo total**  
+**Full Ensemble (Phase 3):** $2-7/mo (SPAM-C only) + Umami $5-10 = **$7-17/mo total**
 
-**Groq = FREE speech recognition saved you $5-8/mo!** 🎉
+**All FREE APIs saved you $10-18/mo!** 🎉
 
 **Don't second-guess these. Just build.** 🔥
 
