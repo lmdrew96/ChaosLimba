@@ -1,6 +1,7 @@
 import { analyzeMysteryItem, MysteryAnalysis } from "./tutor";
 import { compareSemanticSimilarity, SpamAResult } from "./spamA";
 import { checkIntonationShift } from "./spamD";
+import { analyzePronunciation, PronunciationResult } from "./pronunciation";
 import { IntonationWarning } from "../../types/intonation";
 import { FeedbackAggregator, AggregatorInput, AggregatedReport } from "./aggregator";
 
@@ -13,6 +14,7 @@ export type AIIntent =
     | "analyze_mystery_item"
     | "semantic_similarity"
     | "intonation_analysis"
+    | "pronunciation_analysis"
     | "feedback_aggregator"
     | "chaos_tutor_chat"; // Future
 
@@ -33,6 +35,9 @@ export class AIRouter {
 
             case "intonation_analysis":
                 return this.handleIntonationAnalysis(payload);
+
+            case "pronunciation_analysis":
+                return this.handlePronunciationAnalysis(payload);
 
             case "feedback_aggregator":
                 return this.handleFeedbackAggregation(payload);
@@ -61,6 +66,15 @@ export class AIRouter {
         }
 
         return checkIntonationShift(transcript, stressPatterns);
+    }
+
+    private static async handlePronunciationAnalysis(payload: AIPayload): Promise<PronunciationResult> {
+        const { audioData, expectedText, threshold } = payload;
+        if (!audioData) {
+            throw new Error("Audio data is required for pronunciation analysis");
+        }
+
+        return analyzePronunciation(audioData, expectedText, threshold);
     }
 
     private static async handleFeedbackAggregation(payload: AIPayload): Promise<AggregatedReport> {

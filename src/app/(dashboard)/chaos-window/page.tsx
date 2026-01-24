@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, type FormEvent } from "react"
+import { useState, useEffect, useRef, type FormEvent } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import {
@@ -12,17 +12,32 @@ import {
   Send,
   Headphones,
   MessageSquare,
+  Mic,
+  PenLine,
+  Square,
+  Volume2,
+  Loader2,
 } from "lucide-react"
 import { AIResponse } from "@/components/features/chaos-window/AIResponse"
 import { ConversationHistory, ConversationMessage } from "@/components/features/chaos-window/ConversationHistory"
 import { TutorResponse } from "@/lib/ai/tutor"
 
+type Modality = "text" | "speech"
+
 export default function ChaosWindowPage() {
   const [isActive, setIsActive] = useState(false)
   const [timer, setTimer] = useState(300)
+  const [modality, setModality] = useState<Modality>("text")
   const [response, setResponse] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Audio recording state
+  const [isRecording, setIsRecording] = useState(false)
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null)
+  const [audioUrl, setAudioUrl] = useState<string | null>(null)
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null)
+  const audioChunksRef = useRef<Blob[]>([])
   
   // AI Response state
   const [currentAIResponse, setCurrentAIResponse] = useState<TutorResponse | null>(null)
@@ -56,13 +71,77 @@ export default function ChaosWindowPage() {
     setIsActive(false)
   }
 
+  // Audio recording handlers
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: 'audio/webm;codecs=opus'
+      })
+
+      audioChunksRef.current = []
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data)
+        }
+      }
+
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' })
+        setAudioBlob(blob)
+        setAudioUrl(URL.createObjectURL(blob))
+
+        // Stop all tracks
+        stream.getTracks().forEach(track => track.stop())
+      }
+
+      mediaRecorderRef.current = mediaRecorder
+      mediaRecorder.start()
+      setIsRecording(true)
+      setError(null)
+    } catch (err) {
+      console.error('Failed to start recording:', err)
+      setError('Could not access microphone. Please check permissions.')
+    }
+  }
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop()
+      setIsRecording(false)
+    }
+  }
+
+  const playRecording = () => {
+    if (audioUrl) {
+      const audio = new Audio(audioUrl)
+      audio.play()
+    }
+  }
+
+  const resetRecording = () => {
+    setAudioBlob(null)
+    setAudioUrl(null)
+    audioChunksRef.current = []
+  }
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    const trimmed = response.trim()
 
-    if (trimmed.length < 5) {
-      setError("Răspunsul trebuie să aibă cel puțin 5 caractere.")
-      return
+    // Validate based on modality
+    if (modality === "text") {
+      const trimmed = response.trim()
+      if (trimmed.length < 5) {
+        setError("Răspunsul trebuie să aibă cel puțin 5 caractere.")
+        return
+      }
+    } else {
+      // Speech mode
+      if (!audioBlob) {
+        setError("Înregistrează un răspuns audio mai întâi.")
+        return
+      }
     }
 
     setError(null)
@@ -73,23 +152,40 @@ export default function ChaosWindowPage() {
     const userMessage: ConversationMessage = {
       id: Date.now().toString(),
       type: "user",
-      content: trimmed,
+      content: modality === "text" ? response.trim() : "🎤 [Audio Response]",
       timestamp: new Date()
     }
     setConversationHistory(prev => [...prev, userMessage])
 
     try {
-      // Call AI API
-      const res = await fetch("/api/chaos-window/submit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userResponse: trimmed,
-          context: currentContext,
-          errorPatterns: [], // TODO: Get from Error Garden
-          sessionId: "demo-session" // TODO: Real session management
+      let res: Response
+
+      if (modality === "text") {
+        // Text submission (existing flow)
+        res = await fetch("/api/chaos-window/submit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userResponse: response.trim(),
+            context: currentContext,
+            errorPatterns: [], // TODO: Get from Error Garden
+            sessionId: "demo-session", // TODO: Real session management
+            modality: "text"
+          })
         })
-      })
+      } else {
+        // Speech submission (new flow)
+        const formData = new FormData()
+        formData.append('audio', audioBlob!, 'response.webm')
+        formData.append('context', currentContext)
+        formData.append('sessionId', 'demo-session') // TODO: Real session management
+        formData.append('modality', 'speech')
+
+        res = await fetch("/api/chaos-window/submit", {
+          method: "POST",
+          body: formData
+        })
+      }
 
       if (!res.ok) {
         throw new Error("AI response failed")
@@ -111,7 +207,13 @@ export default function ChaosWindowPage() {
       setConversationHistory(prev => [...prev, aiMessage])
       setCurrentAIResponse(aiResponse)
       setCurrentGradingReport(gradingReport)
-      setResponse("")
+
+      // Reset input based on modality
+      if (modality === "text") {
+        setResponse("")
+      } else {
+        resetRecording()
+      }
 
       // Update context if there's a next question
       if (aiResponse.nextQuestion) {
@@ -222,32 +324,145 @@ export default function ChaosWindowPage() {
                     </div>
                     <h4 className="font-medium">AI Tutor</h4>
                   </div>
-                  
+
                   {/* Show current context/question */}
                   <div className="p-4 rounded-lg bg-muted/30 italic text-muted-foreground mb-4">
                     {currentContext}
                   </div>
-                  
-                  <form onSubmit={handleSubmit} className="space-y-3">
-                    <textarea
-                      value={response}
-                      onChange={(e) => setResponse(e.target.value)}
-                      className="w-full h-24 rounded-xl bg-background border border-purple-500/30 p-4 focus:ring-2 focus:ring-purple-500/30 focus:outline-none resize-none"
-                      placeholder="Răspunde aici..."
-                      disabled={isSubmitting}
-                      aria-invalid={!!error}
-                    />
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <span>Minim 5 caractere</span>
-                      {error && <span className="text-red-400">{error}</span>}
-                    </div>
+
+                  {/* Modality Toggle */}
+                  <div className="flex gap-2 mb-4">
                     <Button
-                      type="submit"
-                      className="bg-purple-600 hover:bg-purple-700 rounded-xl"
+                      type="button"
+                      variant={modality === "text" ? "default" : "outline"}
+                      className={modality === "text"
+                        ? "flex-1 bg-purple-600 hover:bg-purple-700"
+                        : "flex-1 border-purple-500/30"
+                      }
+                      onClick={() => {
+                        setModality("text")
+                        resetRecording()
+                      }}
                       disabled={isSubmitting}
                     >
-                      <Send className="mr-2 h-4 w-4" />
-                      {isSubmitting ? "Se trimite..." : "Submit Response"}
+                      <PenLine className="mr-2 h-4 w-4" />
+                      Text
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={modality === "speech" ? "default" : "outline"}
+                      className={modality === "speech"
+                        ? "flex-1 bg-blue-600 hover:bg-blue-700"
+                        : "flex-1 border-blue-500/30"
+                      }
+                      onClick={() => {
+                        setModality("speech")
+                        setResponse("")
+                      }}
+                      disabled={isSubmitting}
+                    >
+                      <Mic className="mr-2 h-4 w-4" />
+                      Speech
+                    </Button>
+                  </div>
+
+                  <form onSubmit={handleSubmit} className="space-y-3">
+                    {modality === "text" ? (
+                      <>
+                        {/* Text Input Mode */}
+                        <textarea
+                          value={response}
+                          onChange={(e) => setResponse(e.target.value)}
+                          className="w-full h-24 rounded-xl bg-background border border-purple-500/30 p-4 focus:ring-2 focus:ring-purple-500/30 focus:outline-none resize-none"
+                          placeholder="Răspunde aici..."
+                          disabled={isSubmitting}
+                          aria-invalid={!!error}
+                        />
+                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                          <span>Minim 5 caractere</span>
+                          {error && <span className="text-red-400">{error}</span>}
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        {/* Speech Input Mode */}
+                        <div className="space-y-3">
+                          {!audioBlob ? (
+                            <div className="flex gap-2">
+                              {!isRecording ? (
+                                <Button
+                                  type="button"
+                                  onClick={startRecording}
+                                  className="flex-1 bg-blue-600 hover:bg-blue-700 rounded-xl"
+                                  disabled={isSubmitting}
+                                >
+                                  <Mic className="mr-2 h-4 w-4" />
+                                  Start Recording
+                                </Button>
+                              ) : (
+                                <Button
+                                  type="button"
+                                  onClick={stopRecording}
+                                  className="flex-1 bg-red-600 hover:bg-red-700 rounded-xl animate-pulse"
+                                >
+                                  <Square className="mr-2 h-4 w-4" />
+                                  Stop Recording
+                                </Button>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="p-3 rounded-lg bg-muted/30 border border-blue-500/20 flex items-center gap-3">
+                              <div className="flex-1 flex items-center gap-2">
+                                <Volume2 className="h-4 w-4 text-blue-400" />
+                                <span className="text-sm">Audio recorded</span>
+                              </div>
+                              <Button
+                                type="button"
+                                onClick={playRecording}
+                                variant="outline"
+                                size="sm"
+                                className="border-blue-500/30"
+                              >
+                                <Play className="h-3 w-3 mr-1" />
+                                Play
+                              </Button>
+                              <Button
+                                type="button"
+                                onClick={resetRecording}
+                                variant="outline"
+                                size="sm"
+                                className="border-orange-500/30"
+                              >
+                                <RotateCcw className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          )}
+                          {error && (
+                            <div className="text-sm text-red-400">{error}</div>
+                          )}
+                        </div>
+                      </>
+                    )}
+
+                    <Button
+                      type="submit"
+                      className={modality === "text"
+                        ? "bg-purple-600 hover:bg-purple-700 rounded-xl w-full"
+                        : "bg-blue-600 hover:bg-blue-700 rounded-xl w-full"
+                      }
+                      disabled={isSubmitting || (modality === "text" ? response.trim().length < 5 : !audioBlob)}
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Se trimite...
+                        </>
+                      ) : (
+                        <>
+                          <Send className="mr-2 h-4 w-4" />
+                          Submit Response
+                        </>
+                      )}
                     </Button>
                   </form>
                 </CardContent>

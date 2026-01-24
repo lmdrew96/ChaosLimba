@@ -2,7 +2,7 @@
 
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { MessageSquare, Sparkles, AlertTriangle, CheckCircle2, Target, ExternalLink } from "lucide-react"
+import { MessageSquare, Sparkles, AlertTriangle, CheckCircle2, Target, ExternalLink, Volume2 } from "lucide-react"
 import { TutorResponse, GrammarError } from "@/lib/ai/tutor"
 import { FormattedFeedback } from "@/lib/ai/formatter"
 import { cn } from "@/lib/utils"
@@ -112,6 +112,90 @@ export function AIResponse({ response, isLoading, gradingReport }: AIResponsePro
           </div>
           <p className="text-sm text-muted-foreground">{response.feedback.semantic.feedback}</p>
         </div>
+
+        {/* Pronunciation Feedback (for speech responses) */}
+        {gradingReport?.rawReport?.pronunciation && (
+          <div className="p-4 rounded-lg bg-blue-500/10 border border-blue-500/20">
+            <div className="flex items-center gap-2 mb-3">
+              <Volume2 className="h-4 w-4 text-blue-400" />
+              <h5 className="font-medium text-blue-300">Pronunciation</h5>
+            </div>
+
+            {/* Transcription */}
+            {gradingReport.rawReport.pronunciation.transcribedText && (
+              <div className="mb-3">
+                <p className="text-xs text-muted-foreground mb-1">You said:</p>
+                <p className="text-sm italic">"{gradingReport.rawReport.pronunciation.transcribedText}"</p>
+              </div>
+            )}
+
+            {/* Pronunciation Score */}
+            {gradingReport.rawReport.pronunciation.pronunciationScore !== undefined && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Accuracy:</span>
+                  <span className={cn(
+                    "text-sm font-semibold",
+                    gradingReport.rawReport.pronunciation.pronunciationScore >= 0.85
+                      ? "text-green-400"
+                      : gradingReport.rawReport.pronunciation.pronunciationScore >= 0.70
+                      ? "text-yellow-400"
+                      : "text-orange-400"
+                  )}>
+                    {(gradingReport.rawReport.pronunciation.pronunciationScore * 100).toFixed(0)}%
+                  </span>
+                </div>
+
+                {/* Progress bar */}
+                <div className="w-full bg-muted/30 rounded-full h-2 overflow-hidden">
+                  <div
+                    className={cn(
+                      "h-full transition-all duration-500",
+                      gradingReport.rawReport.pronunciation.pronunciationScore >= 0.85
+                        ? "bg-green-500"
+                        : gradingReport.rawReport.pronunciation.pronunciationScore >= 0.70
+                        ? "bg-yellow-500"
+                        : "bg-orange-500"
+                    )}
+                    style={{
+                      width: `${gradingReport.rawReport.pronunciation.pronunciationScore * 100}%`
+                    }}
+                  />
+                </div>
+
+                {!gradingReport.rawReport.pronunciation.isAccurate && (
+                  <p className="text-xs text-muted-foreground mt-2">
+                    💡 Try recording again and focus on matching the expected pronunciation.
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Intonation Warnings */}
+        {gradingReport?.rawReport?.intonation?.warnings &&
+         gradingReport.rawReport.intonation.warnings.length > 0 && (
+          <div className="p-4 rounded-lg bg-orange-500/10 border border-orange-500/20">
+            <div className="flex items-center gap-2 mb-3">
+              <AlertTriangle className="h-4 w-4 text-orange-400" />
+              <h5 className="font-medium text-orange-300">Intonation Warning</h5>
+            </div>
+            {gradingReport.rawReport.intonation.warnings.map((warning: any, index: number) => (
+              <div key={index} className="space-y-1 text-sm">
+                <p className="text-orange-200">
+                  Watch your stress on <strong>"{warning.word}"</strong>
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  You said: {warning.user_stress} → Expected: {warning.expected_stress}
+                </p>
+                <p className="text-xs text-orange-300/80">
+                  {warning.explanation}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Encouragement */}
         {response.feedback.encouragement && (

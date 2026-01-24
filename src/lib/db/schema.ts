@@ -67,6 +67,10 @@ export type ErrorSource = (typeof errorSourceEnum)[number];
 export const sessionTypeEnum = ['chaos_window', 'deep_fog', 'content', 'mystery_shelf'] as const;
 export type SessionType = (typeof sessionTypeEnum)[number];
 
+// Modality enum (text vs speech)
+export const modalityEnum = ['text', 'speech'] as const;
+export type Modality = (typeof modalityEnum)[number];
+
 // Error logs table - tracks user errors for Error Garden
 export const errorLogs = pgTable('error_logs', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -76,6 +80,7 @@ export const errorLogs = pgTable('error_logs', {
   context: text('context'), // the sentence/phrase where error occurred
   correction: text('correction'), // the correct form
   source: text('source').$type<ErrorSource>().notNull(),
+  modality: text('modality').$type<Modality>().default('text'), // track text vs speech
   contentId: uuid('content_id').references(() => contentItems.id),
   sessionId: uuid('session_id').references(() => sessions.id),
   createdAt: timestamp('created_at').defaultNow().notNull(),

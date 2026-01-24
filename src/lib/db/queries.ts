@@ -67,6 +67,7 @@ export async function saveErrorPatternsToGarden(
         context: pattern.learnerProduction,
         correction: pattern.correctForm,
         source,
+        modality: pattern.inputType, // Track text vs speech
         sessionId,
         contentId: null, // Can be added later if content tracking is needed
       }));
