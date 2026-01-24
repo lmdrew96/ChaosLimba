@@ -2,6 +2,7 @@ import { analyzeMysteryItem, MysteryAnalysis } from "./tutor";
 import { compareSemanticSimilarity, SpamAResult } from "./spamA";
 import { checkIntonationShift } from "./spamD";
 import { IntonationWarning } from "../../types/intonation";
+import { FeedbackAggregator, AggregatorInput, AggregatedReport } from "./aggregator";
 
 /**
  * The Central Brain of ChaosLimbă
@@ -12,6 +13,7 @@ export type AIIntent =
     | "analyze_mystery_item"
     | "semantic_similarity"
     | "intonation_analysis"
+    | "feedback_aggregator"
     | "chaos_tutor_chat"; // Future
 
 type AIPayload = {
@@ -31,6 +33,9 @@ export class AIRouter {
 
             case "intonation_analysis":
                 return this.handleIntonationAnalysis(payload);
+
+            case "feedback_aggregator":
+                return this.handleFeedbackAggregation(payload);
 
             default:
                 throw new Error(`Unknown AI intent: ${intent}`);
@@ -56,5 +61,25 @@ export class AIRouter {
         }
 
         return checkIntonationShift(transcript, stressPatterns);
+    }
+
+    private static async handleFeedbackAggregation(payload: AIPayload): Promise<AggregatedReport> {
+        const { inputType, grammarResult, pronunciationResult, semanticResult, intonationResult, userId, sessionId } = payload;
+        
+        if (!inputType) {
+            throw new Error("inputType is required for feedback aggregation");
+        }
+
+        const aggregatorInput: AggregatorInput = {
+            inputType,
+            grammarResult,
+            pronunciationResult,
+            semanticResult,
+            intonationResult,
+            userId,
+            sessionId
+        };
+
+        return FeedbackAggregator.aggregateFeedback(aggregatorInput);
     }
 }

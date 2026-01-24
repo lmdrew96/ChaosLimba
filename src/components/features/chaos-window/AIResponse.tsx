@@ -2,16 +2,31 @@
 
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { MessageSquare, Sparkles, AlertTriangle, CheckCircle2 } from "lucide-react"
+import { MessageSquare, Sparkles, AlertTriangle, CheckCircle2, Target, ExternalLink } from "lucide-react"
 import { TutorResponse, GrammarError } from "@/lib/ai/tutor"
+import { FormattedFeedback } from "@/lib/ai/formatter"
 import { cn } from "@/lib/utils"
+import Link from "next/link"
+
+interface GradingReport {
+  overallScore: number
+  componentStatus: {
+    grammar: 'success' | 'error' | 'skipped'
+    semantic: 'success' | 'error' | 'skipped'
+    pronunciation?: 'success' | 'error' | 'skipped'
+    intonation?: 'success' | 'error' | 'skipped'
+  }
+  formattedFeedback?: FormattedFeedback | null
+  rawReport?: any
+}
 
 interface AIResponseProps {
   response?: TutorResponse | null
   isLoading?: boolean
+  gradingReport?: GradingReport | null
 }
 
-export function AIResponse({ response, isLoading }: AIResponseProps) {
+export function AIResponse({ response, isLoading, gradingReport }: AIResponseProps) {
   if (isLoading) {
     return (
       <Card className="rounded-xl border-purple-500/20 bg-gradient-to-r from-purple-500/10 to-violet-500/5">
@@ -113,6 +128,61 @@ export function AIResponse({ response, isLoading }: AIResponseProps) {
               <h5 className="font-medium text-pink-300">Next question:</h5>
             </div>
             <p className="text-sm">{response.nextQuestion}</p>
+          </div>
+        )}
+
+        {/* Grading Report */}
+        {gradingReport && (
+          <div className="mt-4 p-4 rounded-xl bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border border-blue-500/30">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Target className="h-4 w-4 text-blue-400" />
+                <h5 className="font-medium text-blue-300">Overall Score</h5>
+              </div>
+              <div className="text-2xl font-bold text-blue-400">
+                {gradingReport.overallScore}/100
+              </div>
+            </div>
+
+            {/* Summary from formatted feedback */}
+            {gradingReport.formattedFeedback?.summary && (
+              <p className="text-sm text-muted-foreground mb-3">
+                {gradingReport.formattedFeedback.summary}
+              </p>
+            )}
+
+            {/* Component Status */}
+            <div className="flex flex-wrap gap-2 mb-3">
+              {gradingReport.componentStatus.grammar === 'success' && (
+                <Badge variant="outline" className="bg-green-500/10 text-green-400 border-green-500/30">
+                  Grammar ✓
+                </Badge>
+              )}
+              {gradingReport.componentStatus.semantic === 'success' && (
+                <Badge variant="outline" className="bg-green-500/10 text-green-400 border-green-500/30">
+                  Meaning ✓
+                </Badge>
+              )}
+              {gradingReport.componentStatus.pronunciation === 'success' && (
+                <Badge variant="outline" className="bg-green-500/10 text-green-400 border-green-500/30">
+                  Pronunciation ✓
+                </Badge>
+              )}
+              {gradingReport.componentStatus.intonation === 'success' && (
+                <Badge variant="outline" className="bg-green-500/10 text-green-400 border-green-500/30">
+                  Intonation ✓
+                </Badge>
+              )}
+            </div>
+
+            {/* Link to Error Garden */}
+            <Link
+              href="/error-garden"
+              className="inline-flex items-center gap-1 text-sm text-blue-400 hover:text-blue-300 transition-colors"
+            >
+              View patterns in Error Garden
+              <ExternalLink className="h-3 w-3" />
+            </Link>
           </div>
         )}
       </CardContent>

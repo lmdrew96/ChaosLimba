@@ -6,7 +6,7 @@ if (process.env.HUGGINGFACE_API_TOKEN) {
   (env as any).HUGGINGFACE_API_TOKEN = process.env.HUGGINGFACE_API_TOKEN;
 }
 
-interface GrammarError {
+export interface GrammarError {
   type: string;
   learner_production: string;
   correct_form: string;
@@ -14,7 +14,7 @@ interface GrammarError {
   category?: string;
 }
 
-interface GrammarResult {
+export interface GrammarResult {
   correctedText: string;
   errors: GrammarError[];
   grammarScore: number;

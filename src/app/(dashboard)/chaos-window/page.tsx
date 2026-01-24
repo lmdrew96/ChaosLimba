@@ -26,6 +26,7 @@ export default function ChaosWindowPage() {
   
   // AI Response state
   const [currentAIResponse, setCurrentAIResponse] = useState<TutorResponse | null>(null)
+  const [currentGradingReport, setCurrentGradingReport] = useState<any>(null)
   const [isLoadingAI, setIsLoadingAI] = useState(false)
   const [conversationHistory, setConversationHistory] = useState<ConversationMessage[]>([])
   const [currentContext, setCurrentContext] = useState(
@@ -96,6 +97,7 @@ export default function ChaosWindowPage() {
 
       const data = await res.json()
       const aiResponse: TutorResponse = data.response
+      const gradingReport = data.gradingReport
 
       // Add AI message to conversation history
       const aiMessage: ConversationMessage = {
@@ -105,11 +107,12 @@ export default function ChaosWindowPage() {
         timestamp: new Date(),
         aiResponse
       }
-      
+
       setConversationHistory(prev => [...prev, aiMessage])
       setCurrentAIResponse(aiResponse)
+      setCurrentGradingReport(gradingReport)
       setResponse("")
-      
+
       // Update context if there's a next question
       if (aiResponse.nextQuestion) {
         setCurrentContext(aiResponse.nextQuestion)
@@ -254,9 +257,12 @@ export default function ChaosWindowPage() {
               {isLoadingAI && (
                 <AIResponse isLoading={true} />
               )}
-              
+
               {currentAIResponse && !isLoadingAI && (
-                <AIResponse response={currentAIResponse} />
+                <AIResponse
+                  response={currentAIResponse}
+                  gradingReport={currentGradingReport}
+                />
               )}
 
               {/* Conversation History */}
