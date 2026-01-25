@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -143,16 +143,19 @@ export function ListeningTestStep({ selfAssessment, data, onUpdate }: ListeningT
         fetchClips();
     }, []);
 
-    // Determine current question data
-    const questions = useNativeAudio && cvClips.length >= 4
-        ? cvClips.map((clip, i) => ({
-            id: `cv-${clip.id}`,
-            level: ["A1", "A2", "B1", "B2"][i] || "A1",
-            transcript: clip.sentence,
-            audioUrl: clip.r2Url,
-            ...generateQuestion(clip.sentence, i),
-        }))
-        : FALLBACK_QUESTIONS.map(q => ({ ...q, audioUrl: null }));
+    // Determine current question data - memoized to prevent shuffling on re-renders
+    const questions = useMemo(() => {
+        if (useNativeAudio && cvClips.length >= 4) {
+            return cvClips.map((clip, i) => ({
+                id: `cv-${clip.id}`,
+                level: ["A1", "A2", "B1", "B2"][i] || "A1",
+                transcript: clip.sentence,
+                audioUrl: clip.r2Url,
+                ...generateQuestion(clip.sentence, i),
+            }));
+        }
+        return FALLBACK_QUESTIONS.map(q => ({ ...q, audioUrl: null }));
+    }, [useNativeAudio, cvClips]);
 
     const question = questions[currentQuestion];
     const isLastQuestion = currentQuestion === questions.length - 1;
