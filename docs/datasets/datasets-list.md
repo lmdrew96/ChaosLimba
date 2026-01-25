@@ -5,7 +5,7 @@
 
 ---
 
-## ChaosLimbă Architecture v2.0 Models (Currently Used)
+## ChaosLimbă Architecture v2.0 Models (Currently Used) **NEEDS UPDATE AS OF JAN 25, 2026**
 
 ### Speech Recognition
 - **[gigant/whisper-medium-romanian](https://huggingface.co/gigant/whisper-medium-romanian)** - Pre-trained Whisper model for Romanian ASR

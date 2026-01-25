@@ -126,6 +126,7 @@ export type NewMysteryItem = typeof mysteryItems.$inferInsert;
 export const userPreferences = pgTable('user_preferences', {
   userId: text('user_id').primaryKey().notNull(), // Clerk user ID
   languageLevel: text('language_level').$type<'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2'>().default('A1').notNull(), // CEFR level, calculated by app
+  onboardingCompleted: pgBoolean('onboarding_completed').default(false).notNull(), // Has user completed proficiency test
   defaultChaosWindowDuration: integer('default_chaos_window_duration').default(300).notNull(), // 5 minutes default, in seconds
   emailNotifications: pgBoolean('email_notifications').default(false).notNull(), // Opt-in weekly summaries
   analyticsEnabled: pgBoolean('analytics_enabled').default(false).notNull(), // Anonymous usage tracking
