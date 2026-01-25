@@ -1,8 +1,8 @@
 # ChaosLimbă: Development Documentation
 ## From Inception to MVP and Beyond
 
-**Document Version:** 1.0  
-**Last Updated:** January 17, 2026  
+**Document Version:** 2.0  
+**Last Updated:** January 24, 2026  
 **Author:** Nae Drew  
 **Status:** Living Document
 
@@ -34,7 +34,7 @@
 - **Timeline:** 7-month MVP (Jan 2026 → Aug 2026)
 - **Purpose:** Linguistics major capstone + personal use + commercial potential
 - **Target Users:** English-speaking Romanian learners (A1→C1)
-- **Budget:** ~$0 (RunPod inference only)
+- **Budget:** ~$0 (inference only)
 - **Current Assets:**
   - Interactive HTML/React prototype
   - Grammar correction model v1 (~65 BLEU, mt5-small)
@@ -299,7 +299,7 @@ ChaosLimbă implements **constructivist** and **complexity-based** pedagogies:
                      └───────┼─────────────────────────────┘
                              │
                      ┌───────▼────────────────────────┐
-                     │ 9. Conversational AI (DeepSeek-R1) │
+                     │ 9. Conversational AI (Llama 3.3) │
                      │ Formats feedback for user      │
                      │ (Chaos Window productive confusion) │
                      └────────────────────────────────┘
@@ -319,9 +319,10 @@ ChaosLimbă employs a sophisticated 9-component AI ensemble (10 including conver
 3. **Grammar Correction** - Error detection and correction (@xenova/transformers, **local inference**, FREE)
 
 **SPAM Ensemble (4 components - Semantic/Pragmatic Analysis Module):**
+
 4. **SPAM-A: Semantic Similarity** - Meaning matching (HuggingFace free, **MVP**)
 5. **SPAM-B: Relevance Scorer** - On-topic detection (HuggingFace free, **Post-MVP Phase 2**)
-6. **SPAM-C: Dialectal/Pragmatic** - Regional variants + formality (RunPod $2-3/mo, **Post-MVP Phase 3**)
+6. **SPAM-C: Dialectal/Pragmatic** - Regional variants + formality (**Post-MVP Phase 3**)
 7. **SPAM-D: Intonation Mapper** - Stress-based meaning shifts (rule-based, **MVP**)
 
 **Integration Layer (2 components):**
@@ -436,7 +437,7 @@ Pronunciation and intonation components are **automatically skipped** for text i
 
 ##### Component 6: SPAM-C (Dialectal/Pragmatic) - Post-MVP Phase 3 🟡
 - **Model:** Fine-tuned Romanian BERT (requires training)
-- **Hosting:** RunPod Serverless (~$2-3/mo)
+- **Hosting:** ???
 - **Function:** Two-stage analysis:
   - **Dialectal:** Recognizes valid regional variants (Moldova, Transylvania, Banat, etc.)
   - **Pragmatic:** Detects formality mismatches (tu/dumneavoastră, informal/formal register)
@@ -490,13 +491,13 @@ Pronunciation and intonation components are **automatically skipped** for text i
 | Component | Status | Implementation File | API Endpoint | Cost/Month |
 |-----------|--------|-------------------|--------------|------------|
 | 1. Speech Recognition | ✅ **COMPLETE** | `/src/lib/ai/groq.ts` | `/api/speech-to-text` | **$0** |
-| 2. Pronunciation Analysis | ✅ **COMPLETE** | `/src/lib/ai/pronunciation.ts` | `/api/analyze-pronunciation` | **$0** |
+| 2. Pronunciation Analysis | 🔄 **IN-PROGRESS** | `/src/lib/ai/pronunciation.ts` | `/api/analyze-pronunciation` | **$0** |
 | 3. Grammar Correction | ✅ **COMPLETE** | `/src/lib/ai/grammar.ts` | (local inference) | **$0** |
 | 4. SPAM-A: Semantic | ✅ **COMPLETE** | `/src/lib/ai/spamA.ts` | `/api/spam-a` | **$0** |
 | 5. SPAM-B: Relevance | 🟡 **Post-MVP** | (not implemented) | (planned) | **$0** |
 | 6. SPAM-C: Dialectal | 🟡 **Post-MVP** | (not implemented) | (planned) | $2-3 |
-| 7. SPAM-D: Intonation | ✅ **COMPLETE** | `/src/lib/ai/spamD.ts` | (integrated) | **$0** |
-| 8. Conductor | ✅ **COMPLETE** | `/src/lib/ai/conductor.ts` | (orchestration) | **$0** |
+| 7. SPAM-D: Intonation | 🔄 **IN-PROGRESS** | `/src/lib/ai/spamD.ts` | (integrated) | **$0** |
+| 8. Conductor | 🔄 **IN-PROGRESS** | `/src/lib/ai/conductor.ts` | (orchestration) | **$0** |
 | 9. Feedback Aggregator | ✅ **COMPLETE** | `/src/lib/ai/aggregator.ts` | `/api/aggregate-feedback` | **$0** |
 | 10. Llama 3.3 Tutor | ✅ **COMPLETE** | `/src/lib/ai/tutor.ts` | (via Groq) | **$0** |
 
@@ -859,18 +860,17 @@ Month 7: Polish & Launch
 #### Month 1: Infrastructure & Authentication
 
 **Week 1-2: Project Setup**
-- [ ] Initialize Next.js 14 project
-- [ ] Configure Tailwind CSS + shadcn/ui
-- [ ] Set up Vercel deployment pipeline
-- [ ] Connect Neon database
-- [ ] Implement Clerk authentication
-- [ ] Create basic user dashboard
+- [x] Initialize Next.js 14 project
+- [x] Configure Tailwind CSS + shadcn/ui
+- [x] Set up Vercel deployment pipeline
+- [x] Connect Neon database
+- [x] Implement Clerk authentication
+- [x] Create basic user dashboard
 
 **Week 3-4: Database Schema & API Foundation**
 - [ ] Implement full database schema (users, content, sessions, errors)
 - [ ] Create API routes for user CRUD operations
 - [ ] Set up Cloudflare R2 bucket for audio storage
-- [ ] Implement file upload utility (audio/video)
 - [ ] Create content management API endpoints
 
 **Deliverable:** Working app with auth, database, and file storage
@@ -878,18 +878,18 @@ Month 7: Polish & Launch
 #### Month 2: Content System & Basic Features
 
 **Week 5-6: Content Library**
-- [ ] Build content ingestion pipeline (manual upload for MVP)
-- [ ] Create content tagging system (difficulty, grammar features, type)
+- [x] Build content ingestion pipeline
+- [x] Create content tagging system (difficulty, grammar features, type)
 - [ ] Implement content player components (video, audio, text)
 - [ ] Build content browser UI (filter by difficulty, type)
-- [ ] Add ~20 curated items (5hr video, 10 articles, 5 podcasts)
+- [x] Add ~20 curated items (5hr video, 10 articles, 5 podcasts)
 
 **Week 7-8: Mystery Shelf MVP**
 - [ ] Implement "collect unknown" button on content items
-- [ ] Create Mystery Shelf page (list view)
+- [x] Create Mystery Shelf page (list view)
 - [ ] Build quick review UI (word, definition, pronunciation)
-- [ ] Implement "explored" status toggle
-- [ ] Basic stats dashboard (items collected, explored)
+- [x] Implement "explored" status toggle
+- [x] Basic stats dashboard (items collected, explored)
 
 **Deliverable:** Users can consume content and collect unknowns
 
@@ -918,7 +918,7 @@ Month 7: Polish & Launch
 - [ ] Implement Chaos Window timer component
 - [ ] Create session summary UI (time spent, content consumed)
 - [ ] Add session history page
-- [ ] Implement basic proficiency tracker (manual input for now)
+- [ ] Implement basic proficiency tracker
 
 **Deliverable:** Users can log learning sessions and track errors manually
 
@@ -927,8 +927,8 @@ Month 7: Polish & Launch
 **Week 13-14: Chaos Window**
 - [ ] Build randomized content selector (at-level filtering)
 - [ ] Implement timer-based session flow
-- [ ] Create AI tutor placeholder (canned questions for now)
-- [ ] Build response submission UI (text input)
+- [x] Create AI tutor UI
+- [x] Build response submission UI (text input)
 - [ ] Add session end summary
 
 **Week 15-16: Deep Fog Mode**
@@ -956,21 +956,21 @@ Month 7: Polish & Launch
 #### Month 5: Core AI Components + Router Setup
 
 **Week 17-18: Grammar + Speech Recognition**
-- [ ] Set up Groq API account (FREE speech recognition!)
-- [ ] Integrate `whisper-medium-romanian` via Groq API
-- [ ] Deploy grammar model (mt5-small) to RunPod
-- [ ] Create Next.js API route for grammar analysis
-- [ ] Build dual-path router (speech vs text detection)
+- [x] Set up Groq API account (FREE speech recognition!)
+- [x] Integrate `whisper-large-3` via Groq API
+- [x] Deploy grammar model (mt5-small) locally
+- [x] Create Next.js API route for grammar analysis
+- [x] Build dual-path router (speech vs text detection)
 - [ ] Implement error detection from grammar model output
-- [ ] Build feedback UI (highlighted errors, suggestions)
+- [x] Build feedback UI (highlighted errors, suggestions)
 
 **Week 19-20: Pronunciation + SPAM-A (Semantic Similarity)**
-- [ ] Deploy `romanian-wav2vec2` to RunPod for pronunciation
+- [ ] Deploy `romanian-wav2vec2` via HuggingFace Inference for pronunciation
 - [ ] Implement phoneme accuracy scoring
-- [ ] Integrate `bert-base-romanian-cased-v1` via HuggingFace Inference (FREE!)
-- [ ] Build semantic similarity API endpoint
-- [ ] Create meaning-match scoring logic
-- [ ] Add SPAM-A to router (both speech and text paths)
+- [x] Integrate `paraphrase-multilingual-MiniLM-L12-v2` via HuggingFace Inference (FREE!)
+- [x] Build semantic similarity API endpoint
+- [x] Create meaning-match scoring logic
+- [x] Add SPAM-A to router (both speech and text paths)
 
 **Deliverable:** Speech/text routing works, grammar + pronunciation + semantic similarity functional
 
@@ -978,19 +978,19 @@ Month 7: Polish & Launch
 
 **Week 21-22: SPAM-D (Intonation Minimal Pairs) + Aggregator**
 - [ ] Research 50-100 Romanian stress-based minimal pairs
-- [ ] Build SPAM-D lookup table (rule-based)
+- [x] Build SPAM-D lookup table (rule-based)
 - [ ] Implement intonation warning detection
-- [ ] Create feedback aggregator (combines all 7 component outputs)
+- [x] Create feedback aggregator (combines all 7 component outputs)
 - [ ] Build weighted scoring system (adapts to input type)
 - [ ] Integrate Error Garden auto-population
 - [ ] Implement ML clustering (k-means for error patterns)
 
-**Week 23-24: DeepSeek R1 + Error Garden Automation**
-- [ ] Deploy DeepSeek R1 to RunPod (conversational AI)
-- [ ] Create AI tutor prompt engineering system
+**Week 23-24: Llama 3.3 + Error Garden Automation**
+- [x] Deploy Llama 3.3 to RunPod (conversational AI)
+- [x] Create AI tutor prompt engineering system
 - [ ] Implement Error Garden-informed question generation
-- [ ] Build conversation state management
-- [ ] Add formatted AI responses to Chaos Window
+- [x] Build conversation state management
+- [x] Add formatted AI responses to Chaos Window
 - [ ] Build fossilization detection logic (70% threshold)
 - [ ] Create error frequency tracking + targeted practice recommendations
 
@@ -1056,7 +1056,7 @@ Response Time: Text 0.5-0.8s, Speech 1.0-1.5s
 - [ ] Build progress dashboard (proficiency over time)
 - [ ] Implement email notifications (session reminders, milestones via Resend)
 - [ ] Write privacy policy & terms of service
-- [ ] Create landing page on chaoslimba.adhdesigns.dev
+- [x] Create landing page on chaoslimba.adhdesigns.dev
 - [ ] Run internal testing (1 week bug hunting)
 - [ ] Deploy Sentry for error tracking
 

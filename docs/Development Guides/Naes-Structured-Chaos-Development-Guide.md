@@ -1,8 +1,8 @@
 # ChaosLimbă: Nae's Structured Chaos Development Guide
 ## *Your brain works differently. This guide does too.*
 
-**Document Version:** 1.0  
-**Last Updated:** January 17, 2026  
+**Document Version:** 2.0  
+**Last Updated:** January 24, 2026  
 **For:** Nae Drew (and anyone else who codes in beautiful, productive chaos)
 
 ---
@@ -324,9 +324,9 @@ These are the **7 things you need** before you can launch a beta. Build them in 
 ## Milestone 1: ✅ Users Can Sign Up & Browse Content
 
 **What "done" looks like:**
-- [ ] Authentication works (Clerk or Supabase Auth)
-- [ ] User can create account, log in, log out
-- [ ] Database stores user data (Neon)
+- [x] Authentication works (Clerk or Supabase Auth)
+- [x] User can create account, log in, log out
+- [x] Database stores user data (Neon)
 - [ ] Content library exists (at least 20 items: videos, articles, podcasts)
 - [ ] User can browse content by difficulty level
 - [ ] User can watch/read/listen to content
@@ -347,13 +347,10 @@ You can create a test account, browse 20 pieces of content, and consume them wit
 ## Milestone 2: ✅ Grammar Model Grades Written Production
 
 **What "done" looks like:**
-- [ ] mt5-small grammar model deployed to RunPod
-- [ ] API endpoint accepts Romanian text → returns corrections + errors
-- [ ] UI lets user submit text and see feedback
+- [x] mt5-small grammar model deployed
+- [x] API endpoint accepts Romanian text → returns corrections + errors
+- [x] UI lets user submit text and see feedback
 - [ ] Errors are saved to database (raw, not clustered yet)
-
-**Why this matters:**  
-This is your **first AI integration**. Once this works, you know you can deploy models to RunPod and call them from your app.
 
 **Dopamine-driven approach:**
 - Love ML? Deploy the model first, worry about UI later
@@ -389,11 +386,11 @@ After submitting 20 sentences with errors, dashboard shows "Genitive Case: 65%" 
 ## Milestone 4: ✅ Speech Recognition Transcribes Audio
 
 **What "done" looks like:**
-- [ ] Whisper model (medium-romanian or base) deployed
-- [ ] User can record audio in browser (MediaRecorder API)
+- [x] Whisper model (medium-romanian or base) deployed
+- [x] User can record audio in browser (MediaRecorder API)
 - [ ] Audio uploaded to R2
-- [ ] Audio transcribed → text returned
-- [ ] Transcript displayed to user
+- [x] Audio transcribed → text returned
+- [x] Transcript displayed to user
 
 **Why this matters:**  
 This unlocks **speaking practice**. Without this, ChaosLimbă is just a reading/writing app.
@@ -411,21 +408,21 @@ You record yourself saying "Bună ziua, mă numesc Nae" → System transcribes i
 ## Milestone 5: ✅ AI Grading Ensemble Works + AI Tutor Asks Questions
 
 **What "done" looks like:**
-- [x] All 7 MVP AI components deployed (Phase 1: 50% SPAM coverage)
+- [ ] All 7 MVP AI components deployed (Phase 1: 50% SPAM coverage)
 - [x] Speech→text works via Groq (FREE!)
 - [x] Grammar feedback highlights errors automatically
 - [x] SPAM-A checks if your meaning matches the expected answer
-- [x] SPAM-D warns if you say "torTUri" (tortures) instead of "TORturi" (cakes)
+- [ ] SPAM-D warns if you say "torTUri" (tortures) instead of "TORturi" (cakes)
 - [x] Llama 3.3 70B formats feedback in encouraging, approachable way (FREE!)
 - [x] Chaos Window shows AI tutor questions informed by Error Garden
 
 **The 7 Components (you don't need to understand them all, just know they work together):**
 1. ✅ **Speech Recognition** (Groq, FREE) - Audio → Text 
-2. ✅ **Pronunciation** (HuggingFace, FREE) - Are you saying sounds right?
+2. 🔄 **Pronunciation** (HuggingFace, FREE) - Are you saying sounds right?
 3. ✅ **Grammar** (@xenova/transformers, FREE) - Finds errors, suggests fixes
 4. ✅ **SPAM-A** (HuggingFace, FREE) - Does your meaning match?
-5. ✅ **SPAM-D** (In-app, FREE) - Does stress change the word meaning?
-6. ✅ **Conductor** (In-app, FREE) - Orchestrates speech vs text routing
+5. 🔄 **SPAM-D** (In-app, FREE) - Does stress change the word meaning?
+6. 🔄 **Conductor** (In-app, FREE) - Orchestrates speech vs text routing
 7. ✅ **Aggregator** (In-app, FREE) - Combines everything into one report
 
 ✅ **Plus:** Llama 3.3 70B (Groq, **FREE**) - Takes all that technical feedback and makes it friendly
@@ -457,9 +454,9 @@ You say something in Romanian, get back: "Good meaning match! But you said 'la' 
 **What "done" looks like:**
 - [ ] User can click unknown words in Deep Fog content
 - [ ] Words saved to Mystery Shelf with context sentence
-- [ ] Dashboard shows collected items (new vs. explored)
-- [ ] User can view quick definition or deep exploration
-- [ ] Items can be marked as explored/mastered
+- [x] Dashboard shows collected items (new vs. explored)
+- [x] User can view quick definition or deep exploration
+- [x] Items can be marked as explored/mastered
 
 **Why this matters:**  
 This gives learners **agency**. They control what they want to learn, when.
