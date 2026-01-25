@@ -121,3 +121,20 @@ export const mysteryItems = pgTable('mystery_items', {
 // Infer types for mystery items
 export type MysteryItem = typeof mysteryItems.$inferSelect;
 export type NewMysteryItem = typeof mysteryItems.$inferInsert;
+
+// User Preferences table
+export const userPreferences = pgTable('user_preferences', {
+  userId: text('user_id').primaryKey().notNull(), // Clerk user ID
+  languageLevel: text('language_level').$type<'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2'>().default('A1').notNull(), // CEFR level, calculated by app
+  defaultChaosWindowDuration: integer('default_chaos_window_duration').default(300).notNull(), // 5 minutes default, in seconds
+  emailNotifications: pgBoolean('email_notifications').default(false).notNull(), // Opt-in weekly summaries
+  analyticsEnabled: pgBoolean('analytics_enabled').default(false).notNull(), // Anonymous usage tracking
+  dataCollectionEnabled: pgBoolean('data_collection_enabled').default(false).notNull(), // Error patterns for research
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Infer types for user preferences
+export type UserPreferences = typeof userPreferences.$inferSelect;
+export type NewUserPreferences = typeof userPreferences.$inferInsert;
+
