@@ -139,3 +139,24 @@ export const userPreferences = pgTable('user_preferences', {
 export type UserPreferences = typeof userPreferences.$inferSelect;
 export type NewUserPreferences = typeof userPreferences.$inferInsert;
 
+// Common Voice clips table - for native speaker audio
+export const commonVoiceClips = pgTable('common_voice_clips', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  clipPath: text('clip_path').notNull().unique(), // "common_voice_ro_26149653.mp3"
+  sentence: text('sentence').notNull(),
+  sentenceId: text('sentence_id'),
+  r2Url: text('r2_url').notNull(),
+  durationMs: integer('duration_ms'),
+  age: text('age'), // "twenties", "thirties", etc.
+  gender: text('gender'), // "male_masculine", "female_feminine"
+  accent: text('accent'), // Regional accent
+  upVotes: integer('up_votes').default(0),
+  downVotes: integer('down_votes').default(0),
+  batchNumber: integer('batch_number').default(1), // Which upload batch
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// Infer types for common voice clips
+export type CommonVoiceClip = typeof commonVoiceClips.$inferSelect;
+export type NewCommonVoiceClip = typeof commonVoiceClips.$inferInsert;
+

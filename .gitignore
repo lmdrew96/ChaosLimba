@@ -54,3 +54,9 @@ next-env.d.ts
 
 # database files (local development only)
 *.db
+
+# Common Voice corpus (large audio dataset - stored in R2)
+/Common Voice/
+.temp-cv-convert/
+.cv-upload-progress.json
+.cv-upload-batch*.log
