@@ -5,21 +5,16 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { WelcomeStep, type WelcomeData } from "./WelcomeStep";
-import { ReadingTestStep, type ReadingResult } from "./ReadingTestStep";
-import { ListeningTestStep, type ListeningResult } from "./ListeningTestStep";
-import { WritingTestStep, type WritingResult } from "./WritingTestStep";
-import { SpeakingTestStep, type SpeakingResult } from "./SpeakingTestStep";
+import { TutorOnboardingStep, type TutorOnboardingResult } from "./TutorOnboardingStep";
 import { ResultsStep } from "./ResultsStep";
 import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import type { CEFRLevel } from "@/lib/proficiency";
 
-// Steps configuration
+// Simplified steps - Welcome → Tutor Chat → Results
 const STEPS = [
     { id: "welcome", label: "Welcome", icon: "👋" },
-    { id: "reading", label: "Reading", icon: "📖" },
-    { id: "listening", label: "Listening", icon: "🎧" },
-    { id: "writing", label: "Writing", icon: "✍️" },
-    { id: "speaking", label: "Speaking", icon: "🎤" },
+    { id: "tutor", label: "Chat", icon: "💬" },
     { id: "results", label: "Results", icon: "🎉" },
 ] as const;
 
@@ -28,11 +23,8 @@ type StepId = (typeof STEPS)[number]["id"];
 // Types for collected data
 export interface OnboardingData {
     welcome?: WelcomeData;
-    reading?: ReadingResult;
-    listening?: ListeningResult;
-    writing?: WritingResult;
-    speaking?: SpeakingResult;
-    calculatedLevel?: "A1" | "A2" | "B1" | "B2" | "C1" | "C2";
+    tutor?: TutorOnboardingResult;
+    calculatedLevel?: CEFRLevel;
 }
 
 export function OnboardingWizard() {
@@ -58,16 +50,24 @@ export function OnboardingWizard() {
     const goToNext = useCallback(async () => {
         const nextIndex = currentIndex + 1;
         if (nextIndex < STEPS.length) {
-            // If moving to results, calculate the level first
+            // If moving to results, save the tutor-determined level
             if (STEPS[nextIndex].id === "results") {
                 setIsSubmitting(true);
                 setError(null);
 
                 try {
+                    // Use the tutor's inferred level
+                    const tutorLevel = data.tutor?.inferredLevel || "A1";
+
                     const response = await fetch("/api/onboarding/complete", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(data),
+                        body: JSON.stringify({
+                            welcome: data.welcome,
+                            tutor: data.tutor,
+                            // Pass tutorLevel directly for the new flow
+                            tutorLevel,
+                        }),
                     });
 
                     if (!response.ok) {
@@ -107,14 +107,13 @@ export function OnboardingWizard() {
         switch (currentStep) {
             case "welcome":
                 return !!data.welcome?.selfAssessment;
-            case "reading":
-                return !!data.reading && data.reading.answers.length > 0;
-            case "listening":
-                return !!data.listening && data.listening.answers.length > 0;
-            case "writing":
-                return !!data.writing && data.writing.responses.length > 0;
-            case "speaking":
-                return !!data.speaking && data.speaking.responses.length > 0;
+            case "tutor":
+                // Need at least a few exchanges and some confidence
+                return (
+                    data.tutor?.conversationHistory &&
+                    data.tutor.conversationHistory.length >= 4 &&
+                    data.tutor.confidence >= 0.5
+                );
             case "results":
                 return true;
             default:
@@ -194,32 +193,11 @@ export function OnboardingWizard() {
                             onUpdate={(d) => updateStepData("welcome", d)}
                         />
                     )}
-                    {currentStep === "reading" && (
-                        <ReadingTestStep
+                    {currentStep === "tutor" && (
+                        <TutorOnboardingStep
                             selfAssessment={data.welcome?.selfAssessment}
-                            data={data.reading}
-                            onUpdate={(d) => updateStepData("reading", d)}
-                        />
-                    )}
-                    {currentStep === "listening" && (
-                        <ListeningTestStep
-                            selfAssessment={data.welcome?.selfAssessment}
-                            data={data.listening}
-                            onUpdate={(d) => updateStepData("listening", d)}
-                        />
-                    )}
-                    {currentStep === "writing" && (
-                        <WritingTestStep
-                            selfAssessment={data.welcome?.selfAssessment}
-                            data={data.writing}
-                            onUpdate={(d) => updateStepData("writing", d)}
-                        />
-                    )}
-                    {currentStep === "speaking" && (
-                        <SpeakingTestStep
-                            selfAssessment={data.welcome?.selfAssessment}
-                            data={data.speaking}
-                            onUpdate={(d) => updateStepData("speaking", d)}
+                            data={data.tutor}
+                            onUpdate={(d) => updateStepData("tutor", d)}
                         />
                     )}
                     {currentStep === "results" && (

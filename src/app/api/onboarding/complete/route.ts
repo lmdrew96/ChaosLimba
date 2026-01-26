@@ -9,6 +9,15 @@ interface OnboardingData {
     welcome?: {
         selfAssessment?: 'complete_beginner' | 'some_basics' | 'intermediate' | 'advanced';
     };
+    // New: tutor-based assessment
+    tutor?: {
+        conversationHistory: Array<{ id: string; role: string; content: string }>;
+        inferredLevel: CEFRLevel;
+        confidence: number;
+        reasoning: string;
+    };
+    tutorLevel?: CEFRLevel; // Shortcut for direct level passing
+    // Legacy: old test-based assessment (deprecated)
     reading?: {
         answers: Array<{ questionId: string; correct: boolean }>;
         score: number;
@@ -47,14 +56,25 @@ export async function POST(req: NextRequest) {
 
         const data: OnboardingData = await req.json();
 
-        // Calculate CEFR level from all skill scores
-        const level: CEFRLevel = calculateCEFRLevel({
-            selfAssessment: data.welcome?.selfAssessment,
-            readingScore: data.reading?.score,
-            listeningScore: data.listening?.score,
-            writingScore: data.writing?.averageScore,
-            speakingScore: data.speaking?.averageScore,
-        });
+        // Determine CEFR level - prioritize tutor assessment over legacy tests
+        let level: CEFRLevel;
+
+        if (data.tutorLevel) {
+            // Direct tutor level from new flow
+            level = data.tutorLevel;
+        } else if (data.tutor?.inferredLevel) {
+            // Tutor assessment from conversation
+            level = data.tutor.inferredLevel;
+        } else {
+            // Fallback: Calculate from legacy test scores
+            level = calculateCEFRLevel({
+                selfAssessment: data.welcome?.selfAssessment,
+                readingScore: data.reading?.score,
+                listeningScore: data.listening?.score,
+                writingScore: data.writing?.averageScore,
+                speakingScore: data.speaking?.averageScore,
+            });
+        }
 
         // Update user preferences with level and mark onboarding complete
         await db

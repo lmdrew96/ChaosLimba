@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Trophy, BookOpen, Headphones, PenTool, Mic, ArrowRight, Sparkles } from "lucide-react";
+import { Trophy, MessageSquare, ArrowRight, Sparkles, CheckCircle } from "lucide-react";
 import type { OnboardingData } from "./OnboardingWizard";
 
 interface ResultsStepProps {
@@ -52,21 +52,10 @@ const CEFR_INFO = {
 };
 
 export function ResultsStep({ data, onComplete }: ResultsStepProps) {
-    const level = data.calculatedLevel || "A1";
+    const level = data.calculatedLevel || data.tutor?.inferredLevel || "A1";
     const info = CEFR_INFO[level];
-
-    // Calculate individual skill scores
-    const readingScore = data.reading?.score || 0;
-    const listeningScore = data.listening?.score || 0;
-    const writingScore = data.writing?.averageScore || 0;
-    const speakingScore = data.speaking?.averageScore || 0;
-
-    const skills = [
-        { name: "Reading", score: readingScore, icon: BookOpen, color: "text-purple-400" },
-        { name: "Listening", score: listeningScore, icon: Headphones, color: "text-indigo-400" },
-        { name: "Writing", score: writingScore, icon: PenTool, color: "text-emerald-400" },
-        { name: "Speaking", score: speakingScore, icon: Mic, color: "text-rose-400" },
-    ];
+    const confidence = data.tutor?.confidence || 0.7;
+    const reasoning = data.tutor?.reasoning;
 
     return (
         <Card className="border-purple-500/20 bg-card/50 backdrop-blur overflow-hidden">
@@ -116,54 +105,63 @@ export function ResultsStep({ data, onComplete }: ResultsStepProps) {
                     ))}
                 </div>
 
-                {/* Skill Breakdown */}
+                {/* Tutor Assessment Summary */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.6 }}
                     className="space-y-4"
                 >
-                    <h2 className="text-lg font-medium text-center">Your Skill Breakdown</h2>
-
-                    <div className="grid grid-cols-2 gap-4">
-                        {skills.map((skill, index) => (
-                            <motion.div
-                                key={skill.name}
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 0.7 + index * 0.1 }}
-                                className="p-4 rounded-xl bg-white/5 border border-white/10"
-                            >
-                                <div className="flex items-center gap-3 mb-2">
-                                    <skill.icon className={cn("h-5 w-5", skill.color)} />
-                                    <span className="font-medium">{skill.name}</span>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                    <div className="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
-                                        <motion.div
-                                            className={cn(
-                                                "h-full rounded-full",
-                                                skill.score >= 70 ? "bg-green-500" : skill.score >= 50 ? "bg-amber-500" : "bg-red-500"
-                                            )}
-                                            initial={{ width: 0 }}
-                                            animate={{ width: `${skill.score}%` }}
-                                            transition={{ delay: 0.8 + index * 0.1, duration: 0.5 }}
-                                        />
-                                    </div>
-                                    <span className="text-sm font-medium w-12 text-right">
-                                        {Math.round(skill.score)}%
+                    <div className="p-4 rounded-xl bg-purple-500/10 border border-purple-500/20">
+                        <div className="flex items-start gap-3">
+                            <div className="p-2 rounded-lg bg-purple-500/20">
+                                <MessageSquare className="h-5 w-5 text-purple-400" />
+                            </div>
+                            <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <h3 className="font-medium text-purple-300">Tutor Assessment</h3>
+                                    <span className={cn(
+                                        "px-2 py-0.5 rounded-full text-xs",
+                                        confidence >= 0.8
+                                            ? "bg-green-500/20 text-green-400"
+                                            : confidence >= 0.5
+                                                ? "bg-amber-500/20 text-amber-400"
+                                                : "bg-blue-500/20 text-blue-400"
+                                    )}>
+                                        {Math.round(confidence * 100)}% confidence
                                     </span>
                                 </div>
-                            </motion.div>
-                        ))}
+                                {reasoning && (
+                                    <p className="text-sm text-muted-foreground">{reasoning}</p>
+                                )}
+                            </div>
+                        </div>
                     </div>
+
+                    {/* Conversation Stats */}
+                    {data.tutor?.conversationHistory && (
+                        <div className="flex justify-center gap-6 text-sm">
+                            <div className="flex items-center gap-2">
+                                <CheckCircle className="h-4 w-4 text-green-400" />
+                                <span className="text-muted-foreground">
+                                    {data.tutor.conversationHistory.length} exchanges
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <MessageSquare className="h-4 w-4 text-purple-400" />
+                                <span className="text-muted-foreground">
+                                    Conversational assessment
+                                </span>
+                            </div>
+                        </div>
+                    )}
                 </motion.div>
 
                 {/* What's Next */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 1.1 }}
+                    transition={{ delay: 0.9 }}
                     className="rounded-xl bg-gradient-to-r from-purple-500/10 to-violet-500/10 border border-purple-500/20 p-6"
                 >
                     <div className="flex items-start gap-4">
@@ -174,9 +172,9 @@ export function ResultsStep({ data, onComplete }: ResultsStepProps) {
                             <h3 className="font-medium text-purple-300">What's Next?</h3>
                             <ul className="text-sm text-muted-foreground space-y-1">
                                 <li>• Your personalized content is ready at your level</li>
-                                <li>• Errors from this test are in your Error Garden</li>
-                                <li>• Start with a Chaos Window session for targeted practice</li>
-                                <li>• Explore Deep Fog Mode to challenge yourself</li>
+                                <li>• Start with a Chaos Window session for AI-guided practice</li>
+                                <li>• Any struggles become seeds in your Error Garden</li>
+                                <li>• Explore Deep Fog Mode when you're ready to push yourself</li>
                             </ul>
                         </div>
                     </div>
@@ -186,7 +184,7 @@ export function ResultsStep({ data, onComplete }: ResultsStepProps) {
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 1.3 }}
+                    transition={{ delay: 1.1 }}
                     className="flex justify-center"
                 >
                     <Button
@@ -203,7 +201,7 @@ export function ResultsStep({ data, onComplete }: ResultsStepProps) {
                 <motion.p
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    transition={{ delay: 1.5 }}
+                    transition={{ delay: 1.3 }}
                     className="text-center text-sm text-muted-foreground italic"
                 >
                     "We provide the method. You provide the mess." 🎭
