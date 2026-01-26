@@ -9,6 +9,7 @@ import {
   Cloud,
   Sparkles,
   Flower2,
+  TrendingUp,
   Menu,
   X,
 } from "lucide-react"
@@ -46,7 +47,14 @@ const navItems = [
     icon: Flower2,
     description: "Your error patterns",
   },
+  {
+    name: "Proficiency Tracker",
+    href: "/proficiency-tracker",
+    icon: TrendingUp,
+    description: "Your CEFR progress",
+  },
 ]
+
 
 export function Sidebar() {
   const pathname = usePathname()

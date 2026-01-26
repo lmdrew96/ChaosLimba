@@ -160,3 +160,24 @@ export const commonVoiceClips = pgTable('common_voice_clips', {
 export type CommonVoiceClip = typeof commonVoiceClips.$inferSelect;
 export type NewCommonVoiceClip = typeof commonVoiceClips.$inferInsert;
 
+// Proficiency period enum
+export const proficiencyPeriodEnum = ['daily', 'weekly', 'monthly'] as const;
+export type ProficiencyPeriod = (typeof proficiencyPeriodEnum)[number];
+
+// Proficiency History table - tracks proficiency over time
+export const proficiencyHistory = pgTable('proficiency_history', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: text('user_id').notNull(),
+  overallScore: decimal('overall_score', { precision: 3, scale: 1 }).notNull(), // 1.0-10.0
+  listeningScore: decimal('listening_score', { precision: 3, scale: 1 }),
+  readingScore: decimal('reading_score', { precision: 3, scale: 1 }),
+  speakingScore: decimal('speaking_score', { precision: 3, scale: 1 }),
+  writingScore: decimal('writing_score', { precision: 3, scale: 1 }),
+  period: text('period').$type<ProficiencyPeriod>().default('daily').notNull(),
+  recordedAt: timestamp('recorded_at').defaultNow().notNull(),
+});
+
+// Infer types for proficiency history
+export type ProficiencyHistoryRecord = typeof proficiencyHistory.$inferSelect;
+export type NewProficiencyHistoryRecord = typeof proficiencyHistory.$inferInsert;
+

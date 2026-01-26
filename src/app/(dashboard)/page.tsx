@@ -80,6 +80,14 @@ const quickActions = [
     iconColor: "text-green-400",
   },
   {
+    name: "Proficiency Tracker",
+    description: "Track your CEFR progress",
+    href: "/proficiency-tracker",
+    icon: TrendingUp,
+    gradient: "from-violet-500/20 to-purple-500/10",
+    iconColor: "text-violet-400",
+  },
+  {
     name: "SPAM-A Test",
     description: "Test Romanian spam analysis",
     href: "/spam-a-test",
@@ -88,6 +96,7 @@ const quickActions = [
     iconColor: "text-red-400",
   },
 ]
+
 
 const recentActivity = [
   {
