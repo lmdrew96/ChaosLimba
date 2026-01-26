@@ -41,7 +41,7 @@ interface ClipDuration {
     duration: number;
 }
 
-function parseTSV<T extends Record<string, string | number>>(
+function parseTSV<T>(
     filePath: string,
     transform: (row: Record<string, string>) => T
 ): T[] {
