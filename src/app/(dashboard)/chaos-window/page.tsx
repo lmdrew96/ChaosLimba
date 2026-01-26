@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef, type FormEvent } from "react"
+import { useState, useEffect, useRef, useCallback, type FormEvent } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import {
@@ -17,12 +17,22 @@ import {
   Square,
   Volume2,
   Loader2,
+  FileText,
+  Video,
 } from "lucide-react"
 import { AIResponse } from "@/components/features/chaos-window/AIResponse"
 import { ConversationHistory, ConversationMessage } from "@/components/features/chaos-window/ConversationHistory"
 import { TutorResponse } from "@/lib/ai/tutor"
+import { ContentItem } from "@/lib/db/schema"
 
 type Modality = "text" | "speech"
+
+// Content type icons
+const ContentTypeIcon = {
+  video: Video,
+  audio: Headphones,
+  text: FileText,
+}
 
 export default function ChaosWindowPage() {
   const [isActive, setIsActive] = useState(false)
@@ -38,7 +48,7 @@ export default function ChaosWindowPage() {
   const [audioUrl, setAudioUrl] = useState<string | null>(null)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const audioChunksRef = useRef<Blob[]>([])
-  
+
   // AI Response state
   const [currentAIResponse, setCurrentAIResponse] = useState<TutorResponse | null>(null)
   const [currentGradingReport, setCurrentGradingReport] = useState<any>(null)
@@ -48,12 +58,114 @@ export default function ChaosWindowPage() {
     "...și atunci mi-am dat seama că trebuie să iau o decizie. Era imposibil să rămân în situația aceea pentru totdeauna..."
   )
 
+  // Random content state
+  const [currentContent, setCurrentContent] = useState<ContentItem | null>(null)
+  const [userLevel, setUserLevel] = useState<string>("B1")
+  const [isLoadingContent, setIsLoadingContent] = useState(false)
+  const [contentError, setContentError] = useState<string | null>(null)
+
+  // Session state
+  const [sessionId, setSessionId] = useState<string | null>(null)
+
+  const startSession = async () => {
+    try {
+      if (sessionId) return // Session already active
+
+      const res = await fetch("/api/sessions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sessionType: "chaos_window",
+          contentId: currentContent?.id
+        })
+      })
+
+      if (res.ok) {
+        const data = await res.json()
+        setSessionId(data.session.id)
+      } else {
+        console.error("Failed to start session")
+      }
+    } catch (err) {
+      console.error("Error starting session:", err)
+    }
+  }
+
+  const endSession = async (finalTimer: number) => {
+    try {
+      if (!sessionId) return
+
+      const durationSeconds = 300 - finalTimer
+
+      await fetch("/api/sessions", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sessionId,
+          durationSeconds
+        })
+      })
+
+      setSessionId(null)
+    } catch (err) {
+      console.error("Error ending session:", err)
+    }
+  }
+
+  // Fetch random content from API
+  const fetchRandomContent = useCallback(async (excludeId?: string) => {
+    setIsLoadingContent(true)
+    setContentError(null)
+
+    try {
+      const params = new URLSearchParams()
+      if (excludeId) params.set('excludeId', excludeId)
+
+      const res = await fetch(`/api/content/random?${params}`)
+
+      if (!res.ok) {
+        if (res.status === 404) {
+          setContentError("Nu există conținut disponibil. Adaugă câteva materiale!")
+          return
+        }
+        throw new Error("Failed to fetch content")
+      }
+
+      const data = await res.json()
+      setCurrentContent(data.content)
+      setUserLevel(data.userLevel)
+
+      // Update the context with the content's question/prompt
+      if (data.content.textContent) {
+        setCurrentContext(data.content.textContent.slice(0, 300) + (data.content.textContent.length > 300 ? "..." : ""))
+      } else if (data.content.title) {
+        setCurrentContext(`Ascultă/Privește: "${data.content.title}" și răspunde la întrebări.`)
+      }
+    } catch (err) {
+      console.error("Failed to fetch random content:", err)
+      setContentError("Nu am putut încărca conținutul. Încearcă din nou.")
+    } finally {
+      setIsLoadingContent(false)
+    }
+  }, [])
+
+  // Fetch content when session starts
+  useEffect(() => {
+    if (isActive && !currentContent) {
+      fetchRandomContent()
+    }
+  }, [isActive, currentContent, fetchRandomContent])
+
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null
     if (isActive && timer > 0) {
       interval = setInterval(() => {
         setTimer((t) => t - 1)
       }, 1000)
+    } else if (timer === 0 && isActive) {
+      // Timer finished naturally
+      endSession(0)
+      setIsActive(false)
     }
     return () => {
       if (interval) clearInterval(interval)
@@ -67,8 +179,14 @@ export default function ChaosWindowPage() {
   }
 
   const resetTimer = () => {
+    endSession(timer)
     setTimer(300)
     setIsActive(false)
+  }
+
+  const handleStartSession = () => {
+    setIsActive(true)
+    startSession()
   }
 
   // Audio recording handlers
@@ -272,7 +390,7 @@ export default function ChaosWindowPage() {
               </p>
               <Button
                 size="lg"
-                onClick={() => setIsActive(true)}
+                onClick={handleStartSession}
                 className="bg-gradient-to-r from-pink-600 to-orange-600 hover:from-pink-700 hover:to-orange-700 rounded-xl px-8 shadow-lg shadow-pink-500/20"
               >
                 <Play className="mr-2 h-5 w-5" />
@@ -283,36 +401,93 @@ export default function ChaosWindowPage() {
             <div className="space-y-6">
               <Card className="rounded-xl border-orange-500/20 bg-black/20">
                 <CardContent className="p-5">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="p-2 rounded-lg bg-orange-500/20">
-                      <Headphones className="h-5 w-5 text-orange-400" />
+                  {isLoadingContent ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="h-8 w-8 text-orange-400 animate-spin" />
+                      <span className="ml-3 text-muted-foreground">Se încarcă conținutul...</span>
                     </div>
-                    <div className="flex-1">
-                      <h4 className="font-medium">Random Content: Podcast Clip</h4>
-                      <p className="text-xs text-muted-foreground">
-                        At your level (B1)
-                      </p>
+                  ) : contentError ? (
+                    <div className="text-center py-8">
+                      <p className="text-orange-400 mb-4">{contentError}</p>
+                      <Button
+                        onClick={() => fetchRandomContent()}
+                        variant="outline"
+                        className="border-orange-500/30"
+                      >
+                        <RotateCcw className="h-4 w-4 mr-2" />
+                        Încearcă din nou
+                      </Button>
                     </div>
-                    <span className="px-2 py-1 text-xs rounded-full bg-green-500/20 text-green-400">
-                      B1 Level
-                    </span>
-                  </div>
-                  <div className="p-4 rounded-lg bg-muted/30 italic text-muted-foreground mb-4">
-                    "...și atunci mi-am dat seama că trebuie să iau o decizie.
-                    Era imposibil să rămân în situația aceea pentru
-                    totdeauna..."
-                  </div>
-                  <div className="flex gap-2">
-                    <Button size="sm" variant="outline" className="border-orange-500/30">
-                      <Play className="h-4 w-4 mr-1" /> Play
-                    </Button>
-                    <Button size="sm" variant="outline" className="border-orange-500/30">
-                      <RotateCcw className="h-4 w-4 mr-1" /> Replay
-                    </Button>
-                    <Button size="sm" variant="outline" className="border-orange-500/30">
-                      📝 Transcript
-                    </Button>
-                  </div>
+                  ) : currentContent ? (
+                    <>
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="p-2 rounded-lg bg-orange-500/20">
+                          {(() => {
+                            const IconComponent = ContentTypeIcon[currentContent.type] || Headphones
+                            return <IconComponent className="h-5 w-5 text-orange-400" />
+                          })()}
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-medium">{currentContent.title}</h4>
+                          <p className="text-xs text-muted-foreground">
+                            {currentContent.topic} • {Math.floor((currentContent.durationSeconds || 0) / 60)} min
+                          </p>
+                        </div>
+                        <span className="px-2 py-1 text-xs rounded-full bg-green-500/20 text-green-400">
+                          {userLevel} Level
+                        </span>
+                      </div>
+
+                      {/* Content Display based on type */}
+                      {currentContent.type === 'text' && currentContent.textContent && (
+                        <div className="p-4 rounded-lg bg-muted/30 italic text-muted-foreground mb-4 max-h-32 overflow-y-auto">
+                          "{currentContent.textContent.slice(0, 500)}{currentContent.textContent.length > 500 ? '...' : ''}"
+                        </div>
+                      )}
+
+                      {currentContent.type === 'video' && currentContent.youtubeId && (
+                        <div className="aspect-video rounded-lg overflow-hidden mb-4 bg-black/50">
+                          <iframe
+                            width="100%"
+                            height="100%"
+                            src={`https://www.youtube.com/embed/${currentContent.youtubeId}${currentContent.startTime ? `?start=${currentContent.startTime}` : ''}`}
+                            title={currentContent.title}
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          />
+                        </div>
+                      )}
+
+                      {currentContent.type === 'audio' && currentContent.audioUrl && (
+                        <div className="p-4 rounded-lg bg-muted/30 mb-4">
+                          <audio controls className="w-full" src={currentContent.audioUrl}>
+                            Your browser does not support audio playback.
+                          </audio>
+                        </div>
+                      )}
+
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="border-orange-500/30"
+                          onClick={() => fetchRandomContent(currentContent.id)}
+                        >
+                          <Shuffle className="h-4 w-4 mr-1" />
+                          Next
+                        </Button>
+                        {currentContent.culturalNotes && (
+                          <Button size="sm" variant="outline" className="border-orange-500/30">
+                            📝 Cultural Notes
+                          </Button>
+                        )}
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      Se încarcă conținutul...
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -511,7 +686,12 @@ export default function ChaosWindowPage() {
                     </>
                   )}
                 </Button>
-                <Button variant="outline" className="border-orange-500/30">
+                <Button
+                  variant="outline"
+                  className="border-orange-500/30"
+                  onClick={() => fetchRandomContent(currentContent?.id)}
+                  disabled={isLoadingContent}
+                >
                   <Shuffle className="mr-2 h-4 w-4" />
                   Next Random Content
                 </Button>

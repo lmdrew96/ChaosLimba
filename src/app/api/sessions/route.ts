@@ -123,9 +123,13 @@ export async function PATCH(req: NextRequest) {
 
     // Calculate duration
     const endedAt = new Date();
-    const durationSeconds = Math.floor(
-      (endedAt.getTime() - existingSession.startedAt.getTime()) / 1000
-    );
+    let durationSeconds = body.durationSeconds;
+
+    if (durationSeconds === undefined) {
+      durationSeconds = Math.floor(
+        (endedAt.getTime() - existingSession.startedAt.getTime()) / 1000
+      );
+    }
 
     // Update the session
     const [updatedSession] = await db
