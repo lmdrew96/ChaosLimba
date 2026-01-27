@@ -1,5 +1,6 @@
 import { GrammarResult } from '../lib/ai/grammar';
 import { SpamAResult } from '../lib/ai/spamA';
+import { SpamBResult } from '../lib/ai/spamB';
 import { IntonationWarning } from './intonation';
 
 // Pronunciation analysis result (placeholder until implemented)
@@ -24,11 +25,12 @@ export interface ComponentStatus {
   pronunciation: 'success' | 'error' | 'skipped';
   semantic: 'success' | 'error' | 'skipped';
   intonation: 'success' | 'error' | 'skipped';
+  relevance: 'success' | 'error' | 'skipped';
 }
 
 // Error pattern for Error Garden integration
 export interface ExtractedErrorPattern {
-  type: 'grammar' | 'pronunciation' | 'semantic' | 'intonation';
+  type: 'grammar' | 'pronunciation' | 'semantic' | 'intonation' | 'relevance';
   category: string;
   pattern: string;
   learnerProduction: string;
@@ -46,6 +48,7 @@ export interface AggregatedReport {
   pronunciation?: PronunciationResult;  // Speech only
   semantic: SpamAResult;
   intonation?: { warnings: IntonationWarning[] };  // Speech only
+  relevance?: SpamBResult;     // Optional (when enabled)
   errorPatterns: ExtractedErrorPattern[];  // For Error Garden
   processingTime: number;      // ms
   componentResults: ComponentStatus;
@@ -63,8 +66,10 @@ export interface AggregatorInput {
   pronunciationResult?: PronunciationResult;
   semanticResult?: SpamAResult;
   intonationResult?: { warnings: IntonationWarning[] };
+  relevanceResult?: SpamBResult;  // Optional SPAM-B
   userId?: string;
   sessionId?: string;
+  enableSpamB?: boolean;  // Feature flag
 }
 
 // Scoring weights configuration

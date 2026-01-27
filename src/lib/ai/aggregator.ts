@@ -12,6 +12,7 @@ import {
 export type { AggregatorInput, AggregatedReport };
 import { GrammarResult, GrammarError } from './grammar';
 import { SpamAResult } from './spamA';
+import { SpamBResult } from './spamB';
 import { IntonationWarning } from '../../types/intonation';
 
 /**
@@ -49,6 +50,7 @@ export class FeedbackAggregator {
       pronunciation: input.pronunciationResult,
       semantic: input.semanticResult!,
       intonation: input.intonationResult,
+      relevance: input.relevanceResult,  // Include SPAM-B if provided
       errorPatterns,
       processingTime,
       componentResults,
@@ -90,12 +92,15 @@ export class FeedbackAggregator {
   private static determineComponentStatus(input: AggregatorInput): ComponentStatus {
     return {
       grammar: input.grammarResult ? 'success' : 'error',
-      pronunciation: input.inputType === 'speech' 
+      pronunciation: input.inputType === 'speech'
         ? (input.pronunciationResult ? 'success' : 'error')
         : 'skipped',
       semantic: input.semanticResult ? 'success' : 'error',
       intonation: input.inputType === 'speech'
         ? (input.intonationResult ? 'success' : 'error')
+        : 'skipped',
+      relevance: input.enableSpamB
+        ? (input.relevanceResult ? 'success' : 'error')
         : 'skipped'
     };
   }
@@ -168,6 +173,20 @@ export class FeedbackAggregator {
       });
     }
 
+    // Extract off-topic patterns (SPAM-B)
+    if (input.relevanceResult && input.relevanceResult.interpretation !== 'on_topic') {
+      patterns.push({
+        type: 'relevance',
+        category: 'off_topic',
+        pattern: `${input.relevanceResult.interpretation}_drift`,
+        learnerProduction: input.relevanceResult.topic_analysis.user_topics.join(', '),
+        correctForm: input.relevanceResult.topic_analysis.content_topics.join(', '),
+        confidence: 1 - input.relevanceResult.relevance_score,
+        severity: this.mapRelevanceToSeverity(input.relevanceResult.interpretation),
+        inputType: input.inputType
+      });
+    }
+
     return patterns;
   }
 
@@ -222,6 +241,15 @@ export class FeedbackAggregator {
     if (similarity >= 0.8) return 'low';   // High similarity = low severity
     if (similarity >= 0.5) return 'medium';
     return 'high';  // Low similarity = high severity
+  }
+
+  /**
+   * Maps relevance interpretation to severity levels
+   */
+  private static mapRelevanceToSeverity(interpretation: string): 'low' | 'medium' | 'high' {
+    if (interpretation === 'off_topic') return 'high';
+    if (interpretation === 'partially_relevant') return 'medium';
+    return 'low';
   }
 
   /**

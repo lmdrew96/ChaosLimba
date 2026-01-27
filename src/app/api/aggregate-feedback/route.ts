@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { analyzeGrammar } from '@/lib/ai/grammar';
 import { compareSemanticSimilarity } from '@/lib/ai/spamA';
+import { analyzeRelevance } from '@/lib/ai/spamB';
 import { checkIntonationShift } from '@/lib/ai/spamD';
 import { analyzePronunciation } from '@/lib/ai/pronunciation';
 import { FeedbackAggregator } from '@/lib/ai/aggregator';
@@ -15,6 +16,7 @@ export interface AggregateFeedbackRequest {
   inputType: 'text' | 'speech';
   sessionId: string;
   contentId?: string;
+  context?: string; // Context for SPAM-B relevance check
   stressPatterns?: Array<{ word: string; stress: string }>; // For speech input with intonation
 }
 
@@ -49,6 +51,7 @@ export async function POST(req: NextRequest) {
     let inputType: 'text' | 'speech';
     let sessionId: string;
     let contentId: string | undefined;
+    let context: string | undefined;
     let stressPatterns: Array<{ word: string; stress: string }> | undefined;
     let audioFile: File | null = null;
 
@@ -60,6 +63,7 @@ export async function POST(req: NextRequest) {
       inputType = formData.get('inputType') as 'text' | 'speech';
       sessionId = formData.get('sessionId') as string;
       contentId = formData.get('contentId') as string | undefined;
+      context = formData.get('context') as string | undefined;
       audioFile = formData.get('audio') as File | null;
 
       // Parse stress patterns if provided
@@ -79,6 +83,7 @@ export async function POST(req: NextRequest) {
       inputType = body.inputType;
       sessionId = body.sessionId;
       contentId = body.contentId;
+      context = body.context;
       stressPatterns = body.stressPatterns;
     }
 
@@ -186,6 +191,30 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Step 3.5: Run relevance analysis (SPAM-B)
+    let relevanceResult = null;
+    // Enable SPAM-B by default or if feature flag is true
+    const enableSpamB = true;
+
+    if (enableSpamB && context?.trim()) {
+      try {
+        console.log('[AggregateFeedback] Running SPAM-B relevance analysis...');
+        relevanceResult = await analyzeRelevance(
+          userInput.trim(),
+          {
+            main_topics: [], // Will be extracted from full_content
+            full_content: context.trim()
+          }
+        );
+        console.log(`[AggregateFeedback] Relevance analysis complete, score: ${relevanceResult.relevance_score} (${relevanceResult.interpretation})`);
+      } catch (spamBError) {
+        console.error('[AggregateFeedback] SPAM-B analysis failed:', spamBError);
+        // Don't fail the whole request, just log error
+      }
+    } else if (enableSpamB && !context) {
+      console.log('[AggregateFeedback] Skipping SPAM-B: No context provided');
+    }
+
     // Step 4: Aggregate all component results
     const aggregatorInput: AggregatorInput = {
       inputType,
@@ -195,6 +224,8 @@ export async function POST(req: NextRequest) {
       semanticResult,
       pronunciationResult: pronunciationResult || undefined,
       intonationResult: intonationResult || undefined,
+      relevanceResult: relevanceResult || undefined,
+      enableSpamB
     };
 
     const aggregatedReport = await FeedbackAggregator.aggregateFeedback(aggregatorInput);

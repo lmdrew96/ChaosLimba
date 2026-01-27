@@ -123,6 +123,9 @@ export async function POST(req: NextRequest) {
         if (expectedResponse) {
           aggregatorFormData.append('expectedResponse', expectedResponse.trim());
         }
+        if (context) {
+          aggregatorFormData.append('context', context.trim());
+        }
 
         aggregatorResponse = await fetch(
           `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/aggregate-feedback`,
@@ -151,6 +154,7 @@ export async function POST(req: NextRequest) {
               expectedResponse: expectedResponse?.trim(),
               inputType: 'text',
               sessionId,
+              context: context?.trim(),
             }),
           }
         );

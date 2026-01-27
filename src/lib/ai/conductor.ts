@@ -1,5 +1,6 @@
 import { analyzeMysteryItem, MysteryAnalysis } from "./tutor";
 import { compareSemanticSimilarity, SpamAResult } from "./spamA";
+import { analyzeRelevance, SpamBResult } from "./spamB";
 import { checkIntonationShift } from "./spamD";
 import { analyzePronunciation, PronunciationResult } from "./pronunciation";
 import { IntonationWarning } from "../../types/intonation";
@@ -15,6 +16,7 @@ import { FeedbackAggregator, AggregatorInput, AggregatedReport } from "./aggrega
 export type AIIntent =
     | "analyze_mystery_item"
     | "semantic_similarity"
+    | "relevance_check"
     | "intonation_analysis"
     | "pronunciation_analysis"
     | "feedback_aggregator"
@@ -34,6 +36,9 @@ export class AIConductor {
 
             case "semantic_similarity":
                 return this.handleSemanticSimilarity(payload);
+
+            case "relevance_check":
+                return this.handleRelevanceCheck(payload);
 
             case "intonation_analysis":
                 return this.handleIntonationAnalysis(payload);
@@ -61,6 +66,14 @@ export class AIConductor {
         return compareSemanticSimilarity(userText, expectedText);
     }
 
+    private static async handleRelevanceCheck(payload: AIPayload): Promise<SpamBResult> {
+        const { userText, contentContext } = payload;
+        if (!contentContext) {
+            throw new Error("Content context is required for relevance check");
+        }
+        return analyzeRelevance(userText, contentContext);
+    }
+
     private static async handleIntonationAnalysis(payload: AIPayload): Promise<{ warnings: IntonationWarning[] }> {
         const { transcript, stressPatterns } = payload;
         if (!transcript || !stressPatterns) {
@@ -80,8 +93,8 @@ export class AIConductor {
     }
 
     private static async handleFeedbackAggregation(payload: AIPayload): Promise<AggregatedReport> {
-        const { inputType, grammarResult, pronunciationResult, semanticResult, intonationResult, userId, sessionId } = payload;
-        
+        const { inputType, grammarResult, pronunciationResult, semanticResult, intonationResult, relevanceResult, userId, sessionId, enableSpamB } = payload;
+
         if (!inputType) {
             throw new Error("inputType is required for feedback aggregation");
         }
@@ -92,8 +105,10 @@ export class AIConductor {
             pronunciationResult,
             semanticResult,
             intonationResult,
+            relevanceResult,
             userId,
-            sessionId
+            sessionId,
+            enableSpamB
         };
 
         return FeedbackAggregator.aggregateFeedback(aggregatorInput);
