@@ -58,19 +58,25 @@ async function testGrammar(): Promise<ComponentResult> {
     const start = Date.now();
     try {
         const testSentence = "Eu merge la magazin"; // Should detect "merge" → "merg"
+        console.log(`Analyzing grammar with Claude Haiku: "${testSentence}"`);
         const result = await analyzeGrammar(testSentence);
 
         const hasCorrection = result.correctedText !== testSentence;
+        const expectedCorrection = "Eu merg la magazin";
+        const correctResult = result.correctedText === expectedCorrection;
+
+        console.log(`Found ${result.errors.length} grammar issues`);
 
         return {
             name: 'Grammar (MT5-small)',
-            status: hasCorrection ? 'PASS' : 'FAIL',
+            status: hasCorrection && correctResult ? 'PASS' : 'FAIL',
             message: hasCorrection
                 ? `Corrected "${testSentence}" → "${result.correctedText}"`
                 : 'No correction detected (model may not have loaded properly)',
             details: {
                 score: result.grammarScore,
-                errorsFound: result.errors.length
+                errorsFound: result.errors.length,
+                correctResultProduced: correctResult
             },
             timeMs: Date.now() - start
         };
@@ -371,6 +377,63 @@ async function testPronunciation(): Promise<ComponentResult> {
     };
 }
 
+async function testCachePerformance(): Promise<ComponentResult> {
+    const start = Date.now();
+    try {
+        const testSentence = "Copiii se joacă în parc"; // Different sentence to avoid previous cache
+
+        // First call - cache miss
+        const start1 = Date.now();
+        const result1 = await analyzeGrammar(testSentence);
+        const uncachedTime = Date.now() - start1;
+
+        // Second call - cache hit
+        const start2 = Date.now();
+        const result2 = await analyzeGrammar(testSentence);
+        const cachedTime = Date.now() - start2;
+
+        const speedup = uncachedTime / cachedTime;
+        const cacheEffective = speedup > 5; // Cache should be at least 5x faster
+
+        // Test SPAM-A cache as well
+        const start3 = Date.now();
+        await compareSemanticSimilarity("Bună ziua", "Salut");
+        const spamUncached = Date.now() - start3;
+
+        const start4 = Date.now();
+        await compareSemanticSimilarity("Bună ziua", "Salut");
+        const spamCached = Date.now() - start4;
+
+        const spamSpeedup = spamUncached / spamCached;
+
+        return {
+            name: 'Cache Performance',
+            status: cacheEffective && spamSpeedup > 5 ? 'PASS' : 'FAIL',
+            message: `Grammar: ${speedup.toFixed(1)}x faster, SPAM-A: ${spamSpeedup.toFixed(1)}x faster`,
+            details: {
+                grammar: {
+                    uncachedMs: uncachedTime,
+                    cachedMs: cachedTime,
+                    speedup: `${speedup.toFixed(1)}x`
+                },
+                spamA: {
+                    uncachedMs: spamUncached,
+                    cachedMs: spamCached,
+                    speedup: `${spamSpeedup.toFixed(1)}x`
+                }
+            },
+            timeMs: Date.now() - start
+        };
+    } catch (error: any) {
+        return {
+            name: 'Cache Performance',
+            status: 'FAIL',
+            message: `Error: ${error.message}`,
+            timeMs: Date.now() - start
+        };
+    }
+}
+
 async function runAllTests() {
     console.log(`${BOLD}${CYAN}`);
     console.log('╔══════════════════════════════════════════════════════════╗');
@@ -429,6 +492,11 @@ async function runAllTests() {
     const tutorResult = await testTutor();
     results.push(tutorResult);
     logResult(tutorResult);
+
+    logSection('10. Cache Performance');
+    const cacheResult = await testCachePerformance();
+    results.push(cacheResult);
+    logResult(cacheResult);
 
     // Summary
     console.log(`\n${CYAN}${'═'.repeat(60)}${RESET}`);

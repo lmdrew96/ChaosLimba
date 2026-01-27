@@ -5,6 +5,7 @@ const isPublicRoute = createRouteMatcher([
   "/sign-up(.*)",
   "/api/webhooks(.*)",
   "/api/common-voice(.*)", // Public audio clips for proficiency assessment
+  "/api/health(.*)", // Health check endpoints for monitoring
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
