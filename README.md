@@ -155,6 +155,46 @@ pnpm install
 bun install
 ```
 
+### System Dependencies
+
+ChaosLimbă requires the following system dependencies:
+
+#### Required
+- **Node.js 20+** (for Next.js)
+- **FFmpeg** (for audio processing)
+  ```bash
+  # macOS
+  brew install ffmpeg
+
+  # Ubuntu/Debian
+  sudo apt-get install ffmpeg
+
+  # Windows
+  choco install ffmpeg
+  ```
+
+#### Optional (for YouTube audio extraction fallback)
+- **yt-dlp** (extracts audio from YouTube videos when captions unavailable)
+  ```bash
+  # macOS
+  brew install yt-dlp
+
+  # Linux/macOS (pip)
+  pip install yt-dlp
+
+  # Windows
+  choco install yt-dlp
+  ```
+
+  **Note:** Without yt-dlp, videos without captions will show title-only questions (graceful degradation).
+
+#### Verification
+```bash
+# Check installations
+ffmpeg -version
+yt-dlp --version  # Optional
+```
+
 ### Development
 
 ```bash

@@ -13,6 +13,7 @@ export async function POST(req: NextRequest) {
     let sessionId: string;
     let modality: 'text' | 'speech';
     let audioFile: File | null = null;
+    let historicalErrorPatterns: string[] = [];
 
     if (isSpeechMode) {
       // Speech mode - handle FormData
@@ -22,6 +23,16 @@ export async function POST(req: NextRequest) {
       expectedResponse = formData.get('expectedResponse') as string | undefined;
       sessionId = formData.get('sessionId') as string;
       modality = 'speech';
+
+      // Parse error patterns from JSON string
+      const errorPatternsStr = formData.get('errorPatterns') as string | null;
+      if (errorPatternsStr) {
+        try {
+          historicalErrorPatterns = JSON.parse(errorPatternsStr);
+        } catch (e) {
+          console.warn('[Chaos Window] Failed to parse errorPatterns from FormData');
+        }
+      }
 
       if (!audioFile) {
         return NextResponse.json(
@@ -77,6 +88,7 @@ export async function POST(req: NextRequest) {
       expectedResponse = body.expectedResponse;
       sessionId = body.sessionId;
       modality = body.modality || 'text';
+      historicalErrorPatterns = body.errorPatterns || [];
     }
 
     // Validate common inputs
@@ -146,7 +158,8 @@ export async function POST(req: NextRequest) {
 
       if (aggregatorResponse.ok) {
         aggregatedFeedback = await aggregatorResponse.json();
-        console.log(`[Chaos Window] Aggregator completed: score ${aggregatedFeedback.overallScore}, ${aggregatedFeedback.errorsSaved} errors saved`);
+        console.log(`[Chaos Window] Session ${sessionId}: Score ${aggregatedFeedback.overallScore}/100, ${aggregatedFeedback.errorsSaved || 0} errors saved`);
+        console.log(`[Chaos Window] Error types:`, aggregatedFeedback.errorPatterns?.map((e: any) => e.category).join(', ') || 'none');
       } else {
         console.error('[Chaos Window] Aggregator failed:', await aggregatorResponse.text());
       }
@@ -155,12 +168,12 @@ export async function POST(req: NextRequest) {
       // Continue without aggregator results - don't block the flow
     }
 
-    // Step 2: Generate AI tutor response with error context
-    const errorPatterns = aggregatedFeedback?.errorPatterns || [];
+    // Step 2: Generate AI tutor response with historical error patterns from Error Garden
+    // This enables the AI to target the learner's fossilizing error patterns
     const tutorResponse = await generateTutorResponse(
       userResponse.trim(),
       context.trim(),
-      errorPatterns
+      historicalErrorPatterns
     );
 
     // Step 3: Format feedback for user display

@@ -105,11 +105,16 @@ export async function generateTutorResponse(
     errorPatterns: string[] = []
 ): Promise<TutorResponse> {
 
+    // Detect if context is full transcript vs. title-only fallback
+    const hasFullTranscript = !context.includes('[Note: Full transcript not available]');
+
     const prompt = `
 You are the ChaosLimbă Tutor, a brilliant but slightly chaotic Romanian language expert.
 Your goal is to help learners master Romanian through "productive confusion".
 
 Context: The user just heard/read: "${context}"
+${hasFullTranscript ? '' : '⚠️ NOTE: You only have the content title, not the full transcript. Focus on grammar and form rather than semantic accuracy.'}
+
 User's response: "${userResponse}"
 ${errorPatterns.length > 0 ? `Known error patterns to watch for: ${errorPatterns.join(', ')}` : ''}
 
@@ -121,28 +126,28 @@ Analyze the response and provide feedback in this JSON format:
       {
         "type": "error_type",
         "incorrect": "incorrect_part",
-        "correct": "correct_form", 
+        "correct": "correct_form",
         "explanation": "clear_explanation",
         "severity": "minor|major|critical"
       }
     ],
     "semantic": {
-      "score": 0.85,
-      "matches": true,
-      "feedback": "semantic_feedback"
+      "score": ${hasFullTranscript ? '0.85' : '0.0'},
+      "matches": ${hasFullTranscript ? 'true' : 'false'},
+      "feedback": "${hasFullTranscript ? 'semantic_feedback' : 'Cannot evaluate semantic accuracy without full transcript'}"
     },
     "encouragement": "motivational_comment"
   },
-  "nextQuestion": "follow_up_question_that_targets_weaknesses",
+  "nextQuestion": "follow_up_question${hasFullTranscript ? '_that_references_specific_content' : ''}",
   "errorPatterns": ["any_new_error_patterns_detected"],
   "isCorrect": false
 }
 
 Focus on:
 1. Grammar accuracy with specific corrections
-2. Semantic understanding of the context
+${hasFullTranscript ? '2. Semantic understanding of the content (DID THEY UNDERSTAND WHAT WAS SAID?)' : '2. ⚠️ SKIP semantic evaluation (no transcript available)'}
 3. Encouragement that maintains motivation
-4. Next question that addresses identified weaknesses
+4. Next question that ${hasFullTranscript ? 'addresses identified weaknesses AND references the content' : 'focuses on grammar/form'}
 5. Error patterns that should go to the Error Garden
 `;
 

@@ -40,6 +40,11 @@ export const contentItems = pgTable('content_items', {
   textContent: text('text_content'),
   textUrl: text('text_url'),
 
+  // Transcript fields (for video/audio content)
+  transcript: text('transcript'), // Full transcript text
+  transcriptSource: text('transcript_source'), // 'youtube_auto', 'youtube_manual', 'whisper', 'whisper_youtube_fallback', 'manual'
+  transcriptLanguage: text('transcript_language').default('ro'), // Language code (default Romanian)
+
   // Metadata fields
   languageFeatures: jsonb('language_features').$type<LanguageFeatures>(),
   topic: text('topic').notNull(),

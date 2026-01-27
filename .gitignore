@@ -60,3 +60,6 @@ next-env.d.ts
 .temp-cv-convert/
 .cv-upload-progress.json
 .cv-upload-batch*.log
+
+# Temporary YouTube audio files (auto-generated, deleted after transcription)
+.temp-yt-audio/

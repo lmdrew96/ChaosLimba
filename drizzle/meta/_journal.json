@@ -15,6 +15,13 @@
       "when": 1769394099657,
       "tag": "0001_outgoing_venom",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1769481787324,
+      "tag": "0002_tearful_micromax",
+      "breakpoints": true
     }
   ]
 }

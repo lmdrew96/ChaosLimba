@@ -22,6 +22,7 @@ import {
 } from "lucide-react"
 import { AIResponse } from "@/components/features/chaos-window/AIResponse"
 import { ConversationHistory, ConversationMessage } from "@/components/features/chaos-window/ConversationHistory"
+import { SessionSummaryModal } from "@/components/features/chaos-window/SessionSummaryModal"
 import { TutorResponse } from "@/lib/ai/tutor"
 import { ContentItem } from "@/lib/db/schema"
 
@@ -32,6 +33,31 @@ const ContentTypeIcon = {
   video: Video,
   audio: Headphones,
   text: FileText,
+}
+
+// ADHD-friendly, relatable loading messages for transcript fetching
+function getTranscriptLoadingMessage(contentType?: 'video' | 'audio' | 'text'): string {
+  if (contentType === 'video') {
+    const messages = [
+      "Fetching transcript... (this may take up to 60 seconds)",
+      "Wrangling those YouTube captions or extracting audio...",
+      "Getting transcript - trying captions first, then audio...",
+      "Loading transcript via captions or audio fallback...",
+      "Asking YouTube for captions (or extracting audio if needed)...",
+    ]
+    return messages[Math.floor(Math.random() * messages.length)]
+  } else if (contentType === 'audio') {
+    const messages = [
+      "Asking Groq to transcribe this audio magic...",
+      "Running Whisper on this audio... (it's free! 🎉)",
+      "Converting Romanian speech to text...",
+      "Transcribing audio with AI wizardry...",
+      "Groq Whisper is listening... 👂",
+    ]
+    return messages[Math.floor(Math.random() * messages.length)]
+  } else {
+    return "Loading transcript..."
+  }
 }
 
 export default function ChaosWindowPage() {
@@ -64,8 +90,18 @@ export default function ChaosWindowPage() {
   const [isLoadingContent, setIsLoadingContent] = useState(false)
   const [contentError, setContentError] = useState<string | null>(null)
 
+  // Transcript fetching state
+  const [isLoadingTranscript, setIsLoadingTranscript] = useState(false)
+  const [transcriptError, setTranscriptError] = useState<string | null>(null)
+
   // Session state
   const [sessionId, setSessionId] = useState<string | null>(null)
+  const [sessionStartTime, setSessionStartTime] = useState<number | null>(null)
+  const [errorPatterns, setErrorPatterns] = useState<string[]>([])
+  const [showSummary, setShowSummary] = useState(false)
+  const [completedSessionId, setCompletedSessionId] = useState<string | null>(null)
+  const [completedDuration, setCompletedDuration] = useState(0)
+  const [completedInteractionCount, setCompletedInteractionCount] = useState(0)
 
   const startSession = async () => {
     try {
@@ -83,6 +119,7 @@ export default function ChaosWindowPage() {
       if (res.ok) {
         const data = await res.json()
         setSessionId(data.session.id)
+        setSessionStartTime(new Date().getTime())
       } else {
         console.error("Failed to start session")
       }
@@ -95,7 +132,9 @@ export default function ChaosWindowPage() {
     try {
       if (!sessionId) return
 
-      const durationSeconds = 300 - finalTimer
+      const durationSeconds = sessionStartTime
+        ? Math.floor((new Date().getTime() - sessionStartTime) / 1000)
+        : 300 - finalTimer // fallback if sessionStartTime not set
 
       await fetch("/api/sessions", {
         method: "PATCH",
@@ -106,9 +145,47 @@ export default function ChaosWindowPage() {
         })
       })
 
+      // Update proficiency tracker based on session performance
+      try {
+        await fetch(`/api/sessions/${sessionId}/complete`, {
+          method: "POST"
+        })
+      } catch (proficiencyError) {
+        console.error("Failed to update proficiency:", proficiencyError)
+        // Continue even if proficiency update fails - not critical for UX
+      }
+
+      // Save stats for summary modal
+      setCompletedSessionId(sessionId)
+      setCompletedDuration(durationSeconds)
+      setCompletedInteractionCount(Math.floor(conversationHistory.length / 2))
+
+      // Clear session state
       setSessionId(null)
+      setSessionStartTime(null)
+
+      // Show summary modal
+      setShowSummary(true)
     } catch (err) {
       console.error("Error ending session:", err)
+    }
+  }
+
+  // Fetch error patterns from Error Garden
+  const fetchErrorPatterns = async () => {
+    try {
+      const res = await fetch('/api/errors/patterns')
+      if (res.ok) {
+        const data = await res.json()
+        // Extract top 3 fossilizing patterns for AI to target
+        const patterns = data.patterns
+          .filter((p: any) => p.isFossilizing)
+          .slice(0, 3)
+          .map((p: any) => `${p.errorType}: ${p.category}`)
+        setErrorPatterns(patterns)
+      }
+    } catch (err) {
+      console.error('Failed to fetch error patterns:', err)
     }
   }
 
@@ -135,11 +212,34 @@ export default function ChaosWindowPage() {
       setCurrentContent(data.content)
       setUserLevel(data.userLevel)
 
-      // Update the context with the content's question/prompt
+      // Update context with full content (transcript for video/audio, text for text content)
       if (data.content.textContent) {
-        setCurrentContext(data.content.textContent.slice(0, 300) + (data.content.textContent.length > 300 ? "..." : ""))
-      } else if (data.content.title) {
-        setCurrentContext(`Ascultă/Privește: "${data.content.title}" și răspunde la întrebări.`)
+        // Text content: use first 300 chars
+        const textContent = data.content.textContent;
+        setCurrentContext(textContent.slice(0, 300) + (textContent.length > 300 ? "..." : ""))
+      } else if (data.content.transcript) {
+        // Video/Audio with transcript: use full transcript (or first 2000 chars for very long content)
+        const transcript = data.content.transcript;
+
+        if (transcript.length > 2000) {
+          // Truncate very long transcripts to fit LLM context window
+          setCurrentContext(transcript.slice(0, 2000) + "\n\n[Transcript continues, full context available to AI...]")
+        } else {
+          setCurrentContext(transcript)
+        }
+      } else {
+        // Fallback: No transcript available, use title only
+        setCurrentContext(`Ascultă/Privește: "${data.content.title}" și răspunde la întrebări. [Note: Full transcript not available]`)
+      }
+
+      // Check if we need to fetch transcript on-demand
+      if (!data.content.textContent && !data.content.transcript) {
+        // Video/Audio without transcript - fetch it!
+        if (data.content.type === 'video' || data.content.type === 'audio') {
+          console.log(`[Chaos Window] Content missing transcript, fetching on-demand...`)
+          // Don't await - let it load in background
+          fetchTranscript(data.content.id)
+        }
       }
     } catch (err) {
       console.error("Failed to fetch random content:", err)
@@ -149,12 +249,62 @@ export default function ChaosWindowPage() {
     }
   }, [])
 
+  // Fetch transcript on-demand for content that doesn't have it cached
+  const fetchTranscript = useCallback(async (contentId: string) => {
+    setIsLoadingTranscript(true)
+    setTranscriptError(null)
+
+    try {
+      console.log(`[Chaos Window] Fetching transcript for content ${contentId}`)
+      const res = await fetch(`/api/content/transcript/${contentId}`)
+
+      if (!res.ok) {
+        // 404 = No transcript available (not a fatal error)
+        if (res.status === 404) {
+          console.log(`[Chaos Window] No transcript available for ${contentId}`)
+          setTranscriptError("Transcript unavailable")
+          return
+        }
+        throw new Error("Failed to fetch transcript")
+      }
+
+      const data = await res.json()
+      const transcript = data.transcript
+
+      // Update context with newly fetched transcript
+      if (transcript) {
+        if (transcript.length > 2000) {
+          setCurrentContext(transcript.slice(0, 2000) + "\n\n[Transcript continues, full context available to AI...]")
+        } else {
+          setCurrentContext(transcript)
+        }
+
+        // Update currentContent to include transcript (avoid re-fetch on next render)
+        setCurrentContent(prev => prev?.id === contentId ? { ...prev, transcript } : prev)
+
+        console.log(`[Chaos Window] Transcript fetched successfully (${transcript.length} chars)`)
+      }
+    } catch (err) {
+      console.error("[Chaos Window] Failed to fetch transcript:", err)
+      setTranscriptError("Couldn't load transcript - using title only")
+    } finally {
+      setIsLoadingTranscript(false)
+    }
+  }, [])
+
   // Fetch content when session starts
   useEffect(() => {
     if (isActive && !currentContent) {
       fetchRandomContent()
     }
   }, [isActive, currentContent, fetchRandomContent])
+
+  // Fetch error patterns when session starts
+  useEffect(() => {
+    if (sessionId && errorPatterns.length === 0) {
+      fetchErrorPatterns()
+    }
+  }, [sessionId])
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null
@@ -286,8 +436,8 @@ export default function ChaosWindowPage() {
           body: JSON.stringify({
             userResponse: response.trim(),
             context: currentContext,
-            errorPatterns: [], // TODO: Get from Error Garden
-            sessionId: "demo-session", // TODO: Real session management
+            errorPatterns: errorPatterns,
+            sessionId: sessionId || "demo-session",
             modality: "text"
           })
         })
@@ -296,8 +446,9 @@ export default function ChaosWindowPage() {
         const formData = new FormData()
         formData.append('audio', audioBlob!, 'response.webm')
         formData.append('context', currentContext)
-        formData.append('sessionId', 'demo-session') // TODO: Real session management
+        formData.append('sessionId', sessionId || 'demo-session')
         formData.append('modality', 'speech')
+        formData.append('errorPatterns', JSON.stringify(errorPatterns))
 
         res = await fetch("/api/chaos-window/submit", {
           method: "POST",
@@ -463,6 +614,25 @@ export default function ChaosWindowPage() {
                           <audio controls className="w-full" src={currentContent.audioUrl}>
                             Your browser does not support audio playback.
                           </audio>
+                        </div>
+                      )}
+
+                      {/* Transcript Loading Indicator */}
+                      {isLoadingTranscript && (
+                        <div className="flex items-center gap-3 p-3 rounded-lg bg-gradient-to-r from-orange-500/10 to-yellow-500/10 border border-orange-500/20 mb-4">
+                          <Loader2 className="h-4 w-4 text-orange-400 animate-spin flex-shrink-0" />
+                          <span className="text-sm text-orange-200">
+                            {getTranscriptLoadingMessage(currentContent?.type)}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Transcript Error (non-blocking) */}
+                      {transcriptError && !isLoadingTranscript && (
+                        <div className="p-3 rounded-lg bg-muted/30 border border-border/40 mb-4">
+                          <p className="text-xs text-muted-foreground">
+                            📝 {transcriptError} - AI tutor will work with title only
+                          </p>
                         </div>
                       )}
 
@@ -746,6 +916,26 @@ export default function ChaosWindowPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Session Summary Modal */}
+      <SessionSummaryModal
+        isOpen={showSummary}
+        onClose={() => setShowSummary(false)}
+        onNewSession={() => {
+          setShowSummary(false)
+          // Reset for new session
+          setTimer(300)
+          setResponse("")
+          setConversationHistory([])
+          setCurrentAIResponse(null)
+          setCurrentGradingReport(null)
+          setErrorPatterns([])
+          fetchRandomContent()
+        }}
+        sessionId={completedSessionId}
+        duration={completedDuration}
+        interactionCount={completedInteractionCount}
+      />
     </div>
   )
 }
