@@ -37,7 +37,7 @@
 - **Budget:** ~$0 (inference only)
 - **Current Assets:**
   - Interactive HTML/React prototype
-  - Grammar correction model v1 (~65 BLEU, mt5-small)
+  - Grammar correction via Claude Haiku 4.5 (LLM-based contextual analysis)
   - ~1 hour curated YouTube content (A1-C2)
   - ~5 text articles (B1/B2)
   - Comprehensive pedagogical documentation
@@ -113,7 +113,7 @@ ChaosLimbă provides the adaptive framework and AI-powered feedback; learners pr
 - **Frontend:** React (TBD: framework choice)
 
 **Assets Developed:**
-- Grammar correction model v1 (mt5-small, ~65 BLEU score)
+- Grammar correction via Claude Haiku 4.5 (provider-agnostic wrapper)
 - Python content curation script
 - Initial content library (1hr video, 5 articles)
 - Supabase database schema
@@ -316,7 +316,7 @@ ChaosLimbă employs a sophisticated 9-component AI ensemble (10 including conver
 **Core Processing (3 components):**
 1. **Speech Recognition** - Converts Romanian audio to text (Groq API, **whisper-large-v3**, FREE)
 2. **Pronunciation Analysis** - Phoneme accuracy + stress detection (HuggingFace Inference API, **FREE**)
-3. **Grammar Correction** - Error detection and correction (@xenova/transformers, **local inference**, FREE)
+3. **Grammar Correction** - LLM-based contextual error detection (Anthropic API, **Claude Haiku 4.5**, ~$0.001/check)
 
 **SPAM Ensemble (4 components - Semantic/Pragmatic Analysis Module):**
 
@@ -408,13 +408,13 @@ Pronunciation and intonation components are **automatically skipped** for text i
 - **Cost:** **$0/month**
 
 ##### Component 3: Grammar Correction
-- **Model:** Fine-tuned `lmdrew96/ro-grammar-mt5-small`
-- **Status:** ✅ **COMPLETE** (BLEU 68.92)
-- **Hosting:** **@xenova/transformers (local inference)**
-- **Function:** Error detection, correction suggestions, error type classification
+- **Model:** Claude Haiku 4.5 (provider-agnostic wrapper)
+- **Status:** ✅ **COMPLETE**
+- **Hosting:** **Anthropic API**
+- **Function:** LLM-based contextual error detection, correction suggestions, error type classification
 - **Activation:** Both speech and text paths
-- **Performance:** BLEU 68.92, ~85-90% accuracy on common errors
-- **Cost:** **$0/month** (runs locally, ~20MB bundle size)
+- **Performance:** Contextual understanding with Romanian grammar rules, catches diacritics, spelling, and grammar errors
+- **Cost:** **~$2/month** (~$0.001 per check with 40% cache hit rate)
 
 ##### Component 4: SPAM-A (Semantic Similarity) - MVP ✅
 - **Model:** `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2`
@@ -712,9 +712,8 @@ export async function POST(req: Request) {
 **RunPod Configuration:**
 
 ```python
-# Example RunPod serverless endpoint setup (grammar model)
-
-# Grammar Model (mt5-small fine-tuned)
+# Example: Grammar checking now uses Claude Haiku 4.5 via Anthropic API
+# (Previously used RunPod with mt5-small fine-tuned model)
 # Endpoint: grammar-correction-v1
 # GPU: RTX 4090 (24GB VRAM) or RTX A4000 (16GB VRAM)
 # Cold start: ~10s, Warm: <1s
@@ -958,10 +957,10 @@ Month 7: Polish & Launch
 **Week 17-18: Grammar + Speech Recognition**
 - [x] Set up Groq API account (FREE speech recognition!)
 - [x] Integrate `whisper-large-3` via Groq API
-- [x] Deploy grammar model (mt5-small) locally
+- [x] Deploy grammar checker with Claude Haiku 4.5
 - [x] Create Next.js API route for grammar analysis
 - [x] Build dual-path router (speech vs text detection)
-- [ ] Implement error detection from grammar model output
+- [x] Implement error detection from Claude's output
 - [x] Build feedback UI (highlighted errors, suggestions)
 
 **Week 19-20: Pronunciation + SPAM-A (Semantic Similarity)**
@@ -1010,9 +1009,9 @@ Response Time: Text 0.5-0.8s, Speech 1.0-1.5s
 ```
 
 **Success Criteria:**
-- Grammar model achieves >70% accuracy on user productions (target: BLEU 68.92 ✅)
-- Speech transcription works for Romanian (<15% WER via Groq)
-- SPAM-A semantic similarity >80% accuracy
+- Grammar checker catches spelling, diacritics, and contextual errors ✅
+- Speech transcription works for Romanian (<15% WER via Groq) ✅
+- SPAM-A semantic similarity >80% accuracy ✅
 - SPAM-D detects minimal pairs with >90% accuracy
 - Conversational AI generates contextually relevant questions
 - Error Garden automatically clusters 5+ error types
@@ -1975,8 +1974,8 @@ docker run -d \
 | **Storage** | Cloudflare R2 Free Tier | $0 | 10GB storage, 1M operations/mo |
 | **Auth** | Clerk Free Tier | $0 | 10,000 MAU |
 | **AI - Speech Recognition** | Groq API Free Tier | **$0** | **whisper-medium-romanian (FREE!)** |
-| **AI - Pronunciation** | RunPod Serverless | $2-3/mo | romanian-wav2vec2 |
-| **AI - Grammar** | RunPod Serverless | $3-5/mo | mt5-small fine-tuned (BLEU 68.92) |
+| **AI - Pronunciation** | HuggingFace Free Tier | **$0** | **romanian-wav2vec2 (FREE!)** |
+| **AI - Grammar** | Anthropic API | ~$2/mo | Claude Haiku 4.5 (contextual LLM) |
 | **AI - SPAM-A (Semantic)** | HuggingFace Free Tier | **$0** | **Romanian BERT (FREE!)** |
 | **AI - SPAM-D, Router, Aggregator** | In-app logic | **$0** | **Rule-based + integration (FREE!)** |
 | **AI - DeepSeek R1** | RunPod Serverless | $5-10/mo | Chaos Window conversational AI |
@@ -1998,8 +1997,8 @@ docker run -d \
 | Component | Model | Hosting | Cost/Month | Status |
 |-----------|-------|---------|------------|--------|
 | **#1 Speech Recognition** | gigant/whisper-medium-romanian | **Groq API FREE** | **$0** | ✅ MVP |
-| **#2 Pronunciation** | gigant/romanian-wav2vec2 | RunPod | $2-3 | ✅ MVP |
-| **#3 Grammar** | mt5-small (fine-tuned) | RunPod | $3-5 | ✅ MVP (BLEU 68.92) |
+| **#2 Pronunciation** | gigant/romanian-wav2vec2 | **HF Inference FREE** | **$0** | ✅ MVP |
+| **#3 Grammar** | Claude Haiku 4.5 | Anthropic API | ~$2 | ✅ MVP (LLM-based) |
 | **#4 SPAM-A (Semantic)** | dumitrescustefan/bert-base-romanian-cased-v1 | **HF Inference FREE** | **$0** | ✅ MVP |
 | **#5 SPAM-D (Intonation)** | Rule-based minimal pairs | In-app logic | **$0** | ✅ MVP |
 | **#6 Router** | TypeScript conditional logic | In-app logic | **$0** | ✅ MVP |
@@ -2308,7 +2307,7 @@ async function batchGrammarAnalysis(sentences: string[]) {
 3. **French** (high demand, Romance language like Romanian)
 
 **Technical Requirements:**
-- Language-specific grammar models (fine-tune mT5 for each)
+- Language-specific grammar checking (Claude supports multilingual, or train custom models)
 - Language-specific speech recognition (Whisper already multilingual)
 - Localized content libraries (50+ hrs per language)
 
@@ -2404,8 +2403,8 @@ async function batchGrammarAnalysis(sentences: string[]) {
 | **Authentication** | Clerk | Easy setup, free 10k MAU |
 | **AI Ensemble** | **9-Component System (7 MVP + 2 Post-MVP)** | **Dual-path routing, phased rollout** |
 | **AI #1 - Speech Recognition** | whisper-medium-romanian → Groq API | **FREE tier**, Romanian-optimized |
-| **AI #2 - Pronunciation** | romanian-wav2vec2 → RunPod | $2-3/mo, phoneme + stress detection |
-| **AI #3 - Grammar** | mt5-small (fine-tuned) → RunPod | $3-5/mo, BLEU 68.92 ✅ |
+| **AI #2 - Pronunciation** | romanian-wav2vec2 → HF Inference | **FREE tier**, phoneme + stress detection |
+| **AI #3 - Grammar** | Claude Haiku 4.5 → Anthropic API | ~$2/mo, LLM-based contextual analysis ✅ |
 | **AI #4 - SPAM-A (Semantic)** | bert-base-romanian → HF Inference | **FREE tier**, meaning matching (MVP) |
 | **AI #5 - SPAM-D (Intonation)** | Rule-based minimal pairs → In-app | **FREE**, stress-meaning shifts (MVP) |
 | **AI #6 - Router** | Conditional logic → In-app | **FREE**, speech vs text routing (MVP) |

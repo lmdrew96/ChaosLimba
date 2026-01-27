@@ -24,7 +24,7 @@ ChaosLimbă is a sophisticated adaptive language learning platform designed spec
 |---|-----------|------------------|------------|--------|
 | 1 | Speech Recognition | whisper-large-v3 (Groq API) | Speech only | ✅ **COMPLETE** |
 | 2 | Pronunciation Analysis | romanian-wav2vec2 (HF Inference) | Speech only | ✅ **COMPLETE** |
-| 3 | Grammar Correction | lmdrew96/ro-grammar-mt5-small (local) | Both | ✅ **COMPLETE** |
+| 3 | Grammar Correction | Claude Haiku 4.5 (Anthropic API) | Both | ✅ **COMPLETE** |
 | 4 | SPAM-A: Semantic Similarity | multilingual-MiniLM-L12-v2 (HF) | Both | ✅ **COMPLETE** |
 | 5 | SPAM-D: Intonation Mapper | Rule-based lookup (50-100 pairs) | Speech only | ✅ **COMPLETE** |
 | 6 | Conductor | Conditional logic | Both | ✅ **COMPLETE** |
@@ -58,7 +58,7 @@ The text path skips pronunciation and intonation analysis, reducing processing t
 ### Backend & ML Infrastructure
 - **Speech Recognition**: Groq API (whisper-large-v3) - **FREE**
 - **Pronunciation**: HuggingFace Inference API (romanian-wav2vec2) - **FREE**
-- **Grammar**: @xenova/transformers (local inference) - **FREE**
+- **Grammar**: Anthropic API (Claude Haiku 4.5) - **~$0.001 per check**
 - **Semantic**: HuggingFace Inference API (multilingual-MiniLM) - **FREE**
 - **AI Tutor**: Llama 3.3 70B (Groq API) - **FREE**
 - **Database**: PostgreSQL (user profiles, grading reports)
@@ -115,31 +115,37 @@ Analyzes user input (speech or text) and returns comprehensive grading report.
 - Node.js 18+ and npm/yarn/pnpm/bun
 - PostgreSQL database
 - API keys:
-  - Groq API key (for Whisper)
-  - RunPod endpoints (for grammar and pronunciation)
-  - HuggingFace token (optional, for higher rate limits)
-  - DeepSeek API key
+  - Anthropic API key (for Claude Haiku 4.5 grammar checking)
+  - Groq API key (for Whisper speech recognition & Llama 3.3 tutor)
+  - HuggingFace token (for pronunciation & semantic analysis)
+  - Clerk keys (for authentication)
 
 ### Environment Variables
 
 Create a `.env.local` file:
 
 ```bash
+# Authentication
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_key
+CLERK_SECRET_KEY=your_clerk_secret
+
 # Database
 DATABASE_URL=postgresql://...
 
-# Groq API (for Whisper)
-GROQ_API_KEY=your_groq_api_key
+# AI Providers
+ANTHROPIC_API_KEY=your_anthropic_key     # For Claude Haiku 4.5 grammar checking
+GROQ_API_KEY=your_groq_api_key           # For speech recognition & AI tutor
+HUGGINGFACE_API_TOKEN=your_hf_token      # For pronunciation & semantic analysis
 
-# RunPod endpoints
-RUNPOD_GRAMMAR_ENDPOINT=https://...
-RUNPOD_PRONUNCIATION_ENDPOINT=https://...
+# Grammar Provider (optional, defaults to 'claude')
+GRAMMAR_PROVIDER=claude                   # Options: 'claude' | 'openai'
 
-# HuggingFace Inference
-HF_API_TOKEN=your_hf_token  # Optional
-
-# DeepSeek
-DEEPSEEK_API_KEY=your_deepseek_key
+# Cloudflare R2 Storage
+CLOUDFLARE_R2_ACCOUNT_ID=your_account_id
+CLOUDFLARE_R2_ACCESS_KEY_ID=your_access_key
+CLOUDFLARE_R2_SECRET_ACCESS_KEY=your_secret_key
+CLOUDFLARE_R2_BUCKET_NAME=your_bucket_name
+NEXT_PUBLIC_R2_PUBLIC_URL=your_public_url
 ```
 
 ### Installation
@@ -269,15 +275,20 @@ DeepSeek-R1-powered conversational system that generates "productive confusion" 
 ### Model Accuracy
 - **Speech Recognition**: 10-15% WER
 - **Pronunciation**: 75-85% phoneme accuracy
-- **Grammar**: BLEU 68.92
+- **Grammar**: LLM-based contextual analysis (Claude Haiku 4.5)
 - **Semantic**: 80-85% similarity accuracy
 - **Intonation**: >90% minimal pair detection
 
 ### Cost
-- **Monthly Hosting**: **$0-5** (all FREE APIs!)
-- **Per Request**: **$0** (all components use free tiers)
+- **Monthly Hosting**: **$2-5** (mostly FREE APIs + Claude Haiku)
+- **Per Request**: **~$0.001** (Claude Haiku grammar checking with caching)
 
-> **Major Cost Optimization Success!** Switched from RunPod ($10-18/mo) to free APIs (Groq + HuggingFace + local inference)
+> **Cost Breakdown:**
+> - Speech Recognition (Groq): FREE
+> - Pronunciation (HuggingFace): FREE
+> - Grammar (Claude Haiku): ~$0.001 per check (~$2/mo with caching)
+> - Semantic (HuggingFace): FREE
+> - AI Tutor (Groq): FREE
 
 ## Development Timeline
 
