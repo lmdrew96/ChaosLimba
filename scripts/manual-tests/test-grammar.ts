@@ -3,14 +3,15 @@ import 'dotenv/config';
 import { analyzeGrammar } from '../../src/lib/ai/grammar';
 
 async function testGrammar() {
-  console.log('🧪 Testing YOUR trained mt5-small grammar model!\n');
+  console.log('🧪 Testing Claude Haiku 4.5 Romanian grammar checker!\n');
 
   const testSentences = [
-    "Eu merge la magazin",           // Should fix: merge → merg
-    "Copiii joaca în parc",          // Should fix: joaca → joacă  
-    "Ea merge la școală",            // Already correct
-    "Noi suntem fericit",            // Should fix: fericit → fericiți
-    "Carte este pe masa",            // Should fix: Carte → Cartea
+    "Eu am mers la magazzin",        // Spelling: magazzin → magazin
+    "Aceasta este o propoziţie",     // Old diacritic: ţ → ț (if detected)
+    "Copiii se joaca in parc",       // Missing diacritics: joaca → joacă, in → în
+    "Bună zioa!",                    // Spelling: zioa → ziua
+    "Ea merge la scoala",            // Missing diacritic: scoala → școală
+    "Am cumparat paine si lapte",    // Missing diacritics: cumparat → cumpărat, paine → pâine, si → și
   ];
 
   for (const sentence of testSentences) {

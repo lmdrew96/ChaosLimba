@@ -77,11 +77,12 @@ console.log('Score:', result.pronunciationScore);
 ```
 
 ### 3. Grammar Correction
-- **File:** `/src/lib/ai/grammar.ts`
-- **Model:** `lmdrew96/ro-grammar-mt5-small` via @xenova/transformers
-- **Hosting:** Local inference (browser/server)
-- **Cost:** FREE (20MB bundle size)
-- **Performance:** BLEU 68.92, ~85-90% accuracy
+- **File:** `/src/lib/ai/grammar.ts` + `/src/lib/grammarChecker.ts`
+- **Model:** Claude Haiku 4.5 (claude-haiku-4-5-20251001)
+- **Hosting:** Anthropic API (https://api.anthropic.com)
+- **Cost:** ~$0.001 per check (Haiku pricing: $0.80/1M input tokens, $4/1M output tokens)
+- **Provider-agnostic:** Supports multiple providers (Claude, OpenAI stub)
+- **Performance:** LLM-based grammar analysis with contextual understanding
 
 ```typescript
 // Usage example
@@ -90,6 +91,10 @@ import { analyzeGrammar } from '@/lib/ai/grammar';
 const result = await analyzeGrammar(userText);
 console.log('Errors:', result.errors);
 console.log('Corrected:', result.correctedText);
+
+// Or use the provider-agnostic wrapper directly
+import { checkGrammar } from '@/lib/grammarChecker';
+const providerResult = await checkGrammar(userText);
 ```
 
 ### 4. SPAM-A: Semantic Similarity

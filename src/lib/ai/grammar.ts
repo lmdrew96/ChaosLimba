@@ -1,6 +1,6 @@
 // src/lib/ai/grammar.ts
-// Grammar correction using HuggingFace Inference API
-// Model: lmdrew96/ro-grammar-mt5-small (your custom trained model)
+// Grammar correction using Claude Haiku 4.5 API
+// Provider-agnostic wrapper supports multiple AI providers
 
 export interface GrammarError {
   type: string;
@@ -16,7 +16,8 @@ export interface GrammarResult {
   grammarScore: number;
 }
 
-const MODEL_ID = 'lmdrew96/ro-grammar-mt5-small';
+import { checkGrammar as checkGrammarWithProvider, GrammarCheckError, GrammarCheckResult } from '@/lib/grammarChecker';
+
 const CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes
 
 type GrammarCache = {
@@ -66,64 +67,20 @@ export async function analyzeGrammar(text: string): Promise<GrammarResult> {
     return cached;
   }
 
-  const token = process.env.HUGGINGFACE_API_TOKEN || process.env.HUGGINGFACE_API_KEY || process.env.HF_TOKEN;
-
-  if (!token) {
-    throw new Error('HuggingFace API token not configured');
-  }
-
   try {
-    console.log(`Analyzing: "${normalizedText}"`);
+    console.log(`Analyzing grammar with Claude Haiku: "${normalizedText}"`);
 
-    const response = await fetch(
-      `https://router.huggingface.co/hf-inference/models/${MODEL_ID}`,
-      {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          inputs: `correct: ${normalizedText}`,
-          parameters: {
-            max_length: 512,
-            num_beams: 5,
-          },
-          options: {
-            wait_for_model: true,
-            use_cache: true,
-          }
-        }),
-      }
-    );
+    // Use the provider-agnostic grammar checker
+    const providerResult = await checkGrammarWithProvider(normalizedText);
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`HF API error: ${response.status} ${errorText}`);
-    }
+    // Transform to our existing format
+    const errors = transformToGrammarErrors(providerResult.errors);
+    const grammarScore = calculateGrammarScore(normalizedText, providerResult.correctedText, errors.length);
 
-    const output = await response.json();
-
-    // HF Inference API returns array: [{ generated_text: "..." }]
-    let correctedText = normalizedText;
-
-    if (Array.isArray(output) && output[0]?.generated_text) {
-      correctedText = output[0].generated_text.trim();
-    } else if (typeof output === 'object' && output.generated_text) {
-      correctedText = output.generated_text.trim();
-    } else if (Array.isArray(output) && typeof output[0] === 'string') {
-      correctedText = output[0].trim();
-    } else {
-      console.warn('Unexpected grammar model output format:', output);
-    }
-
-    console.log(`Corrected: "${correctedText}"`);
-
-    const errors = extractErrors(normalizedText, correctedText);
-    const grammarScore = calculateGrammarScore(normalizedText, correctedText);
+    console.log(`Found ${errors.length} grammar issues`);
 
     const result: GrammarResult = {
-      correctedText,
+      correctedText: providerResult.correctedText,
       errors,
       grammarScore,
     };
@@ -137,36 +94,36 @@ export async function analyzeGrammar(text: string): Promise<GrammarResult> {
   }
 }
 
-function extractErrors(original: string, corrected: string): GrammarError[] {
-  if (original === corrected) return [];
+/**
+ * Transform GrammarCheckError (from provider) to GrammarError (our existing format)
+ */
+function transformToGrammarErrors(providerErrors: GrammarCheckError[]): GrammarError[] {
+  return providerErrors.map((error) => {
+    // Determine confidence based on error type and category
+    let confidence = 0.85; // Default confidence
 
-  const origWords = original.split(/\s+/);
-  const corrWords = corrected.split(/\s+/);
-  const errors: GrammarError[] = [];
-
-  // Simple word-by-word comparison
-  const maxLen = Math.max(origWords.length, corrWords.length);
-
-  for (let i = 0; i < maxLen; i++) {
-    const origWord = origWords[i] || '';
-    const corrWord = corrWords[i] || '';
-
-    if (origWord !== corrWord) {
-      errors.push({
-        type: 'grammar_correction',
-        learner_production: origWord || '[missing]',
-        correct_form: corrWord || '[removed]',
-        confidence: 0.85,
-        category: categorizeError(origWord, corrWord),
-      });
+    // Claude is generally more confident with spelling and diacritics
+    if (error.category === 'spelling' || error.category === 'diacritics') {
+      confidence = 0.95;
+    } else if (error.category === 'grammar' || error.type === 'grammar_correction') {
+      confidence = 0.90;
     }
-  }
 
-  return errors;
+    return {
+      type: 'grammar_correction',
+      learner_production: error.original,
+      correct_form: error.correction,
+      confidence,
+      category: error.category || categorizeError(error.original, error.correction),
+    };
+  });
 }
 
+/**
+ * Categorize errors based on the original and corrected text
+ * Fallback for when provider doesn't specify category
+ */
 function categorizeError(original: string, corrected: string): string {
-  // Simple heuristics for error categorization
   const origLower = original.toLowerCase();
   const corrLower = corrected.toLowerCase();
 
@@ -175,42 +132,44 @@ function categorizeError(original: string, corrected: string): string {
     return 'diacritics';
   }
 
-  // Check for verb endings (common conjugation errors)
+  // Check for verb endings (conjugation)
   const verbEndings = ['esc', 'ez', 'ează', 'ăm', 'ați', 'esc'];
   if (verbEndings.some(e => corrLower.endsWith(e) || origLower.endsWith(e))) {
     return 'verb_conjugation';
   }
 
-  // Check for article issues
+  // Check for articles
   if (['-ul', '-a', '-le', '-ilor'].some(e => corrLower.endsWith(e) !== origLower.endsWith(e))) {
     return 'article';
   }
 
-  // Check for agreement
-  if (corrLower.endsWith('ă') !== origLower.endsWith('ă') ||
+  // Check for agreement (gender/number)
+  if (
+    corrLower.endsWith('ă') !== origLower.endsWith('ă') ||
     corrLower.endsWith('i') !== origLower.endsWith('i') ||
-    corrLower.endsWith('e') !== origLower.endsWith('e')) {
+    corrLower.endsWith('e') !== origLower.endsWith('e')
+  ) {
     return 'agreement';
   }
 
   return 'grammar';
 }
 
-function calculateGrammarScore(original: string, corrected: string): number {
-  if (original === corrected) return 100;
 
-  const origWords = original.split(/\s+/);
-  const corrWords = corrected.split(/\s+/);
+function calculateGrammarScore(original: string, corrected: string, errorCount: number): number {
+  if (original === corrected || errorCount === 0) return 100;
 
-  let matches = 0;
-  const maxLen = Math.max(origWords.length, corrWords.length);
+  // Calculate score based on error density
+  // Fewer errors relative to text length = higher score
+  const words = original.split(/\s+/).length;
+  const errorRate = errorCount / words;
 
-  for (let i = 0; i < maxLen; i++) {
-    if (origWords[i] === corrWords[i]) {
-      matches++;
-    }
-  }
+  // Convert error rate to score (0 errors = 100, high error rate = lower score)
+  // Scale: 0-10% error rate → 90-100 score
+  //        10-20% error rate → 80-90 score
+  //        20-30% error rate → 70-80 score
+  //        30%+ error rate → below 70
+  const score = Math.max(50, Math.round(100 - errorRate * 200));
 
-  const accuracy = matches / maxLen;
-  return Math.round(accuracy * 100);
+  return score;
 }
