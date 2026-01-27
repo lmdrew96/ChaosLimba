@@ -62,7 +62,6 @@ function getTranscriptLoadingMessage(contentType?: 'video' | 'audio' | 'text'): 
 
 export default function ChaosWindowPage() {
   const [isActive, setIsActive] = useState(false)
-  const [timer, setTimer] = useState(300)
   const [modality, setModality] = useState<Modality>("text")
   const [response, setResponse] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -132,13 +131,13 @@ export default function ChaosWindowPage() {
     }
   }
 
-  const endSession = async (finalTimer: number) => {
+  const endSession = async () => {
     try {
       if (!sessionId) return
 
       const durationSeconds = sessionStartTime
         ? Math.floor((new Date().getTime() - sessionStartTime) / 1000)
-        : 300 - finalTimer // fallback if sessionStartTime not set
+        : 0 // fallback if sessionStartTime not set
 
       await fetch("/api/sessions", {
         method: "PATCH",
@@ -369,37 +368,14 @@ export default function ChaosWindowPage() {
     }
   }, [sessionId])
 
-  useEffect(() => {
-    let interval: NodeJS.Timeout | null = null
-    if (isActive && timer > 0) {
-      interval = setInterval(() => {
-        setTimer((t) => t - 1)
-      }, 1000)
-    } else if (timer === 0 && isActive) {
-      // Timer finished naturally
-      endSession(0)
-      setIsActive(false)
-    }
-    return () => {
-      if (interval) clearInterval(interval)
-    }
-  }, [isActive, timer])
-
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = seconds % 60
-    return `${mins}:${secs.toString().padStart(2, "0")}`
-  }
-
-  const resetTimer = () => {
-    endSession(timer)
-    setTimer(300)
-    setIsActive(false)
-  }
-
   const handleStartSession = () => {
     setIsActive(true)
     startSession()
+  }
+
+  const handleEndSession = () => {
+    endSession()
+    setIsActive(false)
   }
 
   // Audio recording handlers
@@ -577,14 +553,9 @@ export default function ChaosWindowPage() {
 
       <Card className="rounded-2xl border-pink-500/20 bg-gradient-to-br from-pink-500/10 via-background to-orange-500/5 overflow-hidden">
         <CardHeader className="border-b border-pink-500/20">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="h-3 w-3 rounded-full bg-pink-500 animate-pulse" />
-              <CardTitle>Active Session</CardTitle>
-            </div>
-            <div className="text-4xl font-mono font-bold bg-gradient-to-r from-pink-400 to-orange-400 bg-clip-text text-transparent">
-              {formatTime(timer)}
-            </div>
+          <div className="flex items-center gap-3">
+            <div className="h-3 w-3 rounded-full bg-pink-500 animate-pulse" />
+            <CardTitle>Active Session</CardTitle>
           </div>
         </CardHeader>
         <CardContent className="p-6 space-y-6">
@@ -949,7 +920,7 @@ export default function ChaosWindowPage() {
                 </Button>
                 <Button
                   variant="outline"
-                  onClick={resetTimer}
+                  onClick={handleEndSession}
                   className="border-red-500/30 text-red-400 hover:text-red-300"
                 >
                   End Session
@@ -1006,7 +977,6 @@ export default function ChaosWindowPage() {
         onNewSession={() => {
           setShowSummary(false)
           // Reset for new session
-          setTimer(300)
           setResponse("")
           setConversationHistory([])
           setCurrentAIResponse(null)

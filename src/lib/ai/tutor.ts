@@ -12,6 +12,13 @@ export type MysteryAnalysis = {
     etymology?: string;
 };
 
+export type VocabHelp = {
+    question: string;
+    word: string;
+    translation: string;
+    context?: string;
+};
+
 export type TutorResponse = {
     feedback: {
         overall: string;
@@ -19,6 +26,7 @@ export type TutorResponse = {
         semantic: SemanticMatch;
         encouragement: string;
     };
+    vocabHelp?: VocabHelp; // Optional vocabulary assistance for parenthetical questions
     nextQuestion: string;
     errorPatterns: string[];
     isCorrect: boolean;
@@ -177,6 +185,85 @@ Return JSON:
 }
 
 /**
+ * Extracts vocabulary questions from parentheses
+ * Patterns: (cum se spune "X"?), (what is "X"?), (how do you say "X"?), etc.
+ */
+function extractVocabQuestions(text: string): { cleanText: string; vocabQuestions: string[] } {
+    const vocabPatterns = [
+        /\(cum se spune[^\)]*\)/gi,
+        /\(what is[^\)]*\)/gi,
+        /\(how do you say[^\)]*\)/gi,
+        /\(what's the word for[^\)]*\)/gi,
+        /\(ce înseamnă[^\)]*\)/gi,
+        /\(translation[^\)]*\)/gi,
+    ];
+
+    let cleanText = text;
+    const vocabQuestions: string[] = [];
+
+    for (const pattern of vocabPatterns) {
+        const matches = text.match(pattern);
+        if (matches) {
+            vocabQuestions.push(...matches.map(m => m.replace(/[\(\)]/g, '').trim()));
+            cleanText = cleanText.replace(pattern, '').trim();
+        }
+    }
+
+    return { cleanText, vocabQuestions };
+}
+
+/**
+ * Answers a vocabulary question using the tutor model
+ */
+async function answerVocabQuestion(question: string): Promise<VocabHelp> {
+    // Extract the word being asked about (usually in quotes or after "se spune")
+    const wordMatch = question.match(/"([^"]+)"|'([^']+)'/) ||
+                      question.match(/spune\s+([^\?]+)/i) ||
+                      question.match(/for\s+([^\?]+)/i);
+
+    const targetWord = wordMatch ? (wordMatch[1] || wordMatch[2] || wordMatch[3]).trim() : '';
+
+    const prompt = `
+Vocabulary question: "${question}"
+
+The learner is asking how to say "${targetWord}" in Romanian (or the other way around).
+
+Provide a clear, concise answer in JSON format:
+{
+  "question": "The original question",
+  "word": "The word being asked about",
+  "translation": "The Romanian translation or English meaning",
+  "context": "Optional example sentence showing usage"
+}
+`;
+
+    try {
+        const output = await callGroq([
+            { role: "system", content: SYSTEM_PROMPT },
+            { role: "user", content: prompt }
+        ]);
+
+        const cleanJson = output.replace(/```json/g, "").replace(/```/g, "").trim();
+        const effectiveJson = cleanJson.replace(/<think>[\s\S]*?<\/think>/g, "").trim();
+        const parsed = JSON.parse(effectiveJson);
+
+        return {
+            question: parsed.question || question,
+            word: parsed.word || targetWord,
+            translation: parsed.translation || 'Translation not found',
+            context: parsed.context
+        };
+    } catch (error) {
+        console.error("[Tutor] Vocab question failed:", error);
+        return {
+            question,
+            word: targetWord,
+            translation: 'Unable to answer - try asking the Oracle later!'
+        };
+    }
+}
+
+/**
  * Generates AI tutor response for Chaos Window interactions
  */
 export async function generateTutorResponse(
@@ -184,6 +271,19 @@ export async function generateTutorResponse(
     context: string,
     errorPatterns: string[] = []
 ): Promise<TutorResponse> {
+
+    // Step 1: Extract vocabulary questions from parentheses
+    const { cleanText, vocabQuestions } = extractVocabQuestions(userResponse);
+
+    // Step 2: Answer vocabulary questions if present
+    let vocabHelp: VocabHelp | undefined;
+    if (vocabQuestions.length > 0) {
+        // Answer the first vocabulary question found
+        vocabHelp = await answerVocabQuestion(vocabQuestions[0]);
+    }
+
+    // Step 3: Grade the cleaned text (without vocab questions)
+    const textToGrade = cleanText || userResponse; // Fallback to original if cleaning removed everything
 
     // Detect if context is full transcript vs. title-only fallback
     const hasFullTranscript = !context.includes('[Note: Full transcript not available]');
@@ -195,7 +295,8 @@ Your goal is to help learners master Romanian through "productive confusion".
 Context: The user just heard/read: "${context}"
 ${hasFullTranscript ? '' : '⚠️ NOTE: You only have the content title, not the full transcript. Focus on grammar and form rather than semantic accuracy.'}
 
-User's response: "${userResponse}"
+User's response: "${textToGrade}"
+${vocabQuestions.length > 0 ? `⚠️ NOTE: The user also asked a vocabulary question in parentheses, which has been handled separately. Do NOT grade the vocabulary question - only grade the actual Romanian production.` : ''}
 ${errorPatterns.length > 0 ? `Known error patterns to watch for: ${errorPatterns.join(', ')}` : ''}
 
 Analyze the response and provide feedback in this JSON format:
@@ -245,6 +346,7 @@ ${hasFullTranscript ? '2. Semantic understanding of the content (DID THEY UNDERS
 
         return {
             feedback: parsed.feedback,
+            vocabHelp, // Include vocabulary help if question was detected
             nextQuestion: parsed.nextQuestion,
             errorPatterns: parsed.errorPatterns || [],
             isCorrect: parsed.isCorrect || false
@@ -259,6 +361,7 @@ ${hasFullTranscript ? '2. Semantic understanding of the content (DID THEY UNDERS
                 semantic: { score: 0, matches: false, feedback: "Unable to analyze" },
                 encouragement: "Try again - the AI spirits are busy!"
             },
+            vocabHelp, // Include vocabulary help even if grading fails
             nextQuestion: "Can you try that again in a different way?",
             errorPatterns: [],
             isCorrect: false

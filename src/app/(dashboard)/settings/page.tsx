@@ -85,11 +85,6 @@ export default function SettingsPage() {
         }
     }
 
-    const formatDuration = (seconds: number) => {
-        const mins = Math.floor(seconds / 60)
-        return `${mins} minute${mins !== 1 ? "s" : ""}`
-    }
-
     if (loading || !isUserLoaded) {
         return (
             <div className="flex items-center justify-center min-h-[400px]">
@@ -199,28 +194,6 @@ export default function SettingsPage() {
                         </div>
                     </div>
 
-                    {/* Chaos Window Duration */}
-                    <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                            <Label className="text-base">Default Chaos Window Duration</Label>
-                            <span className="text-sm text-purple-300 font-medium">
-                                {formatDuration(preferences?.defaultChaosWindowDuration || 300)}
-                            </span>
-                        </div>
-                        <Slider
-                            value={[preferences?.defaultChaosWindowDuration || 300]}
-                            onValueChange={([value]) => updatePreference("defaultChaosWindowDuration", value)}
-                            min={300}
-                            max={600}
-                            step={60}
-                            className="w-full"
-                            disabled={saving}
-                        />
-                        <div className="flex justify-between text-xs text-muted-foreground">
-                            <span>5 minutes</span>
-                            <span>10 minutes</span>
-                        </div>
-                    </div>
                 </CardContent>
             </Card>
 

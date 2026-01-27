@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge"
 import { MessageSquare, Sparkles, AlertTriangle, CheckCircle2, Target, ExternalLink, Volume2 } from "lucide-react"
 import { TutorResponse, GrammarError } from "@/lib/ai/tutor"
 import { FormattedFeedback } from "@/lib/ai/formatter"
+import { RelevanceFeedback } from "@/components/features/feedback/RelevanceFeedback"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
 
@@ -15,6 +16,7 @@ interface GradingReport {
     semantic: 'success' | 'error' | 'skipped'
     pronunciation?: 'success' | 'error' | 'skipped'
     intonation?: 'success' | 'error' | 'skipped'
+    relevance?: 'success' | 'error' | 'skipped'
   }
   formattedFeedback?: FormattedFeedback | null
   rawReport?: any
@@ -89,6 +91,29 @@ export function AIResponse({ response, isLoading, gradingReport }: AIResponsePro
         <div className="p-3 rounded-lg bg-background/50">
           <p className="text-sm">{response.feedback.overall}</p>
         </div>
+
+        {/* Vocabulary Help */}
+        {response.vocabHelp && (
+          <div className="p-4 rounded-xl bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-500/30">
+            <div className="flex items-center gap-2 mb-2">
+              <MessageSquare className="h-4 w-4 text-cyan-400" />
+              <h5 className="font-medium text-cyan-300">Vocabulary Help</h5>
+            </div>
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground italic">"{response.vocabHelp.question}"</p>
+              <div className="flex items-baseline gap-2">
+                <span className="text-sm font-semibold text-cyan-300">{response.vocabHelp.word}</span>
+                <span className="text-sm text-muted-foreground">→</span>
+                <span className="text-sm font-semibold text-cyan-300">{response.vocabHelp.translation}</span>
+              </div>
+              {response.vocabHelp.context && (
+                <p className="text-xs text-muted-foreground mt-2">
+                  Example: <span className="italic">{response.vocabHelp.context}</span>
+                </p>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Grammar Errors */}
         {response.feedback.grammar.length > 0 && (
@@ -197,6 +222,11 @@ export function AIResponse({ response, isLoading, gradingReport }: AIResponsePro
           </div>
         )}
 
+        {/* Relevance Feedback (SPAM-B) */}
+        {gradingReport?.rawReport?.relevance && (
+          <RelevanceFeedback relevance={gradingReport.rawReport.relevance} />
+        )}
+
         {/* Encouragement */}
         {response.feedback.encouragement && (
           <div className="p-3 rounded-xl bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20">
@@ -255,6 +285,11 @@ export function AIResponse({ response, isLoading, gradingReport }: AIResponsePro
               {gradingReport.componentStatus.intonation === 'success' && (
                 <Badge variant="outline" className="bg-green-500/10 text-green-400 border-green-500/30">
                   Intonation ✓
+                </Badge>
+              )}
+              {gradingReport.componentStatus.relevance === 'success' && (
+                <Badge variant="outline" className="bg-green-500/10 text-green-400 border-green-500/30">
+                  On-topic ✓
                 </Badge>
               )}
             </div>
