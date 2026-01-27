@@ -96,6 +96,86 @@ export async function analyzeMysteryItem(
     }
 }
 
+export type InitialQuestion = {
+    question: string;
+    questionType: 'comprehension' | 'translation' | 'grammar' | 'vocabulary' | 'cultural';
+    hint?: string;
+};
+
+/**
+ * Generates an initial question for the AI tutor based on content
+ * This is called when new content loads, NOT when user submits a response
+ */
+export async function generateInitialQuestion(
+    contentTitle: string,
+    contentTranscript: string | null,
+    contentType: 'video' | 'audio' | 'text',
+    errorPatterns: string[] = []
+): Promise<InitialQuestion> {
+    const hasTranscript = contentTranscript && contentTranscript.length > 50;
+
+    // Truncate transcript for prompt (keep it efficient)
+    const transcriptContext = hasTranscript
+        ? contentTranscript!.slice(0, 1500)
+        : null;
+
+    const prompt = `
+You are the ChaosLimbă Tutor. A learner is about to ${contentType === 'video' ? 'watch a video' : contentType === 'audio' ? 'listen to audio' : 'read text'}.
+
+Content title: "${contentTitle}"
+${transcriptContext ? `Content transcript/text: "${transcriptContext}"` : 'No transcript available - generate a general question about the title/topic.'}
+
+${errorPatterns.length > 0 ? `The learner has these known weak areas: ${errorPatterns.join(', ')}` : ''}
+
+Generate an engaging OPENING QUESTION to ask the learner after they consume this content.
+
+Rules:
+1. The question should be in ROMANIAN (the learner is practicing Romanian!)
+2. ${hasTranscript ? 'Reference something SPECIFIC from the transcript' : 'Ask about the topic implied by the title'}
+3. Don't ask them to summarize everything - pick ONE interesting aspect
+4. Make it feel conversational, not like a test
+5. If targeting known error patterns, work them into the question naturally
+
+Return JSON:
+{
+  "question": "Your Romanian question here - should be 1-2 sentences",
+  "questionType": "comprehension|translation|grammar|vocabulary|cultural",
+  "hint": "Optional hint in English if the question is challenging"
+}
+`;
+
+    try {
+        const output = await callGroq([
+            { role: "system", content: SYSTEM_PROMPT },
+            { role: "user", content: prompt }
+        ]);
+
+        const cleanJson = output.replace(/```json/g, "").replace(/```/g, "").trim();
+        const effectiveJson = cleanJson.replace(/<think>[\s\S]*?<\/think>/g, "").trim();
+
+        const parsed = JSON.parse(effectiveJson);
+
+        return {
+            question: parsed.question,
+            questionType: parsed.questionType || 'comprehension',
+            hint: parsed.hint
+        };
+
+    } catch (error) {
+        console.error("[Tutor] Initial question generation failed:", error);
+        // Fallback questions based on content type
+        const fallbacks = {
+            video: "Ce ai înțeles din acest videoclip? Povestește-mi în câteva propoziții.",
+            audio: "Ce ai auzit în acest audio? Descrie pe scurt conținutul.",
+            text: "Ce ai citit? Spune-mi ideea principală în propriile tale cuvinte."
+        };
+        return {
+            question: fallbacks[contentType] || "Ce ai înțeles din acest conținut?",
+            questionType: 'comprehension'
+        };
+    }
+}
+
 /**
  * Generates AI tutor response for Chaos Window interactions
  */

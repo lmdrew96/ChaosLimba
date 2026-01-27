@@ -23,7 +23,7 @@ import {
 import { AIResponse } from "@/components/features/chaos-window/AIResponse"
 import { ConversationHistory, ConversationMessage } from "@/components/features/chaos-window/ConversationHistory"
 import { SessionSummaryModal } from "@/components/features/chaos-window/SessionSummaryModal"
-import { TutorResponse } from "@/lib/ai/tutor"
+import { TutorResponse, InitialQuestion } from "@/lib/ai/tutor"
 import { ContentItem } from "@/lib/db/schema"
 
 type Modality = "text" | "speech"
@@ -80,9 +80,13 @@ export default function ChaosWindowPage() {
   const [currentGradingReport, setCurrentGradingReport] = useState<any>(null)
   const [isLoadingAI, setIsLoadingAI] = useState(false)
   const [conversationHistory, setConversationHistory] = useState<ConversationMessage[]>([])
-  const [currentContext, setCurrentContext] = useState(
-    "...și atunci mi-am dat seama că trebuie să iau o decizie. Era imposibil să rămân în situația aceea pentru totdeauna..."
-  )
+  // AI context (internal - used by LLM for understanding content)
+  const [currentContext, setCurrentContext] = useState("")
+
+  // AI tutor prompt (user-facing - the question displayed to user)
+  const [tutorPrompt, setTutorPrompt] = useState<string | null>(null)
+  const [tutorHint, setTutorHint] = useState<string | null>(null)
+  const [isLoadingQuestion, setIsLoadingQuestion] = useState(false)
 
   // Random content state
   const [currentContent, setCurrentContent] = useState<ContentItem | null>(null)
@@ -189,6 +193,54 @@ export default function ChaosWindowPage() {
     }
   }
 
+  // Fetch initial AI tutor question for current content
+  const fetchInitialQuestion = useCallback(async (
+    content: ContentItem,
+    transcript: string | null
+  ) => {
+    setIsLoadingQuestion(true)
+    setTutorPrompt(null)
+    setTutorHint(null)
+
+    try {
+      console.log(`[Chaos Window] Generating initial question for: "${content.title}"`)
+
+      const res = await fetch('/api/chaos-window/initial-question', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contentTitle: content.title,
+          contentTranscript: transcript || content.textContent || null,
+          contentType: content.type,
+          errorPatterns: errorPatterns
+        })
+      })
+
+      if (!res.ok) {
+        throw new Error('Failed to generate initial question')
+      }
+
+      const data = await res.json()
+      const question: InitialQuestion = data.question
+
+      setTutorPrompt(question.question)
+      setTutorHint(question.hint || null)
+
+      console.log(`[Chaos Window] Initial question set: "${question.question}"`)
+    } catch (err) {
+      console.error('[Chaos Window] Failed to generate initial question:', err)
+      // Fallback to a generic question based on content type
+      const fallback = {
+        video: 'Ce ai înțeles din acest videoclip? Povestește-mi în câteva propoziții.',
+        audio: 'Ce ai auzit în acest audio? Descrie pe scurt conținutul.',
+        text: 'Ce ai citit? Spune-mi ideea principală în propriile tale cuvinte.'
+      }[content.type] || 'Ce ai înțeles din acest conținut?'
+      setTutorPrompt(fallback)
+    } finally {
+      setIsLoadingQuestion(false)
+    }
+  }, [errorPatterns])
+
   // Fetch random content from API
   const fetchRandomContent = useCallback(async (excludeId?: string) => {
     setIsLoadingContent(true)
@@ -232,8 +284,13 @@ export default function ChaosWindowPage() {
         setCurrentContext(`Ascultă/Privește: "${data.content.title}" și răspunde la întrebări. [Note: Full transcript not available]`)
       }
 
+      // Generate initial AI tutor question for this content
+      const transcriptForQuestion = data.content.transcript || data.content.textContent || null
+      fetchInitialQuestion(data.content, transcriptForQuestion)
+
       // Check if we need to fetch transcript on-demand
       if (!data.content.textContent && !data.content.transcript) {
+
         // Video/Audio without transcript - fetch it!
         if (data.content.type === 'video' || data.content.type === 'audio') {
           console.log(`[Chaos Window] Content missing transcript, fetching on-demand...`)
@@ -281,6 +338,12 @@ export default function ChaosWindowPage() {
 
         // Update currentContent to include transcript (avoid re-fetch on next render)
         setCurrentContent(prev => prev?.id === contentId ? { ...prev, transcript } : prev)
+
+        // Re-generate AI question now that we have the transcript
+        if (currentContent && currentContent.id === contentId) {
+          console.log(`[Chaos Window] Regenerating question with new transcript...`)
+          fetchInitialQuestion(currentContent, transcript)
+        }
 
         console.log(`[Chaos Window] Transcript fetched successfully (${transcript.length} chars)`)
       }
@@ -484,9 +547,10 @@ export default function ChaosWindowPage() {
         resetRecording()
       }
 
-      // Update context if there's a next question
+      // Update tutor prompt with next question (user-facing)
       if (aiResponse.nextQuestion) {
-        setCurrentContext(aiResponse.nextQuestion)
+        setTutorPrompt(aiResponse.nextQuestion)
+        setTutorHint(null) // Clear previous hint
       }
 
     } catch (submitError) {
@@ -670,10 +734,28 @@ export default function ChaosWindowPage() {
                     <h4 className="font-medium">AI Tutor</h4>
                   </div>
 
-                  {/* Show current context/question */}
-                  <div className="p-4 rounded-lg bg-muted/30 italic text-muted-foreground mb-4">
-                    {currentContext}
-                  </div>
+                  {/* Show AI-generated question (not raw transcript!) */}
+                  {isLoadingQuestion ? (
+                    <div className="p-4 rounded-lg bg-muted/30 mb-4 flex items-center gap-3">
+                      <Loader2 className="h-5 w-5 text-purple-400 animate-spin flex-shrink-0" />
+                      <span className="text-muted-foreground">Generating a question...</span>
+                    </div>
+                  ) : tutorPrompt ? (
+                    <div className="space-y-2 mb-4">
+                      <div className="p-4 rounded-lg bg-muted/30 text-foreground">
+                        {tutorPrompt}
+                      </div>
+                      {tutorHint && (
+                        <p className="text-xs text-muted-foreground px-1">
+                          💡 Hint: {tutorHint}
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="p-4 rounded-lg bg-muted/30 italic text-muted-foreground mb-4">
+                      Watch/listen to the content above, then answer the question that appears here.
+                    </div>
+                  )}
 
                   {/* Modality Toggle */}
                   <div className="flex gap-2 mb-4">
