@@ -11,7 +11,7 @@ import {
 } from "recharts"
 
 type TrendChartProps = {
-    data: number[] // array of decimals (0.0 to 1.0)
+    data: (number | null)[] // array of decimals (0.0 to 1.0), null = no data for that week
     labels: string[]
     color?: string
     height?: number
@@ -23,10 +23,11 @@ export function TrendChart({
     color = "#10b981", // default emerald-500
     height = 200,
 }: TrendChartProps) {
+    // Convert data to chart format, treating null as missing data points
     const chartData = data.map((value, index) => ({
         name: labels[index] || `Week ${index + 1}`,
-        value: value,
-        percentage: Math.round(value * 100),
+        value: value ?? undefined, // null becomes undefined (missing point)
+        percentage: value !== null ? Math.round(value * 100) : null,
     }))
 
     // Parse color to rgb for gradient (generic helper)

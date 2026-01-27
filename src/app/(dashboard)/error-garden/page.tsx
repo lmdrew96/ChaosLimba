@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useMemo } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Flower2, AlertTriangle, TrendingUp, Lightbulb, Sparkles, Loader2, LayoutGrid, List as ListIcon, Info } from "lucide-react"
+import { Flower2, AlertTriangle, TrendingUp, Lightbulb, Sparkles, Loader2, LayoutGrid, List as ListIcon, Info, Filter, X } from "lucide-react"
 import type { ErrorPattern } from "@/app/api/errors/patterns/route"
 import { PatternModal } from "@/components/features/error-garden/PatternModal"
 import { cn } from "@/lib/utils"
@@ -41,6 +41,8 @@ const errorTypeLabels: Record<string, string> = {
   word_order: "Syntax",
 }
 
+const ALL_ERROR_TYPES = ['grammar', 'pronunciation', 'vocabulary', 'word_order'] as const
+
 export default function ErrorGardenPage() {
   const [data, setData] = useState<PatternData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -50,6 +52,23 @@ export default function ErrorGardenPage() {
   const [selectedPattern, setSelectedPattern] = useState<ErrorPattern | null>(null)
   const [sortBy, setSortBy] = useState<SortOption>("frequency")
   const [viewMode, setViewMode] = useState<ViewMode>("grid")
+  const [activeFilters, setActiveFilters] = useState<Set<string>>(new Set())
+
+  const toggleFilter = (type: string) => {
+    setActiveFilters(prev => {
+      const next = new Set(prev)
+      if (next.has(type)) {
+        next.delete(type)
+      } else {
+        next.add(type)
+      }
+      return next
+    })
+  }
+
+  const clearFilters = () => {
+    setActiveFilters(new Set())
+  }
 
   const fetchPatterns = useCallback(async () => {
     try {
@@ -75,8 +94,14 @@ export default function ErrorGardenPage() {
 
   const sortedPatterns = useMemo(() => {
     if (!data?.patterns) return []
-    const patterns = [...data.patterns]
+    let patterns = [...data.patterns]
 
+    // Apply filters first
+    if (activeFilters.size > 0) {
+      patterns = patterns.filter(p => activeFilters.has(p.errorType))
+    }
+
+    // Then sort
     switch (sortBy) {
       case "frequency":
         return patterns.sort((a, b) => b.frequency - a.frequency)
@@ -92,7 +117,7 @@ export default function ErrorGardenPage() {
       default:
         return patterns
     }
-  }, [data?.patterns, sortBy])
+  }, [data?.patterns, sortBy, activeFilters])
 
   const fossilizingPatterns = data?.patterns.filter((p) => p.isFossilizing) || []
   const avgFrequency = data?.patterns.length
@@ -183,6 +208,40 @@ export default function ErrorGardenPage() {
             <ListIcon className="h-4 w-4" />
           </Button>
         </div>
+      </div>
+
+      {/* Filter Chips */}
+      <div className="flex flex-wrap gap-2 items-center">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Filter className="h-4 w-4" />
+          <span>Filter by type:</span>
+        </div>
+        {ALL_ERROR_TYPES.map(type => (
+          <button
+            key={type}
+            onClick={() => toggleFilter(type)}
+            className={cn(
+              "px-3 py-1.5 rounded-full text-sm font-medium transition-all border",
+              activeFilters.has(type)
+                ? "bg-white/20 border-white/40 text-white shadow-sm"
+                : cn(errorFilterColors[type], "hover:bg-white/5")
+            )}
+          >
+            {errorTypeLabels[type]}
+            {activeFilters.has(type) && (
+              <span className="ml-1.5 opacity-70">✓</span>
+            )}
+          </button>
+        ))}
+        {activeFilters.size > 0 && (
+          <button
+            onClick={clearFilters}
+            className="px-2 py-1 text-xs text-muted-foreground hover:text-white transition-colors flex items-center gap-1"
+          >
+            <X className="h-3 w-3" />
+            Clear
+          </button>
+        )}
       </div>
 
 
