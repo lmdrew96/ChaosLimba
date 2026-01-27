@@ -185,7 +185,7 @@ async function testAggregator(): Promise<ComponentResult> {
             status: result.overallScore > 0 ? 'PASS' : 'FAIL',
             message: `Overall score: ${result.overallScore.toFixed(1)}% with ${result.errorPatterns.length} error patterns`,
             details: {
-                componentStatus: result.componentStatus,
+                componentResults: result.componentResults,
                 errorPatternsExtracted: result.errorPatterns.length
             },
             timeMs: Date.now() - start
