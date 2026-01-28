@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   Cloud,
@@ -127,7 +127,7 @@ export default function DeepFogPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Cloud className="h-7 w-7 text-indigo-400" />
+            <Cloud className="h-7 w-7 text-indigo-300" />
             Deep Fog Mode
           </h1>
           <p className="text-muted-foreground">
@@ -139,28 +139,28 @@ export default function DeepFogPage() {
           <Button
             variant="outline"
             size="sm"
-            className="border-indigo-500/30"
+            className="border-border"
             onClick={handleRandomContent}
             disabled={content.length === 0}
           >
             <Shuffle className="h-4 w-4 mr-1" /> Random
           </Button>
-          <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700">
+          <Button size="sm" className="bg-foreground/80 hover:bg-foreground/60">
             <Filter className="h-4 w-4 mr-1" /> Filter
           </Button>
         </div>
       </div>
 
       {/* Level indicator */}
-      <Card className="rounded-2xl border-indigo-500/20 bg-gradient-to-r from-indigo-500/5 to-purple-500/5">
+      <Card className="rounded-2xl border-border bg-gradient-to-r from-foreground/50 to-foreground/20">
         <CardContent className="p-4">
           <div className="flex items-center gap-4 text-sm flex-wrap">
-            <span className="text-muted-foreground">Your level:</span>
+            <span className="text-foreground">Your level:</span>
             <span className="px-2 py-1 rounded-full bg-green-500/20 text-green-400">
               B1 Intermediate
             </span>
-            <span className="text-muted-foreground hidden sm:inline">•</span>
-            <span className="text-muted-foreground">
+            <span className="text-foreground hidden sm:inline">•</span>
+            <span className="text-foreground">
               Content shown is 1-2 levels above you for optimal immersion
             </span>
           </div>
@@ -177,8 +177,8 @@ export default function DeepFogPage() {
             onClick={() => setFilter(f)}
             className={
               filter === f
-                ? "bg-indigo-600 hover:bg-indigo-700"
-                : "border-indigo-500/30"
+                ? "bg-foreground/80 hover:bg-foreground/60"
+                : "border-border"
             }
           >
             {f === "all" && "All Content"}
@@ -204,7 +204,7 @@ export default function DeepFogPage() {
       {/* Loading state */}
       {isLoading && (
         <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-indigo-400" />
+          <Loader2 className="h-8 w-8 animate-spin text-foreground/80" />
         </div>
       )}
 
@@ -237,7 +237,7 @@ export default function DeepFogPage() {
                       <Icon className={`h-5 w-5 ${colors.text}`} />
                     </div>
                     <div className="flex gap-2">
-                      <span className="px-2 py-0.5 text-xs rounded-full bg-amber-500/20 text-amber-400">
+                      <span className="px-2 py-0.5 text-xs rounded-full bg-green-500/20 text-green-400">
                         {cefr}
                       </span>
                     </div>
@@ -250,13 +250,11 @@ export default function DeepFogPage() {
                     <span className="text-xs text-muted-foreground">
                       {formatDuration(item.durationSeconds, item.type)}
                     </span>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="text-xs text-indigo-400 hover:text-indigo-300 hover:bg-indigo-500/10"
+                    <button
+                      className="inline-flex items-center justify-center h-8 px-3 text-xs font-medium rounded-md transition-colors hover:bg-primary/20"
                     >
                       Enter Fog →
-                    </Button>
+                    </button>
                   </div>
                 </CardContent>
               </Card>
@@ -287,32 +285,24 @@ export default function DeepFogPage() {
         <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <Card className="max-w-4xl w-full max-h-[90vh] overflow-y-auto rounded-2xl border-indigo-500/30">
             <CardHeader className="flex flex-row items-start justify-between sticky top-0 bg-card z-10 border-b border-border/40">
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="px-2 py-1 text-xs rounded-full bg-amber-500/20 text-amber-400">
-                    {difficultyToCEFR(selectedContent.difficultyLevel)} - Above
-                    Your Level
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    {formatDuration(
-                      selectedContent.durationSeconds,
-                      selectedContent.type
-                    )}
-                  </span>
-                </div>
-                <CardTitle className="text-xl">
-                  {selectedContent.title}
-                </CardTitle>
+              <div className="flex items-center gap-2">
+                <span className="px-2 py-1 text-xs rounded-full bg-green-500/20 text-green-400">
+                  {difficultyToCEFR(selectedContent.difficultyLevel)} - Above
+                  Your Level
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {formatDuration(
+                    selectedContent.durationSeconds,
+                    selectedContent.type
+                  )}
+                </span>
               </div>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                onClick={() => setSelectedContent(null)}
-                className="flex-shrink-0"
-              >
+              <Button onClick={() => setSelectedContent(null)}
+                className="px-3 text-xs text-foreground/60 font-medium rounded-md transition-colors bg-transparent hover:bg-foreground/40">
                 <X className="h-4 w-4" />
               </Button>
             </CardHeader>
+            
             <CardContent className="space-y-4 p-6">
               {/* Content Player */}
               <ContentPlayer
@@ -321,30 +311,16 @@ export default function DeepFogPage() {
                 onWordClick={handleWordClick}
               />
 
-              {/* Cultural notes if present */}
-              {selectedContent.culturalNotes && (
-                <Card className="rounded-xl border-purple-500/20 bg-purple-500/5">
-                  <CardContent className="p-4">
-                    <h4 className="text-sm font-medium text-purple-400 mb-2">
-                      Cultural Notes
-                    </h4>
-                    <p className="text-sm text-muted-foreground">
-                      {selectedContent.culturalNotes}
-                    </p>
-                  </CardContent>
-                </Card>
-              )}
-
               {/* Mystery Shelf hint */}
-              <Card className="rounded-xl border-amber-500/20 bg-amber-500/5">
+              <Card className="rounded-xl border-border bg-indigo-400/10">
                 <CardContent className="p-4">
-                  <p className="text-sm text-amber-400 mb-2">
+                  <p className="text-sm text-indigo-400 mb-2">
                     {selectedContent.type === "text"
-                      ? "Click on words to add them to your Mystery Shelf"
+                      ? "Add words to your Mystery Shelf to explore later"
                       : "Use the 'Save Timestamp' button to capture moments for later review"}
                   </p>
-                  <p className="text-xs text-muted-foreground">
-                    Don't worry about understanding everything. The fog is
+                  <p className="text-xs text-foreground/70">
+                    Don't worry about understanding <em>everything</em> in the moment. The fog is
                     supposed to be thick!
                   </p>
                 </CardContent>
@@ -352,13 +328,13 @@ export default function DeepFogPage() {
 
               {/* Action buttons */}
               <div className="flex gap-3 flex-wrap">
-                <Button className="flex-1 min-w-[200px] bg-amber-600 hover:bg-amber-700 rounded-xl">
+                <Button className="flex-1 min-w-[200px] bg-indigo-400 hover:bg-indigo-500 rounded-xl">
                   <Plus className="mr-2 h-4 w-4" />
                   Add to Mystery Shelf
                 </Button>
                 <Button
                   variant="outline"
-                  className="border-indigo-500/30"
+                  className="border-border"
                   onClick={handleRandomContent}
                 >
                   <Shuffle className="mr-2 h-4 w-4" />

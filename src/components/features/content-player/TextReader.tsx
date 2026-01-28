@@ -76,8 +76,8 @@ export function TextReader({
             onClick={onWordClick ? handleClick : undefined}
             className={cn(
               onWordClick && "cursor-pointer transition-all duration-150 rounded px-0.5 -mx-0.5",
-              onWordClick && "hover:bg-yellow-500/30 hover:text-yellow-100",
-              isSelected && "bg-yellow-500/40 text-yellow-100"
+              onWordClick && "hover:bg-indigo-500/30 hover:text-indigo-100",
+              isSelected && "bg-indigo-500/40 text-indigo-100"
             )}
           >
             {word}
@@ -111,8 +111,8 @@ export function TextReader({
       {/* Instruction hint */}
       {onWordClick && (
         <div className="px-6 pb-4">
-          <div className="rounded-lg bg-amber-500/10 border border-amber-500/20 p-3">
-            <p className="text-sm text-amber-400">
+          <div className="rounded-lg bg-indigo-400/20 border border-border p-3">
+            <p className="text-sm text-indigo-400">
               Click on any word to add it to your Mystery Shelf
             </p>
           </div>

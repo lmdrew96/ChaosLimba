@@ -7,11 +7,11 @@ import {
   LayoutDashboard,
   BookOpen,
   Cloud,
-  Sparkles,
   Flower2,
   TrendingUp,
   Menu,
   X,
+  Atom,
 } from "lucide-react"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
@@ -38,7 +38,7 @@ const navItems = [
   {
     name: "Chaos Window",
     href: "/chaos-window",
-    icon: Sparkles,
+    icon: Atom,
     description: "Timed practice",
   },
   {
@@ -90,12 +90,11 @@ export function Sidebar() {
           <div className="flex h-16 items-center px-6 border-b border-border/40">
             <Link href="/" className="flex items-center gap-2">
               <div className="relative">
-                <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-purple-500 to-violet-600 flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">C</span>
+                <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-foreground/70 to-primary/70 flex items-center justify-center">
+                  <span className="text-white font-bold text-xl">🤪</span>
                 </div>
-                <div className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-amber-400 animate-pulse" />
               </div>
-              <span className="font-bold text-lg bg-gradient-to-r from-purple-400 to-violet-300 bg-clip-text text-transparent">
+              <span className="font-bold text-lg bg-gradient-to-r from-foreground to-primary/70 bg-clip-text text-transparent">
                 ChaosLimbă
               </span>
             </Link>
@@ -112,7 +111,7 @@ export function Sidebar() {
                   className={cn(
                     "group flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200",
                     isActive
-                      ? "bg-gradient-to-r from-purple-500/20 to-violet-500/10 text-purple-300 shadow-lg shadow-purple-500/5"
+                      ? "bg-gradient-to-r from-primary/20 to-primary/10 text-primary shadow-lg shadow-primary/5"
                       : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
                   )}
                 >
@@ -128,7 +127,7 @@ export function Sidebar() {
                       className={cn(
                         "text-xs transition-opacity",
                         isActive
-                          ? "text-purple-400/70"
+                          ? "text-primary/70"
                           : "text-muted-foreground/50 group-hover:text-muted-foreground/70"
                       )}
                     >
@@ -136,7 +135,7 @@ export function Sidebar() {
                     </span>
                   </div>
                   {isActive && (
-                    <div className="ml-auto h-1.5 w-1.5 rounded-full bg-purple-400 animate-pulse" />
+                    <div className="ml-auto h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
                   )}
                 </Link>
               )

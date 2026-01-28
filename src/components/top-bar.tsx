@@ -1,7 +1,6 @@
 "use client"
 
-import { useTheme } from "next-themes"
-import { Moon, Sun, User, Settings, LogOut } from "lucide-react"
+import { User, Settings, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -12,16 +11,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Switch } from "@/components/ui/switch"
-import { useEffect, useState } from "react"
 import { useClerk, useUser } from "@clerk/nextjs"
 import Link from "next/link"
 
 export function TopBar() {
-  const { theme, setTheme, resolvedTheme } = useTheme()
-  const [mounted, setMounted] = useState(false)
   const { signOut } = useClerk()
-  const { user, isLoaded } = useUser()
+  const { user } = useUser()
 
   // Get user initials for avatar fallback
   const getInitials = () => {
@@ -45,10 +40,6 @@ export function TopBar() {
     return user.emailAddresses?.[0]?.emailAddress || "Chaos Learner"
   }
 
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
   const handleSignOut = async () => {
     await signOut(() => {
       window.location.href = "/"
@@ -70,19 +61,6 @@ export function TopBar() {
       </div>
 
       <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2 rounded-full bg-muted/50 px-3 py-1.5">
-          <Sun className="h-4 w-4 text-amber-500" />
-          {mounted && (
-            <Switch
-              checked={resolvedTheme === "dark"}
-              onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
-              className="data-[state=checked]:bg-purple-600"
-            />
-          )}
-          {!mounted && <div className="h-5 w-9" />}
-          <Moon className="h-4 w-4 text-purple-400" />
-        </div>
-
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button

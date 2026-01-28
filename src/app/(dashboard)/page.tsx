@@ -11,7 +11,10 @@ import {
   Clock,
   Target,
   Zap,
-  Shield,
+  CircleQuestionMark,
+  GraduationCap,
+  Speech,
+  Brain,
 } from "lucide-react"
 import Link from "next/link"
 
@@ -48,52 +51,36 @@ const stats = [
 
 const quickActions = [
   {
-    name: "Mystery Shelf",
-    description: "2 new words to explore",
-    href: "/mystery-shelf",
-    icon: BookOpen,
-    gradient: "from-amber-500/20 to-orange-500/10",
-    iconColor: "text-amber-400",
+    name: "Ask Tutor",
+    description: "Get a linguistic explanation",
+    href: "/",
+    icon: GraduationCap,
+    gradient: "from-foreground/20 to-foreground/10",
+    iconColor: "text-foreground",
   },
   {
-    name: "Deep Fog Mode",
-    description: "Immerse in advanced content",
-    href: "/deep-fog",
-    icon: Cloud,
-    gradient: "from-indigo-500/20 to-purple-500/10",
-    iconColor: "text-indigo-400",
+    name: "Ce înseamnă?",
+    description: "Quick translations and definitions",
+    href: "/",
+    icon: CircleQuestionMark,
+    gradient: "from-primary/20 to-primary/10",
+    iconColor: "text-primary",
   },
   {
-    name: "Chaos Window",
-    description: "Start a practice session",
-    href: "/chaos-window",
-    icon: Sparkles,
-    gradient: "from-pink-500/20 to-rose-500/10",
-    iconColor: "text-pink-400",
+    name: "Cum se pronunță?",
+    description: "Listen to Romanian pronunciation",
+    href: "/",
+    icon: Speech,
+    gradient: "from-accent/20 to-accent/10",
+    iconColor: "text-accent",
   },
   {
-    name: "Error Garden",
-    description: "Review your patterns",
-    href: "/error-garden",
-    icon: Flower2,
-    gradient: "from-green-500/20 to-emerald-500/10",
-    iconColor: "text-green-400",
-  },
-  {
-    name: "Proficiency Tracker",
-    description: "Track your CEFR progress",
-    href: "/proficiency-tracker",
-    icon: TrendingUp,
-    gradient: "from-violet-500/20 to-purple-500/10",
-    iconColor: "text-violet-400",
-  },
-  {
-    name: "SPAM-A Test",
-    description: "Test Romanian spam analysis",
-    href: "/spam-a-test",
-    icon: Shield,
-    gradient: "from-red-500/20 to-orange-500/10",
-    iconColor: "text-red-400",
+    name: "ADHDesigns",
+    description: "Get to know creatorul ChaosLimbă",
+    href: "https://adhdesigns.dev",
+    icon: Brain,
+    gradient: "from-destructive/20 to-destructive/10",
+    iconColor: "text-destructive",
   },
 ]
 
@@ -122,11 +109,11 @@ const recentActivity = [
 export default function DashboardPage() {
   return (
     <div className="space-y-8 max-w-6xl mx-auto">
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-600/20 via-violet-600/10 to-background p-8 border border-purple-500/20">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-violet-500/10 rounded-full blur-3xl" />
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-background via-primary/10 to-background p-8 border border-borders">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-foreground/10 rounded-full blur-3xl" />
         <div className="relative">
-          <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-purple-300 via-violet-300 to-purple-400 bg-clip-text text-transparent">
+          <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-foreground via-primary to-primary/50 bg-clip-text text-transparent">
             Bună ziua, Chaos Learner!
           </h1>
           <p className="text-muted-foreground max-w-xl">
@@ -136,7 +123,7 @@ export default function DashboardPage() {
           <div className="flex gap-3 mt-6">
             <Button
               asChild
-              className="bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 rounded-xl shadow-lg shadow-purple-500/20"
+              className="bg-gradient-to-r from-primary to-primary/70 hover:from-primary hover:to-primary/80 rounded-xl shadow-lg shadow-primary/20"
             >
               <Link href="/chaos-window">
                 <Sparkles className="mr-2 h-4 w-4" />
@@ -146,7 +133,7 @@ export default function DashboardPage() {
             <Button
               asChild
               variant="outline"
-              className="rounded-xl border-purple-500/30 hover:bg-purple-500/10"
+              className="rounded-xl border-muted-foreground/30 hover:bg-muted-foreground/10"
             >
               <Link href="/deep-fog">
                 <Cloud className="mr-2 h-4 w-4" />
@@ -182,7 +169,7 @@ export default function DashboardPage() {
         <Card className="rounded-2xl border-border/40 bg-card/50 backdrop-blur">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
-              <Target className="h-5 w-5 text-purple-400" />
+              <Target className="h-5 w-5 text-primary" />
               Quick Actions
             </CardTitle>
           </CardHeader>
@@ -226,13 +213,13 @@ export default function DashboardPage() {
                   key={i}
                   className="flex items-start gap-3 pb-4 border-b border-border/40 last:border-0 last:pb-0"
                 >
-                  <div className="mt-1 h-2 w-2 rounded-full bg-purple-400" />
+                  <div className="mt-1 h-2 w-2 rounded-full bg-primary animate-pulse" />
                   <div className="flex-1">
                     <p className="text-sm">
                       <span className="text-muted-foreground">
                         {activity.action}
                       </span>{" "}
-                      <span className="font-medium text-purple-300">
+                      <span className="font-medium text-primary">
                         {activity.item}
                       </span>
                     </p>
@@ -250,7 +237,7 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      <Card className="rounded-2xl border-purple-500/20 bg-gradient-to-r from-purple-500/5 to-violet-500/5">
+      <Card className="rounded-2xl border-borders bg-gradient-to-r from-secondary/20 to-muted/20">
         <CardContent className="p-6 text-center">
           <h3 className="text-lg font-semibold mb-2">Today's Mantra</h3>
           <p className="text-xl italic text-muted-foreground">

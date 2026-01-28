@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog"
 import { BookOpen, Search, Sparkles, Trash2, CheckCircle2, Plus, Loader2 } from "lucide-react"
+import { CrystalBall } from "@/components/icons/CrystalBall"
 
 // Types matching API/Schema
 type MysteryItem = {
@@ -171,8 +172,8 @@ export default function MysteryShelfPage() {
     <div className="space-y-6 max-w-6xl mx-auto pb-10">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <BookOpen className="h-7 w-7 text-amber-400" />
+          <h1 className="text-2xl font-bold flex items-center gap-2 text-foreground">
+            <CrystalBall className="h-7 w-7 text-indigo-400" />
             Mystery Shelf
           </h1>
           <p className="text-muted-foreground">
@@ -183,7 +184,7 @@ export default function MysteryShelfPage() {
         <div className="flex gap-2 items-center">
           <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-amber-600 hover:bg-amber-700 text-white">
+              <Button className="bg-accent hover:bg-accent/50 text-white">
                 <Plus className="h-4 w-4 mr-2" />
                 Add Item
               </Button>
@@ -216,7 +217,7 @@ export default function MysteryShelfPage() {
                 <Button variant="outline" onClick={() => setIsAddOpen(false)}>Cancel</Button>
                 <Button
                   onClick={handleAddItem}
-                  className="bg-amber-600 hover:bg-amber-700"
+                  className="bg-accent hover:bg-accent/50"
                   disabled={!newItemWord.trim() || isSubmitting}
                 >
                   {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Add to Shelf"}
@@ -236,8 +237,8 @@ export default function MysteryShelfPage() {
             onClick={() => setFilter(f)}
             className={
               filter === f
-                ? "bg-amber-600 hover:bg-amber-700"
-                : "border-amber-500/30"
+                ? "bg-accent hover:bg-accent/50"
+                : "border-borders"
             }
           >
             {f === "all" && `All (${items.length})`}
@@ -250,7 +251,7 @@ export default function MysteryShelfPage() {
 
       {isLoading ? (
         <div className="flex justify-center py-20">
-          <Loader2 className="h-8 w-8 text-amber-500 animate-spin" />
+          <Loader2 className="h-8 w-8 text-accent-500 animate-spin" />
         </div>
       ) : (
         <div className="grid md:grid-cols-2 gap-6">
@@ -258,8 +259,8 @@ export default function MysteryShelfPage() {
             {filteredItems.map((item) => (
               <Card
                 key={item.id}
-                className={`rounded-xl border-amber-500/20 cursor-pointer transition-all hover:border-amber-500/40 hover:shadow-lg hover:shadow-amber-500/5 ${selectedItem?.id === item.id
-                  ? "ring-2 ring-amber-500/50"
+                className={`rounded-xl border-border cursor-pointer transition-all hover:border-border hover:shadow-lg hover:shadow-accent-500/5 ${selectedItem?.id === item.id
+                  ? "ring-2 ring-accent-500/50"
                   : ""
                   }`}
                 onClick={() => setSelectedItem(item)}
@@ -267,7 +268,7 @@ export default function MysteryShelfPage() {
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between">
                     <div>
-                      <h3 className="text-xl font-bold text-amber-300">
+                      <h3 className="text-xl font-bold text-accent/300">
                         {item.word}
                       </h3>
                       {item.context && (
@@ -285,7 +286,7 @@ export default function MysteryShelfPage() {
                           <CheckCircle2 className="h-3 w-3" /> Explored
                         </span>
                       ) : (
-                        <span className="px-2 py-1 text-xs rounded-full bg-amber-500/20 text-amber-400">
+                        <span className="px-2 py-1 text-xs rounded-full bg-accent-500/20 text-accent/400">
                           New
                         </span>
                       )}
@@ -295,7 +296,7 @@ export default function MysteryShelfPage() {
                     <Button
                       size="sm"
                       variant="outline"
-                      className="text-xs border-amber-500/30 hover:bg-amber-500/10"
+                      className="text-xs border-border hover:bg-accent/50"
                       onClick={(e) => {
                         e.stopPropagation()
                         setSelectedItem(item)
@@ -306,7 +307,7 @@ export default function MysteryShelfPage() {
                     <Button
                       size="sm"
                       variant="outline"
-                      className="text-xs border-purple-500/30 hover:bg-purple-500/10"
+                      className="text-xs border-border hover:bg-primary/10"
                       onClick={(e) => {
                         e.stopPropagation()
                         markExplored(item.id) // This actually marks as explored in backend
@@ -318,7 +319,7 @@ export default function MysteryShelfPage() {
                     <Button
                       size="sm"
                       variant="outline"
-                      className="text-xs border-red-500/30 hover:bg-red-500/10 text-red-400"
+                      className="text-xs border-destructive hover:bg-destructive/50 text-accent/80"
                       onClick={(e) => {
                         e.stopPropagation()
                         removeItem(item.id)
@@ -332,9 +333,9 @@ export default function MysteryShelfPage() {
             ))}
 
             {filteredItems.length === 0 && (
-              <Card className="rounded-xl border-dashed border-2 border-muted">
+              <Card className="rounded-xl border-dashed border-2 border-border">
                 <CardContent className="p-8 text-center">
-                  <BookOpen className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
+                  <BookOpen className="h-12 w-12 mx-auto text-indigo-700 mb-4" />
                   <p className="text-muted-foreground">No items to display</p>
                   <p className="text-sm text-muted-foreground/60">
                     Add items manually or from Deep Fog mode
@@ -345,10 +346,10 @@ export default function MysteryShelfPage() {
           </div>
 
           {selectedItem && (
-            <Card className="rounded-2xl border-2 border-amber-500/30 bg-gradient-to-br from-amber-500/5 to-orange-500/5 sticky top-24 h-fit">
+            <Card className="rounded-2xl border-2 border-border bg-gradient-to-br from-accent/70 to-muted/70 sticky top-24 h-fit">
               <CardHeader>
                 <div className="flex justify-between items-start">
-                  <CardTitle className="text-2xl text-amber-300">
+                  <CardTitle className="text-2xl text-accent/300">
                     {selectedItem.word}
                   </CardTitle>
                   <Button
@@ -364,20 +365,20 @@ export default function MysteryShelfPage() {
               <CardContent className="space-y-4">
                 {selectedItem.definition ? (
                   <div className="p-4 rounded-xl bg-background/50">
-                    <h4 className="text-sm font-medium text-amber-400 mb-2">
+                    <h4 className="text-sm font-medium text-accent mb-2">
                       Definition
                     </h4>
                     <p>{selectedItem.definition}</p>
                   </div>
                 ) : (
-                  <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20">
-                    <p className="text-sm text-amber-200">
+                  <div className="p-4 rounded-xl bg-accent-500/10 border border-border">
+                    <p className="text-sm text-accent/200">
                       Deep Explore not yet run on this item.
                     </p>
                     <Button
                       variant="secondary"
                       size="sm"
-                      className="mt-2 w-full bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/50 text-amber-200"
+                      className="mt-2 w-full bg-accent hover:bg-accent/30 border border-border text-destructive"
                       onClick={(e) => runAIAnalysis(selectedItem.id, e)}
                       disabled={analyzingIds.has(selectedItem.id)}
                     >
@@ -393,7 +394,7 @@ export default function MysteryShelfPage() {
 
                 {selectedItem.context && (
                   <div className="p-4 rounded-xl bg-background/50">
-                    <h4 className="text-sm font-medium text-amber-400 mb-2">
+                    <h4 className="text-sm font-medium text-accent mb-2">
                       Context
                     </h4>
                     <p className="italic text-muted-foreground">
@@ -404,7 +405,7 @@ export default function MysteryShelfPage() {
 
                 {selectedItem.examples && selectedItem.examples.length > 0 && (
                   <div className="p-4 rounded-xl bg-background/50">
-                    <h4 className="text-sm font-medium text-amber-400 mb-2">
+                    <h4 className="text-sm font-medium text-accent mb-2">
                       Usage Examples
                     </h4>
                     <ul className="space-y-2">

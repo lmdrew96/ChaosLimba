@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback, type FormEvent } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import {
-  Sparkles,
+  Atom,
   Play,
   Pause,
   RotateCcw,
@@ -19,6 +19,7 @@ import {
   Loader2,
   FileText,
   Video,
+  GraduationCap,
 } from "lucide-react"
 import { AIResponse } from "@/components/features/chaos-window/AIResponse"
 import { ConversationHistory, ConversationMessage } from "@/components/features/chaos-window/ConversationHistory"
@@ -542,7 +543,7 @@ export default function ChaosWindowPage() {
     <div className="space-y-6 max-w-4xl mx-auto">
       <div>
         <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Sparkles className="h-7 w-7 text-pink-400" />
+          <Atom className="h-7 w-7 text-destructive animate-pulse" />
           Chaos Window
         </h1>
         <p className="text-muted-foreground">
@@ -551,20 +552,20 @@ export default function ChaosWindowPage() {
         </p>
       </div>
 
-      <Card className="rounded-2xl border-pink-500/20 bg-gradient-to-br from-pink-500/10 via-background to-orange-500/5 overflow-hidden">
-        <CardHeader className="border-b border-pink-500/20">
+      <Card className="rounded-2xl border-border bg-gradient-to-br from-destructive/30 via-primary/50 to-foreground/30 overflow-hidden">
+        <CardHeader className="border-b border-border">
           <div className="flex items-center gap-3">
-            <div className="h-3 w-3 rounded-full bg-pink-500 animate-pulse" />
-            <CardTitle>Active Session</CardTitle>
+            <div className="h-3 w-3 rounded-full bg-destructive animate-pulse" />
+            <CardTitle>Session Content</CardTitle>
           </div>
         </CardHeader>
         <CardContent className="p-6 space-y-6">
           {!isActive ? (
             <div className="text-center py-12">
               <div className="relative inline-block mb-6">
-                <div className="absolute inset-0 bg-gradient-to-r from-pink-500 to-orange-500 rounded-full blur-2xl opacity-30 animate-pulse" />
-                <div className="relative h-32 w-32 rounded-full bg-gradient-to-br from-pink-500/20 to-orange-500/20 flex items-center justify-center border-2 border-pink-500/30">
-                  <Sparkles className="h-12 w-12 text-pink-400" />
+                <div className="absolute inset-0 bg-gradient-to-r from-destructive to-secondary rounded-full blur-2xl opacity-50 animate-pulse" />
+                <div className="relative h-32 w-32 rounded-full bg-gradient-to-br from-destructive/30 to-foreground/30 flex items-center justify-center border-2 border-border">
+                  <Atom className="h-12 w-12 text-destructive/70 animate-pulse" />
                 </div>
               </div>
               <h3 className="text-xl font-semibold mb-2">
@@ -577,7 +578,7 @@ export default function ChaosWindowPage() {
               <Button
                 size="lg"
                 onClick={handleStartSession}
-                className="bg-gradient-to-r from-pink-600 to-orange-600 hover:from-pink-700 hover:to-orange-700 rounded-xl px-8 shadow-lg shadow-pink-500/20"
+                className="bg-gradient-to-r from-destructive to-primary/70 hover:from-destructive/70 hover:to-primary/30 rounded-xl px-8 shadow-lg shadow-destructive/50"
               >
                 <Play className="mr-2 h-5 w-5" />
                 Start Chaos Session
@@ -654,7 +655,7 @@ export default function ChaosWindowPage() {
 
                       {/* Transcript Loading Indicator */}
                       {isLoadingTranscript && (
-                        <div className="flex items-center gap-3 p-3 rounded-lg bg-gradient-to-r from-orange-500/10 to-yellow-500/10 border border-orange-500/20 mb-4">
+                        <div className="flex items-center gap-3 p-3 rounded-lg bg-gradient-to-r from-orange-500/10 to-yellow-500/10 border border-border mb-4">
                           <Loader2 className="h-4 w-4 text-orange-400 animate-spin flex-shrink-0" />
                           <span className="text-sm text-orange-200">
                             {getTranscriptLoadingMessage(currentContent?.type)}
@@ -696,11 +697,11 @@ export default function ChaosWindowPage() {
                 </CardContent>
               </Card>
 
-              <Card className="rounded-xl border-purple-500/20 bg-gradient-to-r from-purple-500/10 to-violet-500/5">
+              <Card className="rounded-xl border-border bg-gradient-to-r from-muted/25 to-accent/25">
                 <CardContent className="p-5">
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="p-2 rounded-lg bg-purple-500/20">
-                      <MessageSquare className="h-5 w-5 text-purple-400" />
+                    <div className="p-2 rounded-lg bg-accent/20">
+                      <GraduationCap className="h-5 w-5 text-foreground/50" />
                     </div>
                     <h4 className="font-medium">AI Tutor</h4>
                   </div>
@@ -708,7 +709,7 @@ export default function ChaosWindowPage() {
                   {/* Show AI-generated question (not raw transcript!) */}
                   {isLoadingQuestion ? (
                     <div className="p-4 rounded-lg bg-muted/30 mb-4 flex items-center gap-3">
-                      <Loader2 className="h-5 w-5 text-purple-400 animate-spin flex-shrink-0" />
+                      <Loader2 className="h-5 w-5 text-muted-foreground animate-spin flex-shrink-0" />
                       <span className="text-muted-foreground">Generating a question...</span>
                     </div>
                   ) : tutorPrompt ? (
@@ -734,8 +735,8 @@ export default function ChaosWindowPage() {
                       type="button"
                       variant={modality === "text" ? "default" : "outline"}
                       className={modality === "text"
-                        ? "flex-1 bg-purple-600 hover:bg-purple-700"
-                        : "flex-1 border-purple-500/30"
+                        ? "flex-1 bg-muted-foreground hover:bg-primary/50"
+                        : "flex-1 border-border"
                       }
                       onClick={() => {
                         setModality("text")
@@ -750,8 +751,8 @@ export default function ChaosWindowPage() {
                       type="button"
                       variant={modality === "speech" ? "default" : "outline"}
                       className={modality === "speech"
-                        ? "flex-1 bg-blue-600 hover:bg-blue-700"
-                        : "flex-1 border-blue-500/30"
+                        ? "flex-1 bg-accent/70 hover:bg-accent/50"
+                        : "flex-1 border-border"
                       }
                       onClick={() => {
                         setModality("speech")
@@ -771,7 +772,7 @@ export default function ChaosWindowPage() {
                         <textarea
                           value={response}
                           onChange={(e) => setResponse(e.target.value)}
-                          className="w-full h-24 rounded-xl bg-background border border-purple-500/30 p-4 focus:ring-2 focus:ring-purple-500/30 focus:outline-none resize-none"
+                          className="w-full h-24 rounded-xl bg-background border border-border p-4 focus:ring-2 focus:ring-primary/70 focus:outline-none resize-none"
                           placeholder="Răspunde aici..."
                           disabled={isSubmitting}
                           aria-invalid={!!error}
@@ -791,7 +792,7 @@ export default function ChaosWindowPage() {
                                 <Button
                                   type="button"
                                   onClick={startRecording}
-                                  className="flex-1 bg-blue-600 hover:bg-blue-700 rounded-xl"
+                                  className="flex-1 bg-accent/70 hover:bg-accent-50 rounded-xl"
                                   disabled={isSubmitting}
                                 >
                                   <Mic className="mr-2 h-4 w-4" />
@@ -809,9 +810,9 @@ export default function ChaosWindowPage() {
                               )}
                             </div>
                           ) : (
-                            <div className="p-3 rounded-lg bg-muted/30 border border-blue-500/20 flex items-center gap-3">
+                            <div className="p-3 rounded-lg bg-muted/30 border border-border flex items-center gap-3">
                               <div className="flex-1 flex items-center gap-2">
-                                <Volume2 className="h-4 w-4 text-blue-400" />
+                                <Volume2 className="h-4 w-4 text-foreground/70" />
                                 <span className="text-sm">Audio recorded</span>
                               </div>
                               <Button
@@ -819,7 +820,7 @@ export default function ChaosWindowPage() {
                                 onClick={playRecording}
                                 variant="outline"
                                 size="sm"
-                                className="border-blue-500/30"
+                                className="border-border"
                               >
                                 <Play className="h-3 w-3 mr-1" />
                                 Play
@@ -829,7 +830,7 @@ export default function ChaosWindowPage() {
                                 onClick={resetRecording}
                                 variant="outline"
                                 size="sm"
-                                className="border-orange-500/30"
+                                className="border-border"
                               >
                                 <RotateCcw className="h-3 w-3" />
                               </Button>
@@ -845,8 +846,8 @@ export default function ChaosWindowPage() {
                     <Button
                       type="submit"
                       className={modality === "text"
-                        ? "bg-purple-600 hover:bg-purple-700 rounded-xl w-full"
-                        : "bg-blue-600 hover:bg-blue-700 rounded-xl w-full"
+                        ? "bg-primary/70 hover:bg-primary/50 rounded-xl w-full"
+                        : "bg-primary/70 hover:bg-primary/50 rounded-xl w-full"
                       }
                       disabled={isSubmitting || (modality === "text" ? response.trim().length < 5 : !audioBlob)}
                     >
@@ -863,6 +864,44 @@ export default function ChaosWindowPage() {
                       )}
                     </Button>
                   </form>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardContent>
+                  <div className="flex gap-3 justify-center">
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsActive(!isActive)}
+                      className="border-pink-500/30"
+                    >
+                      {isActive ? (
+                        <>
+                          <Pause className="mr-2 h-4 w-4" /> Pause
+                        </>
+                      ) : (
+                        <>
+                          <Play className="mr-2 h-4 w-4" /> Resume
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="border-orange-500/30"
+                      onClick={() => fetchRandomContent(currentContent?.id)}
+                      disabled={isLoadingContent}
+                    >
+                      <Shuffle className="mr-2 h-4 w-4" />
+                      Next Random Content
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={handleEndSession}
+                      className="border-red-500/30 text-red-400 hover:text-red-300"
+                    >
+                      End Session
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
 
@@ -883,7 +922,7 @@ export default function ChaosWindowPage() {
                 <Card className="rounded-xl border-border/40">
                   <CardHeader>
                     <CardTitle className="text-base flex items-center gap-2">
-                      <MessageSquare className="h-4 w-4 text-purple-400" />
+                      <MessageSquare className="h-4 w-4 text-foreground" />
                       Conversation History
                     </CardTitle>
                   </CardHeader>
@@ -892,83 +931,10 @@ export default function ChaosWindowPage() {
                   </CardContent>
                 </Card>
               )}
-
-              <div className="flex gap-3 justify-center">
-                <Button
-                  variant="outline"
-                  onClick={() => setIsActive(!isActive)}
-                  className="border-pink-500/30"
-                >
-                  {isActive ? (
-                    <>
-                      <Pause className="mr-2 h-4 w-4" /> Pause
-                    </>
-                  ) : (
-                    <>
-                      <Play className="mr-2 h-4 w-4" /> Resume
-                    </>
-                  )}
-                </Button>
-                <Button
-                  variant="outline"
-                  className="border-orange-500/30"
-                  onClick={() => fetchRandomContent(currentContent?.id)}
-                  disabled={isLoadingContent}
-                >
-                  <Shuffle className="mr-2 h-4 w-4" />
-                  Next Random Content
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={handleEndSession}
-                  className="border-red-500/30 text-red-400 hover:text-red-300"
-                >
-                  End Session
-                </Button>
-              </div>
             </div>
           )}
         </CardContent>
       </Card>
-
-      <div className="grid md:grid-cols-2 gap-4">
-        <Card className="rounded-xl border-border/40">
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-pink-400" />
-              How Chaos Window Works
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm text-muted-foreground space-y-2">
-            <p>• Randomized content selection (video, audio, text)</p>
-            <p>• Content is at or slightly above your level</p>
-            <p>• AI tutor asks targeted questions based on your Error Garden</p>
-            <p>• Timed sessions encourage focused engagement</p>
-          </CardContent>
-        </Card>
-
-        <Card className="rounded-xl border-border/40">
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              🎯 Key Differences from Deep Fog
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm text-muted-foreground space-y-2">
-            <p className="flex items-center gap-2">
-              <span className="text-green-400">✓</span>
-              <strong>Chaos Window:</strong> At/above level with AI interaction
-            </p>
-            <p className="flex items-center gap-2">
-              <span className="text-blue-400">✓</span>
-              <strong>Deep Fog:</strong> Above level, passive immersion
-            </p>
-            <p className="flex items-center gap-2">
-              <span className="text-purple-400">✓</span>
-              Uses Error Garden data to target weaknesses
-            </p>
-          </CardContent>
-        </Card>
-      </div>
 
       {/* Session Summary Modal */}
       <SessionSummaryModal

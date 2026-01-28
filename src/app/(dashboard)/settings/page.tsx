@@ -16,9 +16,11 @@ import {
     ExternalLink,
     Save,
     CheckCircle2,
+    Palette,
 } from "lucide-react"
 import { useUser } from "@clerk/nextjs"
 import type { UserPreferences } from "@/lib/db/schema"
+import ThemeSelector from "@/components/features/settings/ThemeSelector"
 
 const CEFR_LEVELS = [
     { value: "A1", label: "A1", description: "Beginner" },
@@ -162,6 +164,20 @@ export default function SettingsPage() {
                 </CardContent>
             </Card>
 
+            {/* Theme & Appearance */}
+            <Card className="rounded-2xl border-border/40 bg-card/50 backdrop-blur">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                        <Palette className="h-5 w-5 text-purple-400" />
+                        Theme & Appearance
+                    </CardTitle>
+                    <CardDescription>Customize how ChaosLimbă looks and feels</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <ThemeSelector />
+                </CardContent>
+            </Card>
+
             {/* Learning Preferences */}
             <Card className="rounded-2xl border-border/40 bg-card/50 backdrop-blur">
                 <CardHeader>
@@ -178,7 +194,7 @@ export default function SettingsPage() {
                             <div>
                                 <Label className="text-base">Current Language Level</Label>
                                 <p className="text-sm text-muted-foreground mt-1">
-                                    Calculated from your proficiency test
+                                    Calculated from your proficiency test & progress
                                 </p>
                             </div>
                             <div className="text-right">
@@ -245,10 +261,10 @@ export default function SettingsPage() {
                         />
                     </div>
 
-                    <div className="rounded-xl bg-purple-500/5 border border-purple-500/20 p-4">
-                        <p className="text-sm text-purple-200/80">
-                            <strong className="text-purple-300">Privacy Promise:</strong> We never track your Romanian text or audio content.
-                            Only error patterns and usage statistics are collected, and only with your explicit consent.
+                    <div className="rounded-xl bg-purple-400/5 border border-purple-400/20 p-4">
+                        <p className="text-sm text-purple-400">
+                            <strong className="text-purple-400">Privacy Promise:</strong> We never track your text or audio inputs.
+                            Only error patterns and usage statistics are collected, and only with your <strong>explicit</strong> consent. Your personal information is <em>yours</em>; we never sell it, share it, or use it for anything other than improving your learning experience.
                         </p>
                     </div>
                 </CardContent>
@@ -283,7 +299,7 @@ export default function SettingsPage() {
                     </div>
 
                     <div className="rounded-xl bg-amber-500/5 border border-amber-500/20 p-4">
-                        <p className="text-sm text-amber-200/80 italic">
+                        <p className="text-sm text-amber-500 italic">
                             "We provide the method. You provide the mess." <br />
                             No streak pressure. Just optional gentle reminders when you want them.
                         </p>
