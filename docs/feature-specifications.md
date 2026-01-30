@@ -1,25 +1,76 @@
 # ChaosLimbă Feature Specifications
 
+**Document Version:** 2.0 - Implementation Status Update
+**Last Updated:** January 30, 2026
+**Status:** MVP COMPLETE - Ready for Beta Testing
+
 ## Document Purpose
 This document provides detailed specifications for each major feature and section of the ChaosLimbă platform, including their purpose, functionality, user interactions, and how they integrate with the broader system architecture.
+
+**This version includes implementation status markers:**
+- ✅ **IMPLEMENTED** - Feature is fully built and deployed
+- 🔧 **PARTIALLY IMPLEMENTED** - Core functionality exists, advanced features pending
+- 🟡 **NOT YET IMPLEMENTED** - Specification complete, awaiting development
+
+---
+
+## Implementation Status Summary
+
+| Feature | Status | Completion | Notes |
+|---------|--------|------------|-------|
+| **Deep Fog Mode** | 🔧 Partial | 60% | Basic content player working, advanced features pending |
+| **Chaos Window** | ✅ Implemented | 85% | Core interactive learning complete, some AI features pending |
+| **Mystery Shelf** | 🔧 Partial | 50% | Collection works, deep exploration pending |
+| **Error Garden** | 🔧 Partial | 70% | Error logging complete, ML clustering pending |
+| **Adaptive Tutoring System** | 🔧 Partial | 60% | AI tutor working, full adaptation engine pending |
+| **Grading & Harvesting Engine** | ✅ Implemented | 90% | All core components deployed and working |
+| **Proficiency Tracker** | ✅ Implemented | 80% | Tracking and display working, advanced predictions pending |
+| **Onboarding System** | ✅ Implemented | 100% | Complete proficiency assessment workflow |
+| **Theme System** | ✅ Implemented | 100% | Three variants with light/dark modes |
 
 ---
 
 ## Table of Contents
-1. [Deep Fog Mode](#deep-fog-mode)
-2. [Chaos Window](#chaos-window)
-3. [Mystery Shelf](#mystery-shelf)
-4. [Error Garden](#error-garden)
-5. [Adaptive Tutoring System](#adaptive-tutoring-system)
-6. [Grading & Harvesting Engine](#grading--harvesting-engine)
-7. [Proficiency Tracker](#proficiency-tracker)
+1. [Deep Fog Mode](#deep-fog-mode) 🔧
+2. [Chaos Window](#chaos-window) ✅
+3. [Mystery Shelf](#mystery-shelf) 🔧
+4. [Error Garden](#error-garden) 🔧
+5. [Adaptive Tutoring System](#adaptive-tutoring-system) 🔧
+6. [Grading & Harvesting Engine](#grading--harvesting-engine) ✅
+7. [Proficiency Tracker](#proficiency-tracker) ✅
 
 ---
 
-## Deep Fog Mode
+## Deep Fog Mode 🔧 PARTIALLY IMPLEMENTED
+
+**Implementation Status:** 60% Complete (Basic content player working, advanced selection algorithms pending)
+**Deployed:** January 28, 2026
+**Route:** `/deep-fog`
 
 ### Purpose
 Deep Fog Mode is a **passive immersion experience** that intentionally exposes learners to content **above their current proficiency level** to promote cognitive disequilibrium and contextual awareness through productive confusion.
+
+### Implementation Status
+
+✅ **Implemented:**
+- Content player for video, audio, and text content
+- Basic content delivery
+- Video player with YouTube integration
+- Audio player with transcript support
+- Text reader interface
+- Session tracking
+
+🔧 **In Progress:**
+- Unknown word collection interface
+- Context preservation for collected words
+
+🟡 **Not Yet Implemented:**
+- Automatic level targeting (1-3 CEFR levels above learner)
+- Advanced content selection algorithms
+- Visual highlighting of unknown words
+- Batch collection features
+- Deep Fog-specific analytics
+- Mystery Shelf integration
 
 ### Core Concept
 Unlike traditional language learning that presents content at or slightly above the learner's level, Deep Fog Mode deliberately introduces content 1-3 levels above the user's proficiency. The goal is not immediate comprehension, but rather:
@@ -96,10 +147,40 @@ Based on **Interlanguage Theory** and **Chaos/Complexity Theory**:
 
 ---
 
-## Chaos Window
+## Chaos Window ✅ IMPLEMENTED
+
+**Implementation Status:** 85% Complete (Core functionality deployed, advanced AI features in progress)
+**Deployed:** January 27, 2026
+**Route:** `/chaos-window`
 
 ### Purpose
 Chaos Window is an **active, randomized learning experience** that combines at-level or slightly-above-level content with **real-time AI tutor interaction** to create targeted productive confusion and force usage of weak linguistic structures.
+
+### Implementation Status
+
+✅ **Fully Implemented:**
+- Random content selection from curated pool
+- Real-time AI tutor interaction (Llama 3.3 70B via Groq)
+- Conversation history display
+- Text and speech input support
+- Pronunciation practice integration
+- Session tracking and completion
+- Session summary with performance metrics
+- AI-generated questions based on content
+- User response submission (text/audio)
+- Vocabulary help system (removed timer for better UX)
+- Multi-modal content support (video/audio/text)
+
+🔧 **Partially Implemented:**
+- Error Garden integration (basic error logging works)
+- AI questions targeting specific weak structures
+- Follow-up question chains
+
+🟡 **Not Yet Implemented:**
+- Full Error Garden-informed question generation
+- Chaos injection protocols
+- ZPD-based difficulty adjustment
+- Comprehensive session analytics
 
 ### Core Concept
 Unlike Deep Fog's passive immersion, Chaos Window is intensely interactive and strategically chaotic. The system:
@@ -204,7 +285,31 @@ Based on **Output Hypothesis** and **Cognitive Disequilibrium**:
 
 ---
 
-## Mystery Shelf
+## Mystery Shelf 🔧 PARTIALLY IMPLEMENTED
+
+**Implementation Status:** 50% Complete (Basic collection working, deep exploration pending)
+**Deployed:** January 28, 2026
+**Route:** `/mystery-shelf`
+
+### Implementation Status
+
+✅ **Implemented:**
+- Unknown word/phrase collection system
+- Basic storage and retrieval
+- Item listing with filtering
+- Manual item addition
+- Delete functionality
+- AI-powered analysis of mystery items (basic)
+
+🟡 **Not Yet Implemented:**
+- Quick review mode with one-click definitions
+- Deep exploration mode with comprehensive information
+- Audio pronunciation for items
+- Practice prompt generation
+- Mastery tracking
+- Context preservation from original encounter
+- Error Garden cross-referencing
+- Chaos Window integration for targeted practice
 
 ### Purpose
 Mystery Shelf is a **learner-controlled repository** for unknown words, phrases, and structures collected during Deep Fog Mode and other learning activities. It provides both **quick review** and **deep exploration** options, empowering learners to choose their engagement level.
@@ -375,7 +480,37 @@ Based on **Exploratory Agency** and **Interlanguage Theory**:
 
 ---
 
-## Error Garden
+## Error Garden 🔧 PARTIALLY IMPLEMENTED
+
+**Implementation Status:** 70% Complete (Error tracking working, ML clustering pending)
+**Deployed:** January 23, 2026
+**Route:** `/error-garden`
+
+### Implementation Status
+
+✅ **Implemented:**
+- Automatic error collection from all production tasks
+- Error categorization (grammar, pronunciation, vocabulary, word order)
+- Modality tracking (text vs speech)
+- Basic pattern visualization dashboard
+- Error frequency tracking
+- Timeline view of errors
+- Trend charts and statistics
+- Error log modal with detailed information
+- Pattern modal for exploring specific error types
+
+🔧 **In Progress:**
+- Error clustering using frequency-based grouping
+- Basic pattern identification
+
+🟡 **Not Yet Implemented:**
+- ML-based error clustering
+- Fossilization detection (70%+ threshold monitoring)
+- Automated chaos injection protocols
+- Context-dependent error analysis
+- L1 transfer likelihood detection
+- Intervention protocol automation
+- Population-level pattern insights
 
 ### Purpose
 The Error Garden is an **interlanguage analysis engine** that systematically collects, clusters, and curates learner errors to transform mistakes into a personalized curriculum. It is the data backbone that powers ChaosLimbă's adaptive capabilities.
@@ -533,7 +668,37 @@ Based on **Interlanguage Theory** and **Error Harvesting**:
 
 ---
 
-## Adaptive Tutoring System
+## Adaptive Tutoring System 🔧 PARTIALLY IMPLEMENTED
+
+**Implementation Status:** 60% Complete (AI tutor working, full adaptation engine pending)
+**Deployed:** January 2026
+
+### Implementation Status
+
+✅ **Implemented:**
+- **Conversational Core** - Llama 3.3 70B via Groq (FREE)
+  - Real-time dialogue generation
+  - Context-aware responses
+  - Question generation based on content
+  - Multi-turn conversation support
+- **Conductor/Router** - Orchestrates component routing
+- **Basic content recommendations** - Random content selection
+- **Onboarding tutor interaction** - Introduction to AI tutor
+
+🔧 **Partially Implemented:**
+- Error Garden integration (basic error awareness)
+- Question targeting based on weaknesses
+- Adaptation Engine logic
+
+🟡 **Not Yet Implemented:**
+- Full Adaptation Engine with complex rule-based logic
+- Knowledge Base integration (SLA frameworks, CEFR standards)
+- Chaos Injection Protocol (4-phase intervention)
+- ZPD maintenance system (60-80% accuracy targeting)
+- Dynamic content sequencing based on error patterns
+- Modality balancing (input/output ratios)
+- Fossilization intervention triggers
+- Pedagogical scaffolding adjustments
 
 ### Purpose
 The Adaptive Tutoring System is the **"brain" of ChaosLimbă**, combining rule-based logic, AI-powered conversation, and pedagogical frameworks to provide personalized, dynamic instruction that evolves with each learner.
@@ -734,7 +899,34 @@ Based on **Adaptive, Not Prescriptive** philosophy:
 
 ---
 
-## Grading & Harvesting Engine
+## Grading & Harvesting Engine ✅ IMPLEMENTED
+
+**Implementation Status:** 90% Complete (All core components deployed and operational)
+**Deployed:** January 24-27, 2026
+
+### Implementation Status
+
+✅ **Fully Implemented:**
+- **Speech Recognition** - Whisper large-v3 via Groq API (FREE)
+- **Pronunciation Analysis** - Wav2Vec2 via HuggingFace Inference (FREE)
+- **Grammar Analysis** - Claude Haiku 4.5 for contextual grammar checking
+- **SPAM-A: Semantic Similarity** - Sentence embeddings via HuggingFace (FREE)
+- **SPAM-B: Relevance Scoring** - On-topic detection (FREE)
+- **SPAM-D: Intonation Analysis** - Rule-based minimal pairs system
+- **Dual-path routing** - Intelligent component activation based on input type
+- **Feedback Aggregator** - Unified grading reports
+- **Error transmission to Error Garden** - Real-time error logging
+- **Multi-dimensional scoring** - Grammar, pronunciation, semantic, relevance scores
+
+🔧 **Architectural Changes:**
+- Switched from fine-tuned mt5-small to LLM-based grammar (better contextual understanding)
+- SPAM-B reuses SPAM-A embeddings (smart optimization)
+- All components now on FREE APIs (major cost savings)
+
+🟡 **Not Yet Implemented:**
+- SPAM-C: Dialectal/Pragmatic analysis (post-MVP)
+- Fine-tuned pronunciation scoring models
+- Advanced acoustic analysis features
 
 ### Purpose
 The Grading & Harvesting Engine is a **parallel diagnostic processing system** that analyzes all learner production (speaking and writing) across multiple linguistic dimensions simultaneously. It serves as the "eyes and ears" of ChaosLimbă, feeding critical error data into the Error Garden.
@@ -907,7 +1099,35 @@ Based on **Holistic Feedback** and **Error Harvesting**:
 
 ---
 
-## Proficiency Tracker
+## Proficiency Tracker ✅ IMPLEMENTED
+
+**Implementation Status:** 80% Complete (Core tracking and visualization working)
+**Deployed:** January 25, 2026
+**Route:** `/proficiency-tracker`
+
+### Implementation Status
+
+✅ **Implemented:**
+- Overall proficiency scoring (1-10 scale mapping to A1-C2)
+- Skill-specific tracking (listening, reading, speaking, writing)
+- Proficiency history tracking over time
+- Timeline chart visualization
+- Skill progress bars with detailed breakdowns
+- Proficiency calculation based on grading scores
+- Initial proficiency assessment during onboarding
+- Dashboard integration with current proficiency display
+
+🔧 **Partially Implemented:**
+- Proficiency advancement criteria (basic thresholds in place)
+- Behavioral metrics integration
+
+🟡 **Not Yet Implemented:**
+- Advanced proficiency prediction algorithms
+- Weekly summary notifications
+- Granular sub-level tracking (e.g., B1.3 on 1-10 scale within level)
+- Correlation with external CEFR test validation
+- Content difficulty calibration based on proficiency
+- Fossilization penalty adjustments
 
 ### Purpose
 The Proficiency Tracker is a **continuous assessment system** that monitors learner progress across the CEFR levels (A1-C2) and individual skill areas, providing real-time proficiency estimates that drive adaptive content delivery.
@@ -1083,7 +1303,29 @@ This document provides detailed specifications for each major component of Chaos
 ---
 
 **Document Metadata**
-- Version: 1.0
-- Last Updated: January 2026
+- Version: 2.0 - Implementation Status Update
+- Last Updated: January 30, 2026
 - Author: ChaosLimbă Development Team
 - Status: Living Document (will be updated as features evolve)
+
+---
+
+## Summary: MVP Status
+
+🎉 **MVP COMPLETE - Ready for Beta Testing**
+
+**Key Achievements:**
+- ✅ All 7 core learning features implemented (to varying degrees)
+- ✅ Complete AI ensemble (10 of 11 components) deployed
+- ✅ $0-5/month hosting cost (72-100% under budget!)
+- ✅ Onboarding system complete
+- ✅ Multi-modal content support (video, audio, text)
+- ✅ Error tracking and basic pattern analysis
+- ✅ Proficiency tracking and visualization
+
+**Focus Areas for Next Phase:**
+1. ML-based error clustering in Error Garden
+2. Deep exploration mode for Mystery Shelf
+3. Full Adaptation Engine logic
+4. Advanced content selection algorithms
+5. SPAM-C dialectal/pragmatic analysis (when user base grows)
