@@ -76,15 +76,23 @@ export async function POST(req: NextRequest) {
             });
         }
 
-        // Update user preferences with level and mark onboarding complete
+        // Upsert user preferences with level and mark onboarding complete
         await db
-            .update(userPreferences)
-            .set({
+            .insert(userPreferences)
+            .values({
+                userId,
                 languageLevel: level,
                 onboardingCompleted: true,
                 updatedAt: new Date(),
             })
-            .where(eq(userPreferences.userId, userId));
+            .onConflictDoUpdate({
+                target: userPreferences.userId,
+                set: {
+                    languageLevel: level,
+                    onboardingCompleted: true,
+                    updatedAt: new Date(),
+                },
+            });
 
         // Seed Error Garden with errors from writing and speaking tests
         const errorsToSeed: Array<{
