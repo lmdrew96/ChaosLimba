@@ -63,3 +63,8 @@ next-env.d.ts
 
 # Temporary YouTube audio files (auto-generated, deleted after transcription)
 .temp-yt-audio/
+
+# ElevenLabs-generated audio files
+/generated-audio/
+/public/audio/elevenlabs/sentence_*.mp3
+/public/audio/elevenlabs/.wrangler/state/v3/r2

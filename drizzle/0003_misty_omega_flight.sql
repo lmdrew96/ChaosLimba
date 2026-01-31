@@ -1,0 +1,1 @@
+ALTER TABLE "common_voice_clips" ADD COLUMN "word_timestamps" jsonb;
