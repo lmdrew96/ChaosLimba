@@ -17,7 +17,10 @@ import {
     Save,
     CheckCircle2,
     Palette,
+    RotateCcw,
+    AlertTriangle,
 } from "lucide-react"
+import { useRouter } from "next/navigation"
 import { useUser } from "@clerk/nextjs"
 import type { UserPreferences } from "@/lib/db/schema"
 import ThemeSelector from "@/components/features/settings/ThemeSelector"
@@ -33,11 +36,13 @@ const CEFR_LEVELS = [
 
 export default function SettingsPage() {
     const { user, isLoaded: isUserLoaded } = useUser()
+    const router = useRouter()
     const [preferences, setPreferences] = useState<UserPreferences | null>(null)
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
     const [saved, setSaved] = useState(false)
     const [error, setError] = useState<string | null>(null)
+    const [devActionLoading, setDevActionLoading] = useState<string | null>(null)
 
     // Fetch preferences on mount
     useEffect(() => {
@@ -84,6 +89,47 @@ export default function SettingsPage() {
             setError("Failed to save changes")
         } finally {
             setSaving(false)
+        }
+    }
+
+    const handleResetProgress = async () => {
+        const confirmed = confirm(
+            "⚠️ This will DELETE ALL your progress:\n\n" +
+            "• All error garden patterns\n" +
+            "• All sessions\n" +
+            "• All mystery shelf items\n" +
+            "• Proficiency history\n" +
+            "• Reset to onboarding screen\n\n" +
+            "Are you absolutely sure?"
+        )
+
+        if (!confirmed) return
+
+        try {
+            setDevActionLoading("reset")
+            const response = await fetch("/api/dev/reset-progress", {
+                method: "POST",
+            })
+
+            const data = await response.json()
+
+            if (!response.ok) {
+                // Show detailed error from API
+                const errorMsg = data.details || data.error || "Unknown error"
+                console.error("Reset failed with details:", data)
+                throw new Error(errorMsg)
+            }
+
+            alert(`✅ ${data.message}`)
+
+            // Redirect to onboarding
+            router.push(data.redirectTo)
+        } catch (err) {
+            console.error("Failed to reset progress:", err)
+            const errorMessage = err instanceof Error ? err.message : "Unknown error"
+            alert(`❌ Failed to reset progress\n\n${errorMessage}`)
+        } finally {
+            setDevActionLoading(null)
         }
     }
 
@@ -302,6 +348,54 @@ export default function SettingsPage() {
                         <p className="text-sm text-amber-500 italic">
                             "We provide the method. You provide the mess." <br />
                             No streak pressure. Just optional gentle reminders when you want them.
+                        </p>
+                    </div>
+                </CardContent>
+            </Card>
+
+            {/* Danger Zone */}
+            <Card className="rounded-2xl border-red-500/40 bg-gradient-to-br from-red-900/20 to-orange-900/20 backdrop-blur">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                        <AlertTriangle className="h-5 w-5 text-red-400" />
+                        Danger Zone
+                    </CardTitle>
+                    <CardDescription>Destructive actions that cannot be undone</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    {/* Reset Progress */}
+                    <div className="space-y-3">
+                        <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1">
+                                <Label className="text-base flex items-center gap-2">
+                                    <RotateCcw className="h-4 w-4 text-red-400" />
+                                    Reset All Progress
+                                </Label>
+                                <p className="text-sm text-muted-foreground mt-1">
+                                    Delete all errors, sessions, mystery items, and proficiency history. Reset to onboarding screen.
+                                </p>
+                            </div>
+                            <Button
+                                onClick={handleResetProgress}
+                                disabled={devActionLoading === "reset"}
+                                variant="destructive"
+                                className="rounded-xl shrink-0"
+                            >
+                                {devActionLoading === "reset" ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                    "Reset"
+                                )}
+                            </Button>
+                        </div>
+                    </div>
+
+                    <div className="rounded-xl bg-red-500/5 border border-red-500/20 p-4">
+                        <p className="text-sm text-red-400 flex items-start gap-2">
+                            <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+                            <span>
+                                <strong>Warning:</strong> Actions in this section are irreversible and will permanently delete your learning data.
+                            </span>
                         </p>
                     </div>
                 </CardContent>
