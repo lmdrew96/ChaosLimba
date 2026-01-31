@@ -15,7 +15,8 @@ export async function GET() {
         learner_production: 'la',
         correct_form: 'la',
         confidence: 0.85,
-        category: 'grammar'
+        category: 'grammar',
+        feedbackType: 'error'
       }],
       grammarScore: 85
     };
