@@ -5,10 +5,10 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { filename: string } }
+  { params }: { params: Promise<{ filename: string }> }
 ) {
   try {
-    const filename = params.filename;
+    const { filename } = await params;
 
     // Fetch from R2 using the public URL
     const r2Url = `${process.env.R2_PUBLIC_URL}/elevenlabs/${filename}`;
