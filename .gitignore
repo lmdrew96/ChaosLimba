@@ -66,5 +66,4 @@ next-env.d.ts
 
 # ElevenLabs-generated audio files
 /generated-audio/
-/public/audio/elevenlabs/sentence_*.mp3
-/public/audio/elevenlabs/.wrangler/state/v3/r2
+/public/audio/
