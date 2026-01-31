@@ -73,14 +73,22 @@ export function AIResponse({ response, isLoading, gradingReport }: AIResponsePro
                   Excelent!
                 </Badge>
               ) : hasErrors ? (
-                <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30">
-                  <AlertTriangle className="h-3 w-3 mr-1" />
-                  Needs work
-                </Badge>
+                // Check if there are actual ERRORS vs just SUGGESTIONS
+                response.feedback.grammar.some(e => e.feedbackType === 'error' || !e.feedbackType) ? (
+                  <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30">
+                    <AlertTriangle className="h-3 w-3 mr-1" />
+                    Needs work
+                  </Badge>
+                ) : (
+                  <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">
+                    <Sparkles className="h-3 w-3 mr-1" />
+                    Consider improvements
+                  </Badge>
+                )
               ) : (
-                <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">
-                  <Sparkles className="h-3 w-3 mr-1" />
-                  Good attempt
+                <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
+                  <CheckCircle2 className="h-3 w-3 mr-1" />
+                  No issues detected
                 </Badge>
               )}
             </div>
@@ -115,15 +123,42 @@ export function AIResponse({ response, isLoading, gradingReport }: AIResponsePro
           </div>
         )}
 
-        {/* Grammar Errors */}
+        {/* Grammar Feedback - Split into Errors and Suggestions */}
         {response.feedback.grammar.length > 0 && (
-          <div className="space-y-2">
-            <h5 className="text-sm font-medium text-purple-300">Grammar Feedback:</h5>
-            <div className="space-y-2">
-              {response.feedback.grammar.map((error, index) => (
-                <GrammarErrorCard key={index} error={error} />
-              ))}
-            </div>
+          <div className="space-y-3">
+            {/* ERRORS Section */}
+            {response.feedback.grammar.filter(e => e.feedbackType === 'error' || !e.feedbackType).length > 0 && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4 text-orange-400" />
+                  <h5 className="text-sm font-medium text-orange-300">Needs work:</h5>
+                </div>
+                <div className="space-y-2">
+                  {response.feedback.grammar
+                    .filter(e => e.feedbackType === 'error' || !e.feedbackType)
+                    .map((error, index) => (
+                      <GrammarErrorCard key={index} error={error} />
+                    ))}
+                </div>
+              </div>
+            )}
+
+            {/* SUGGESTIONS Section */}
+            {response.feedback.grammar.filter(e => e.feedbackType === 'suggestion').length > 0 && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-blue-400" />
+                  <h5 className="text-sm font-medium text-blue-300">Consider:</h5>
+                </div>
+                <div className="space-y-2">
+                  {response.feedback.grammar
+                    .filter(e => e.feedbackType === 'suggestion')
+                    .map((error, index) => (
+                      <GrammarSuggestionCard key={index} error={error} />
+                    ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -311,8 +346,8 @@ export function AIResponse({ response, isLoading, gradingReport }: AIResponsePro
 
 function GrammarErrorCard({ error }: { error: GrammarError }) {
   const severityColors = {
-    minor: "bg-blue-500/10 text-blue-400 border-blue-500/20",
-    major: "bg-orange-500/10 text-orange-400 border-orange-500/20", 
+    minor: "bg-orange-500/10 text-orange-400 border-orange-500/20",
+    major: "bg-orange-500/15 text-orange-300 border-orange-500/30",
     critical: "bg-red-500/10 text-red-400 border-red-500/20"
   }
 
@@ -322,7 +357,7 @@ function GrammarErrorCard({ error }: { error: GrammarError }) {
       severityColors[error.severity]
     )}>
       <div className="flex items-start gap-2 mb-2">
-        <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+        <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0 text-orange-400" />
         <div className="flex-1">
           <span className="font-medium">{error.type}</span>
           <div className="text-xs opacity-80 mt-1">
@@ -331,6 +366,33 @@ function GrammarErrorCard({ error }: { error: GrammarError }) {
         </div>
       </div>
       <p className="text-xs opacity-90">{error.explanation}</p>
+    </div>
+  )
+}
+
+function GrammarSuggestionCard({ error }: { error: GrammarError }) {
+  const severityColors = {
+    minor: "bg-blue-500/10 text-blue-400 border-blue-500/20",
+    major: "bg-purple-500/10 text-purple-400 border-purple-500/20",
+    critical: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20"
+  }
+
+  return (
+    <div className={cn(
+      "p-3 rounded-lg border text-sm",
+      severityColors[error.severity]
+    )}>
+      <div className="flex items-start gap-2 mb-2">
+        <Sparkles className="h-4 w-4 mt-0.5 flex-shrink-0 text-blue-400" />
+        <div className="flex-1">
+          <span className="font-medium">{error.type}</span>
+          <div className="text-xs opacity-80 mt-1">
+            "{error.incorrect}" → "{error.correct}"
+          </div>
+        </div>
+      </div>
+      <p className="text-xs opacity-90 italic">{error.explanation}</p>
+      <p className="text-xs opacity-60 mt-1">💡 Both forms are valid, but this might sound more natural.</p>
     </div>
   )
 }

@@ -38,6 +38,7 @@ export type GrammarError = {
     correct: string;
     explanation: string;
     severity: "minor" | "major" | "critical";
+    feedbackType?: 'error' | 'suggestion'; // Distinguishes objective errors from contextual suggestions
 };
 
 export type SemanticMatch = {
@@ -309,7 +310,8 @@ Analyze the response and provide feedback in this JSON format:
         "incorrect": "incorrect_part",
         "correct": "correct_form",
         "explanation": "clear_explanation",
-        "severity": "minor|major|critical"
+        "severity": "minor|major|critical",
+        "feedbackType": "error|suggestion"
       }
     ],
     "semantic": {

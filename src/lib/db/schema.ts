@@ -76,6 +76,10 @@ export type SessionType = (typeof sessionTypeEnum)[number];
 export const modalityEnum = ['text', 'speech'] as const;
 export type Modality = (typeof modalityEnum)[number];
 
+// Feedback type enum (error vs suggestion)
+export const feedbackTypeEnum = ['error', 'suggestion'] as const;
+export type FeedbackType = (typeof feedbackTypeEnum)[number];
+
 // Error logs table - tracks user errors for Error Garden
 export const errorLogs = pgTable('error_logs', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -86,6 +90,7 @@ export const errorLogs = pgTable('error_logs', {
   correction: text('correction'), // the correct form
   source: text('source').$type<ErrorSource>().notNull(),
   modality: text('modality').$type<Modality>().default('text'), // track text vs speech
+  feedbackType: text('feedback_type').$type<FeedbackType>().default('error'), // distinguishes objective errors from contextual suggestions
   contentId: uuid('content_id').references(() => contentItems.id),
   sessionId: uuid('session_id').references(() => sessions.id),
   createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -144,6 +149,13 @@ export const userPreferences = pgTable('user_preferences', {
 export type UserPreferences = typeof userPreferences.$inferSelect;
 export type NewUserPreferences = typeof userPreferences.$inferInsert;
 
+// Word timestamp type for Mystery Shelf
+export type WordTimestamp = {
+  word: string;
+  start: number; // seconds
+  end: number;   // seconds
+};
+
 // Common Voice clips table - for native speaker audio
 export const commonVoiceClips = pgTable('common_voice_clips', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -152,6 +164,7 @@ export const commonVoiceClips = pgTable('common_voice_clips', {
   sentenceId: text('sentence_id'),
   r2Url: text('r2_url').notNull(),
   durationMs: integer('duration_ms'),
+  wordTimestamps: jsonb('word_timestamps').$type<WordTimestamp[]>(), // For Mystery Shelf
   age: text('age'), // "twenties", "thirties", etc.
   gender: text('gender'), // "male_masculine", "female_feminine"
   accent: text('accent'), // Regional accent

@@ -19,6 +19,7 @@ export interface FormattedGrammarError {
   correctForm: string;
   message: string;
   severity: 'low' | 'medium' | 'high';
+  feedbackType: 'error' | 'suggestion'; // Distinguishes objective errors from contextual suggestions
 }
 
 export interface FormattedPronunciationFeedback {
@@ -110,6 +111,7 @@ function formatGrammarErrors(errors: GrammarError[]): FormattedGrammarError[] {
       correctForm: error.correct_form,
       message: generateGrammarErrorMessage(error),
       severity,
+      feedbackType: error.feedbackType, // Pass through feedbackType from grammar analysis
     };
   });
 }

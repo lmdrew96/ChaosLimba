@@ -8,6 +8,7 @@ export interface GrammarError {
   correct_form: string;
   confidence: number;
   category?: string;
+  feedbackType: 'error' | 'suggestion'; // Distinguishes objective errors from contextual suggestions
 }
 
 export interface GrammarResult {
@@ -99,14 +100,22 @@ export async function analyzeGrammar(text: string): Promise<GrammarResult> {
  */
 function transformToGrammarErrors(providerErrors: GrammarCheckError[]): GrammarError[] {
   return providerErrors.map((error) => {
-    // Determine confidence based on error type and category
+    const feedbackType = error.feedbackType || 'error'; // Default to error if not specified
     let confidence = 0.85; // Default confidence
 
-    // Claude is generally more confident with spelling and diacritics
-    if (error.category === 'spelling' || error.category === 'diacritics') {
-      confidence = 0.95;
-    } else if (error.category === 'grammar' || error.type === 'grammar_correction') {
-      confidence = 0.90;
+    // Adjust confidence based on feedbackType and category
+    if (feedbackType === 'error') {
+      // Errors get higher confidence
+      if (error.category === 'spelling' || error.category === 'diacritics') {
+        confidence = 0.95; // Claude is very accurate with diacritics
+      } else if (error.category === 'grammar' || error.type === 'grammar_correction') {
+        confidence = 0.90;
+      } else {
+        confidence = 0.85;
+      }
+    } else if (feedbackType === 'suggestion') {
+      // Suggestions get lower confidence (ensures they rank below errors in Error Garden)
+      confidence = 0.60;
     }
 
     return {
@@ -115,6 +124,7 @@ function transformToGrammarErrors(providerErrors: GrammarCheckError[]): GrammarE
       correct_form: error.correction,
       confidence,
       category: error.category || categorizeError(error.original, error.correction),
+      feedbackType,
     };
   });
 }

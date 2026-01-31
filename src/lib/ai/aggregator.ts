@@ -122,7 +122,8 @@ export class FeedbackAggregator {
           correctForm: error.correct_form,
           confidence: error.confidence,
           severity: this.mapConfidenceToSeverity(error.confidence),
-          inputType: input.inputType
+          inputType: input.inputType,
+          feedbackType: error.feedbackType // Pass through feedbackType from grammar analysis
         });
       });
     }

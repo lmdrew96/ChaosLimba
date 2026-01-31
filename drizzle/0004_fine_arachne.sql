@@ -1,0 +1,1 @@
+ALTER TABLE "error_logs" ADD COLUMN "feedback_type" text DEFAULT 'error';

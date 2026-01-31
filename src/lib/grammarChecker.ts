@@ -8,6 +8,7 @@ export interface GrammarCheckError {
   correction: string;
   explanation: string;
   category?: string;
+  feedbackType?: 'error' | 'suggestion'; // Distinguishes objective errors from contextual suggestions
 }
 
 export interface GrammarCheckResult {
@@ -49,7 +50,38 @@ async function checkWithClaude(text: string): Promise<GrammarCheckResult> {
     throw new Error('ANTHROPIC_API_KEY not configured');
   }
 
-  const prompt = `You are a Romanian grammar checker. Analyze this text and return a JSON object with: original text, corrected text, and an array of errors (each with: type, original, correction, explanation). Text to check: ${text}`;
+  const prompt = `You are a Romanian grammar checker. Analyze this text and categorize issues into TWO categories:
+
+1. ERRORS (feedbackType: "error") - Objective grammatical violations:
+   - Wrong verb conjugation (lucreză → lucrează)
+   - Missing/incorrect diacritics (fara → fără)
+   - Incorrect case/gender agreement (la o proiect → la un proiect)
+   - Word order violations that change meaning
+
+2. SUGGESTIONS (feedbackType: "suggestion") - Grammatically valid but contextually suboptimal:
+   - "la un proiect" vs "într-un proiect" (both correct, latter more natural)
+   - Register mismatches (overly formal vs colloquial)
+   - Awkward phrasing that doesn't violate grammar rules
+
+Return JSON with:
+{
+  "originalText": "...",
+  "correctedText": "...",
+  "errors": [
+    {
+      "type": "error_type_name",
+      "original": "incorrect_text",
+      "correction": "correct_text",
+      "explanation": "why this is an error/suggestion",
+      "category": "specific_category",
+      "feedbackType": "error" | "suggestion"
+    }
+  ]
+}
+
+If no issues, return empty errors array.
+
+Text to check: ${text}`;
 
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -120,6 +152,7 @@ function parseClaudeResponse(text: string): Partial<GrammarCheckResult> {
         correction: error.correction || error.correct_form,
         explanation: error.explanation || error.message || '',
         category: error.category,
+        feedbackType: error.feedbackType || 'error', // Default to error if LLM doesn't specify
       })),
     };
   } catch (error) {

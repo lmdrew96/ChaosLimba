@@ -38,6 +38,7 @@ export interface ExtractedErrorPattern {
   confidence: number;
   severity: 'low' | 'medium' | 'high';
   inputType: 'speech' | 'text';
+  feedbackType?: 'error' | 'suggestion'; // Distinguishes objective errors from contextual suggestions (grammar only)
 }
 
 // Main aggregated report interface
