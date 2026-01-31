@@ -32,8 +32,8 @@ async function testClip() {
   });
 
   console.log(`✅ Transcription: "${transcription.text}"`);
-  console.log(`⏱️  Real duration: ${transcription.duration?.toFixed(2)} seconds`);
-  console.log(`🗣️  Language detected: ${transcription.language}`);
+  console.log(`⏱️  Real duration: ${(transcription as any).duration?.toFixed(2)} seconds`);
+  console.log(`🗣️  Language detected: ${(transcription as any).language}`);
 }
 
 testClip().catch(console.error);
