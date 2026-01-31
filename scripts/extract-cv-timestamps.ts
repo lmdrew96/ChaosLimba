@@ -54,7 +54,7 @@ async function extractTimestampsForClip(
     })) || [];
 
     return {
-      duration: transcription.duration || 0,
+      duration: (transcription as any).duration || 0,
       words
     };
   } catch (error: any) {
