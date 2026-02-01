@@ -53,7 +53,7 @@ const quickActions = [
   {
     name: "Ask Tutor",
     description: "Get a linguistic explanation",
-    href: "/",
+    href: "/ask-tutor",
     icon: GraduationCap,
     gradient: "from-foreground/20 to-foreground/10",
     iconColor: "text-foreground",
@@ -61,7 +61,7 @@ const quickActions = [
   {
     name: "Ce înseamnă?",
     description: "Quick translations and definitions",
-    href: "/",
+    href: "/ce-inseamna",
     icon: CircleQuestionMark,
     gradient: "from-primary/20 to-primary/10",
     iconColor: "text-primary",
@@ -69,7 +69,7 @@ const quickActions = [
   {
     name: "Cum se pronunță?",
     description: "Listen to Romanian pronunciation",
-    href: "/",
+    href: "/cum-se-pronunta",
     icon: Speech,
     gradient: "from-accent/20 to-accent/10",
     iconColor: "text-accent",

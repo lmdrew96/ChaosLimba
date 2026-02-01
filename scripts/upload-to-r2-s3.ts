@@ -41,7 +41,7 @@ async function uploadFile(filePath: string, key: string): Promise<boolean> {
 async function main() {
   console.log('📤 Uploading 200 audio files to R2...\n');
 
-  const audioDir = path.join(process.cwd(), 'public', 'audio', 'elevenlabs');
+  const audioDir = path.join(process.cwd(), 'generated-audio');
   const files = fs.readdirSync(audioDir).filter(f => f.endsWith('.mp3'));
 
   console.log(`Found ${files.length} audio files\n`);

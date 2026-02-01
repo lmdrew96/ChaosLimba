@@ -27,7 +27,7 @@ export function ContentPlayer({
   }
 
   switch (content.type) {
-    case "audio":
+    case "audio": {
       if (!content.audioUrl) {
         return (
           <div
@@ -43,14 +43,22 @@ export function ContentPlayer({
           </div>
         );
       }
+      const features = content.languageFeatures as Record<string, unknown> | null;
+      const wordTimestamps = features?.wordTimestamps as
+        | { word: string; start: number; end: number }[]
+        | undefined;
       return (
         <AudioPlayer
           audioUrl={content.audioUrl}
           title={content.title}
           className={className}
           onTimestampCapture={onTimestampCapture}
+          transcript={content.transcript ?? undefined}
+          wordTimestamps={wordTimestamps}
+          onWordClick={onWordClick}
         />
       );
+    }
 
     case "text":
       if (!content.textContent) {

@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Play, Pause, Bookmark, Headphones } from "lucide-react";
+import { Play, Pause, Bookmark, Headphones, FileText } from "lucide-react";
 import { AudioPlayerProps, PLAYBACK_SPEEDS, PlaybackSpeed } from "./types";
 
 export function AudioPlayer({
@@ -11,6 +11,9 @@ export function AudioPlayer({
   title,
   className,
   onTimestampCapture,
+  transcript,
+  wordTimestamps,
+  onWordClick,
 }: AudioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -20,6 +23,14 @@ export function AudioPlayer({
   const [playbackSpeed, setPlaybackSpeed] = useState<PlaybackSpeed>(1);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showTranscript, setShowTranscript] = useState(false);
+
+  // Build plain transcript text from wordTimestamps (with line breaks for dialogues)
+  const transcriptText = wordTimestamps && wordTimestamps.length > 0
+    ? wordTimestamps.map(w => w.word === "\n" ? "\n" : w.word).join(" ").replace(/ \n /g, "\n")
+    : transcript || null;
+
+  const hasTranscript = !!transcriptText;
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -200,6 +211,22 @@ export function AudioPlayer({
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Transcript toggle */}
+          {hasTranscript && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => setShowTranscript(!showTranscript)}
+              className={cn(
+                "hover:bg-purple-500/20",
+                showTranscript ? "text-purple-300 bg-purple-500/10" : "text-muted-foreground"
+              )}
+              title={showTranscript ? "Hide transcript" : "Show transcript"}
+            >
+              <FileText className="h-4 w-4" />
+            </Button>
+          )}
+
           {/* Timestamp capture */}
           {onTimestampCapture && (
             <Button
@@ -229,6 +256,13 @@ export function AudioPlayer({
           </select>
         </div>
       </div>
+
+      {/* Static transcript */}
+      {showTranscript && transcriptText && (
+        <div className="mt-4 max-h-48 overflow-y-auto rounded-lg bg-white/5 border border-purple-500/10 p-4 leading-relaxed text-foreground/80 whitespace-pre-line text-sm">
+          {transcriptText}
+        </div>
+      )}
     </div>
   );
 }

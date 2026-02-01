@@ -18,6 +18,7 @@
     "test:watch": "jest --watch"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.980.0",
     "@clerk/nextjs": "^6.36.8",
     "@huggingface/inference": "^2.8.1",
     "@inquirer/prompts": "^8.2.0",

@@ -173,6 +173,18 @@ export const commonVoiceClips = pgTable('common_voice_clips', {
 export type CommonVoiceClip = typeof commonVoiceClips.$inferSelect;
 export type NewCommonVoiceClip = typeof commonVoiceClips.$inferInsert;
 
+// TTS Usage table - tracks ElevenLabs character usage per user per day
+export const ttsUsage = pgTable('tts_usage', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: text('user_id').notNull(),
+  charactersUsed: integer('characters_used').notNull(),
+  date: timestamp('date').notNull(), // truncated to day for aggregation
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export type TtsUsage = typeof ttsUsage.$inferSelect;
+export type NewTtsUsage = typeof ttsUsage.$inferInsert;
+
 // Proficiency period enum
 export const proficiencyPeriodEnum = ['daily', 'weekly', 'monthly'] as const;
 export type ProficiencyPeriod = (typeof proficiencyPeriodEnum)[number];

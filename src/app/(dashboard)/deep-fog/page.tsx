@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -102,11 +102,20 @@ export default function DeepFogPage() {
     // Future: Open modal to add context/notes before saving to Mystery Shelf
   };
 
-  const handleWordClick = (word: string, context: string) => {
+  const [capturedWord, setCapturedWord] = useState<string | null>(null);
+
+  const handleWordClick = useCallback((word: string, context: string) => {
     // TODO: Integrate with Mystery Shelf - save word with context
-    console.log("Clicked word:", word, "Context:", context);
-    // Future: Open modal to confirm adding word to Mystery Shelf
-  };
+    // For now, show visual feedback that the word was captured
+    setCapturedWord(word);
+  }, []);
+
+  // Auto-dismiss captured word toast
+  useEffect(() => {
+    if (!capturedWord) return;
+    const timer = setTimeout(() => setCapturedWord(null), 2000);
+    return () => clearTimeout(timer);
+  }, [capturedWord]);
 
   const handleRandomContent = () => {
     if (content.length === 0) return;
@@ -265,6 +274,18 @@ export default function DeepFogPage() {
               </CardContent>
             </Card>
           )}
+        </div>
+      )}
+
+      {/* Word captured toast */}
+      {capturedWord && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] animate-in fade-in slide-in-from-bottom-4 duration-300">
+          <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-500/90 text-white shadow-lg backdrop-blur-sm">
+            <Plus className="h-4 w-4" />
+            <span className="text-sm font-medium">
+              &ldquo;{capturedWord}&rdquo; captured for Mystery Shelf
+            </span>
+          </div>
         </div>
       )}
 

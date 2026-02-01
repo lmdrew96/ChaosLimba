@@ -1,5 +1,7 @@
 import { ContentItem } from '@/lib/db/schema';
 
+export type WordTimestamp = { word: string; start: number; end: number };
+
 export interface BasePlayerProps {
   className?: string;
   onTimestampCapture?: (timestamp: number) => void;
@@ -8,6 +10,9 @@ export interface BasePlayerProps {
 export interface AudioPlayerProps extends BasePlayerProps {
   audioUrl: string;
   title: string;
+  transcript?: string;
+  wordTimestamps?: WordTimestamp[];
+  onWordClick?: (word: string, context: string) => void;
 }
 
 export interface TextReaderProps {

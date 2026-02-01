@@ -15,7 +15,8 @@ export type ChatMessage = {
 
 export async function callGroq(
     messages: ChatMessage[],
-    temperature: number = 0.6
+    temperature: number = 0.6,
+    jsonMode: boolean = true
 ): Promise<string> {
     if (!GROQ_API_KEY) {
         throw new Error("GROQ_API_KEY is not set");
@@ -32,8 +33,8 @@ export async function callGroq(
                 model: GROQ_MODEL,
                 messages,
                 temperature,
-                max_tokens: 2048, // Generous limit for R1 reasoning traces
-                response_format: { type: "json_object" } // Force JSON
+                max_tokens: 2048,
+                ...(jsonMode ? { response_format: { type: "json_object" } } : {}),
             }),
         });
 
