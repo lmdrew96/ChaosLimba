@@ -1,6 +1,6 @@
 /**
  * Transcribes audio URL using Groq Whisper v3 (FREE)
- * Used for standalone audio content (not YouTube)
+ * Used for audio content transcription
  *
  * @param audioUrl - Direct URL to audio file (mp3, wav, etc.)
  * @param lang - Language code (default: 'ro' for Romanian)

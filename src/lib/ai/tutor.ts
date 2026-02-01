@@ -118,7 +118,7 @@ export type InitialQuestion = {
 export async function generateInitialQuestion(
     contentTitle: string,
     contentTranscript: string | null,
-    contentType: 'video' | 'audio' | 'text',
+    contentType: 'audio' | 'text',
     errorPatterns: string[] = []
 ): Promise<InitialQuestion> {
     const hasTranscript = contentTranscript && contentTranscript.length > 50;
@@ -129,7 +129,7 @@ export async function generateInitialQuestion(
         : null;
 
     const prompt = `
-You are the ChaosLimbă Tutor. A learner is about to ${contentType === 'video' ? 'watch a video' : contentType === 'audio' ? 'listen to audio' : 'read text'}.
+You are the ChaosLimbă Tutor. A learner is about to ${contentType === 'audio' ? 'listen to audio' : 'read text'}.
 
 Content title: "${contentTitle}"
 ${transcriptContext ? `Content transcript/text: "${transcriptContext}"` : 'No transcript available - generate a general question about the title/topic.'}
@@ -174,7 +174,6 @@ Return JSON:
         console.error("[Tutor] Initial question generation failed:", error);
         // Fallback questions based on content type
         const fallbacks = {
-            video: "Ce ai înțeles din acest videoclip? Povestește-mi în câteva propoziții.",
             audio: "Ce ai auzit în acest audio? Descrie pe scurt conținutul.",
             text: "Ce ai citit? Spune-mi ideea principală în propriile tale cuvinte."
         };

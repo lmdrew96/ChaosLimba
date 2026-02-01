@@ -3,18 +3,15 @@ import { auth } from '@clerk/nextjs/server';
 import { db } from '@/lib/db';
 import { contentItems } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
-import { fetchYouTubeTranscript, getYouTubeTranscriptSource } from '@/lib/utils/youtube-transcript';
 import { transcribeAudioUrl } from '@/lib/utils/audio-transcript';
-import { extractYouTubeAudioAndTranscribe } from '@/lib/utils/youtube-audio';
 
 /**
  * GET /api/content/transcript/[contentId]
  *
  * Fetches transcript for content item:
  * 1. Return cached transcript if exists
- * 2. Fetch from YouTube if video
- * 3. Transcribe with Groq Whisper if audio
- * 4. Cache result in database for future sessions
+ * 2. Transcribe with Groq Whisper if audio
+ * 3. Cache result in database for future sessions
  *
  * This enables on-demand transcript fetching without blocking content curation workflow
  */
@@ -61,25 +58,7 @@ export async function GET(
     let transcript: string | null = null;
     let transcriptSource: string | null = null;
 
-    if (item.type === 'video' && item.youtubeId) {
-      console.log(`[Transcript API] Fetching YouTube captions for video ${item.youtubeId}`);
-      transcript = await fetchYouTubeTranscript(item.youtubeId);
-      transcriptSource = getYouTubeTranscriptSource();
-
-      // FALLBACK: If captions unavailable, try audio extraction + Whisper
-      if (!transcript) {
-        console.log(`[Transcript API] Captions unavailable, attempting audio extraction...`);
-        const audioResult = await extractYouTubeAudioAndTranscribe(item.youtubeId);
-
-        if (audioResult) {
-          transcript = audioResult.transcript;
-          transcriptSource = 'whisper_youtube_fallback';
-          console.log(`[Transcript API] Successfully transcribed via audio extraction (${transcript.length} chars)`);
-        } else {
-          console.warn(`[Transcript API] Audio extraction failed for ${item.youtubeId}`);
-        }
-      }
-    } else if (item.type === 'audio' && item.audioUrl) {
+    if (item.type === 'audio' && item.audioUrl) {
       console.log(`[Transcript API] Transcribing audio with Groq Whisper: ${item.audioUrl}`);
       transcript = await transcribeAudioUrl(item.audioUrl);
       transcriptSource = 'whisper';

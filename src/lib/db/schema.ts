@@ -17,7 +17,7 @@ export type SourceAttribution = {
 };
 
 // Content type enum
-export const contentTypeEnum = ['video', 'audio', 'text'] as const;
+export const contentTypeEnum = ['audio', 'text'] as const;
 export type ContentType = (typeof contentTypeEnum)[number];
 
 // Main content_items table
@@ -28,11 +28,6 @@ export const contentItems = pgTable('content_items', {
   difficultyLevel: decimal('difficulty_level', { precision: 3, scale: 1 }).notNull(),
   durationSeconds: integer('duration_seconds').notNull(),
 
-  // Video-specific fields
-  youtubeId: text('youtube_id'),
-  startTime: integer('start_time'),
-  endTime: integer('end_time'),
-
   // Audio-specific fields
   audioUrl: text('audio_url'),
 
@@ -40,9 +35,9 @@ export const contentItems = pgTable('content_items', {
   textContent: text('text_content'),
   textUrl: text('text_url'),
 
-  // Transcript fields (for video/audio content)
+  // Transcript fields (for audio content)
   transcript: text('transcript'), // Full transcript text
-  transcriptSource: text('transcript_source'), // 'youtube_auto', 'youtube_manual', 'whisper', 'whisper_youtube_fallback', 'manual'
+  transcriptSource: text('transcript_source'), // 'whisper', 'manual'
   transcriptLanguage: text('transcript_language').default('ro'), // Language code (default Romanian)
 
   // Metadata fields

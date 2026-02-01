@@ -1,7 +1,6 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { VideoPlayer } from "./VideoPlayer";
 import { AudioPlayer } from "./AudioPlayer";
 import { TextReader } from "./TextReader";
 import { ContentPlayerProps } from "./types";
@@ -28,34 +27,6 @@ export function ContentPlayer({
   }
 
   switch (content.type) {
-    case "video":
-      if (!content.youtubeId) {
-        return (
-          <div
-            className={cn(
-              "rounded-xl bg-red-500/10 border border-red-500/20 p-4 flex items-center gap-3",
-              className
-            )}
-          >
-            <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0" />
-            <span className="text-red-400">
-              Video content is missing a YouTube ID
-            </span>
-          </div>
-        );
-      }
-      return (
-        <VideoPlayer
-          key={content.youtubeId}
-          youtubeId={content.youtubeId}
-          startTime={content.startTime ?? undefined}
-          endTime={content.endTime ?? undefined}
-          title={content.title}
-          className={className}
-          onTimestampCapture={onTimestampCapture}
-        />
-      );
-
     case "audio":
       if (!content.audioUrl) {
         return (

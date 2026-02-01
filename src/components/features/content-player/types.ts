@@ -5,13 +5,6 @@ export interface BasePlayerProps {
   onTimestampCapture?: (timestamp: number) => void;
 }
 
-export interface VideoPlayerProps extends BasePlayerProps {
-  youtubeId: string;
-  startTime?: number;
-  endTime?: number;
-  title: string;
-}
-
 export interface AudioPlayerProps extends BasePlayerProps {
   audioUrl: string;
   title: string;

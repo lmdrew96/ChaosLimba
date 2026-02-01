@@ -6,7 +6,6 @@
  *
  * Usage:
  *   npx tsx scripts/curate.ts add           # Interactive add
- *   npx tsx scripts/curate.ts video <url>   # Quick add YouTube
  *   npx tsx scripts/curate.ts stats         # Show library stats
  *   npx tsx scripts/curate.ts list          # List content
  *   npx tsx scripts/curate.ts batch <file>  # Bulk import from JSON
@@ -33,7 +32,7 @@ dotenv.config({ path: join(__dirname, '..', '.env.local') });
 // Schema Types (mirror of src/lib/db/schema.ts to avoid path alias issues)
 // ============================================================================
 
-type ContentType = 'video' | 'audio' | 'text';
+type ContentType = 'audio' | 'text';
 
 type LanguageFeatures = {
   grammar: string[];
@@ -55,9 +54,6 @@ interface NewContentItem {
   title: string;
   difficultyLevel: string;
   durationSeconds: number;
-  youtubeId?: string | null;
-  startTime?: number | null;
-  endTime?: number | null;
   audioUrl?: string | null;
   textContent?: string | null;
   textUrl?: string | null;
@@ -118,68 +114,6 @@ function difficultyToLabel(diff: string | number): string {
   if (d <= 7.0) return 'B2';
   if (d <= 9.0) return 'C1';
   return 'C2';
-}
-
-// ============================================================================
-// YouTube Metadata Fetcher
-// ============================================================================
-
-interface YouTubeMetadata {
-  videoId: string;
-  title: string;
-  channelName: string;
-  thumbnailUrl: string;
-}
-
-function extractVideoId(input: string): string | null {
-  // Direct ID (11 chars)
-  if (/^[a-zA-Z0-9_-]{11}$/.test(input)) {
-    return input;
-  }
-
-  // URL patterns
-  const patterns = [
-    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
-    /youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})/
-  ];
-
-  for (const pattern of patterns) {
-    const match = input.match(pattern);
-    if (match) return match[1];
-  }
-
-  return null;
-}
-
-async function fetchYouTubeMetadata(urlOrId: string): Promise<YouTubeMetadata | null> {
-  const videoId = extractVideoId(urlOrId);
-  if (!videoId) {
-    console.error('  Invalid YouTube URL or ID');
-    return null;
-  }
-
-  // Use oEmbed API (ToS-compliant, no API key needed)
-  const oembedUrl = `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`;
-
-  try {
-    const response = await fetch(oembedUrl);
-    if (!response.ok) {
-      console.error(`  YouTube oEmbed failed: ${response.status}`);
-      return null;
-    }
-
-    const data = await response.json() as { title: string; author_name: string; thumbnail_url: string };
-
-    return {
-      videoId,
-      title: data.title,
-      channelName: data.author_name,
-      thumbnailUrl: data.thumbnail_url
-    };
-  } catch (error) {
-    console.error('  Failed to fetch YouTube metadata:', error);
-    return null;
-  }
 }
 
 // ============================================================================
@@ -253,97 +187,6 @@ async function promptLicense(): Promise<string> {
 // ============================================================================
 // Add Content Functions
 // ============================================================================
-
-async function addVideoContent(presetUrl?: string): Promise<void> {
-  console.log('\n  Add YouTube Video\n');
-
-  // Get YouTube URL/ID
-  const youtubeInput = presetUrl || await input({
-    message: 'YouTube URL or Video ID:',
-    validate: (val) => extractVideoId(val) ? true : 'Invalid YouTube URL or ID'
-  });
-
-  // Fetch metadata
-  console.log('\n  Fetching YouTube metadata...');
-  const metadata = await fetchYouTubeMetadata(youtubeInput);
-
-  if (!metadata) {
-    console.error('  Could not fetch YouTube metadata. Please check the URL.\n');
-    return;
-  }
-
-  console.log(`  Found: "${metadata.title}" by ${metadata.channelName}\n`);
-
-  // Confirm or edit title
-  const title = await input({
-    message: 'Title:',
-    default: metadata.title
-  });
-
-  // CEFR level
-  const cefrLevel = await promptCEFRLevel();
-
-  // Duration (oEmbed doesn't provide this)
-  const durationSeconds = await number({
-    message: 'Duration in seconds (check video for exact time):',
-    default: 300,
-    validate: (val) => val && val > 0 ? true : 'Must be positive'
-  }) || 300;
-
-  // Time range (optional)
-  const hasTimeRange = await confirm({
-    message: 'Add start/end time range (for clips)?',
-    default: false
-  });
-
-  let startTime: number | null = null;
-  let endTime: number | null = null;
-
-  if (hasTimeRange) {
-    startTime = await number({ message: 'Start time (seconds):', default: 0 }) || 0;
-    endTime = await number({ message: 'End time (seconds):' }) || null;
-  }
-
-  // Topic
-  const topic = await input({
-    message: 'Topic (e.g., cooking, news, music, grammar, vlog):',
-    validate: (val) => val.trim() ? true : 'Required'
-  });
-
-  // Language features
-  const languageFeatures = await promptLanguageFeatures();
-
-  // Cultural notes
-  const culturalNotes = await input({
-    message: 'Cultural notes (optional):',
-    default: ''
-  });
-
-  // License
-  const license = await promptLicense();
-
-  // Build content item
-  const contentItem: NewContentItem = {
-    type: 'video',
-    title,
-    difficultyLevel: CEFR_TO_DIFFICULTY[cefrLevel],
-    durationSeconds,
-    youtubeId: metadata.videoId,
-    startTime,
-    endTime,
-    topic: topic.trim(),
-    languageFeatures,
-    sourceAttribution: {
-      creator: metadata.channelName,
-      originalUrl: `https://www.youtube.com/watch?v=${metadata.videoId}`,
-      license
-    },
-    culturalNotes: culturalNotes.trim() || null
-  };
-
-  // Insert into database
-  await insertContent(contentItem);
-}
 
 async function addAudioContent(): Promise<void> {
   console.log('\n  Add Audio Content\n');
@@ -491,7 +334,6 @@ async function insertContent(item: NewContentItem): Promise<void> {
     const result = await db.execute(sql`
       INSERT INTO content_items (
         type, title, difficulty_level, duration_seconds,
-        youtube_id, start_time, end_time,
         audio_url, text_content, text_url,
         language_features, topic, source_attribution, cultural_notes
       ) VALUES (
@@ -499,9 +341,6 @@ async function insertContent(item: NewContentItem): Promise<void> {
         ${item.title},
         ${item.difficultyLevel},
         ${item.durationSeconds},
-        ${item.youtubeId || null},
-        ${item.startTime || null},
-        ${item.endTime || null},
         ${item.audioUrl || null},
         ${item.textContent || null},
         ${item.textUrl || null},
@@ -572,7 +411,7 @@ async function showStats(): Promise<void> {
 
     console.log('  By Type:');
     for (const stat of typeStats.rows as { type: string; count: string }[]) {
-      const emoji = stat.type === 'video' ? '' : stat.type === 'audio' ? '' : '';
+      const emoji = stat.type === 'audio' ? '' : '';
       console.log(`    ${emoji} ${stat.type}: ${stat.count}`);
     }
 
@@ -598,7 +437,7 @@ async function listContent(options: { type?: string; level?: string; limit?: str
 
   try {
     let query = sql`
-      SELECT id, type, title, difficulty_level, duration_seconds, youtube_id, topic, created_at
+      SELECT id, type, title, difficulty_level, duration_seconds, topic, created_at
       FROM content_items
     `;
 
@@ -637,7 +476,6 @@ async function listContent(options: { type?: string; level?: string; limit?: str
       title: string;
       difficulty_level: string;
       duration_seconds: number;
-      youtube_id: string | null;
       topic: string;
       created_at: string;
     }[];
@@ -650,17 +488,13 @@ async function listContent(options: { type?: string; level?: string; limit?: str
     console.log(`  Showing ${items.length} items:\n`);
 
     for (const item of items) {
-      const emoji = item.type === 'video' ? '' : item.type === 'audio' ? '' : '';
+      const emoji = item.type === 'audio' ? '' : '';
       const level = difficultyToLabel(item.difficulty_level);
       const duration = Math.round(item.duration_seconds / 60);
 
       console.log(`  ${emoji} [${level}] ${item.title}`);
       console.log(`     ID: ${item.id.slice(0, 8)}...`);
       console.log(`     Topic: ${item.topic} | ${duration} min`);
-
-      if (item.type === 'video' && item.youtube_id) {
-        console.log(`     https://youtu.be/${item.youtube_id}`);
-      }
       console.log('');
     }
   } catch (error) {
@@ -673,8 +507,7 @@ async function listContent(options: { type?: string; level?: string; limit?: str
 // ============================================================================
 
 interface BatchImportItem {
-  type: 'video' | 'audio' | 'text';
-  youtubeUrl?: string;
+  type: 'audio' | 'text';
   audioUrl?: string;
   textContent?: string;
   textUrl?: string;
@@ -716,7 +549,7 @@ async function batchImport(filePath: string, dryRun: boolean): Promise<void> {
 
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
-    console.log(`  [${i + 1}/${items.length}] Processing ${item.type}: ${item.title || item.youtubeUrl || 'untitled'}...`);
+    console.log(`  [${i + 1}/${items.length}] Processing ${item.type}: ${item.title || 'untitled'}...`);
 
     try {
       const contentItem = await transformBatchItem(item);
@@ -748,26 +581,6 @@ async function transformBatchItem(item: BatchImportItem): Promise<NewContentItem
     languageFeatures: item.languageFeatures || null,
     culturalNotes: item.culturalNotes || null
   };
-
-  if (item.type === 'video') {
-    if (!item.youtubeUrl) throw new Error('Video requires youtubeUrl');
-
-    const metadata = await fetchYouTubeMetadata(item.youtubeUrl);
-    if (!metadata) throw new Error('Could not fetch YouTube metadata');
-
-    return {
-      ...base,
-      type: 'video',
-      title: item.title || metadata.title,
-      durationSeconds: item.durationSeconds || 300,
-      youtubeId: metadata.videoId,
-      sourceAttribution: {
-        creator: item.creator || metadata.channelName,
-        originalUrl: `https://www.youtube.com/watch?v=${metadata.videoId}`,
-        license: item.license || 'Standard YouTube License'
-      }
-    };
-  }
 
   if (item.type === 'audio') {
     if (!item.audioUrl) throw new Error('Audio requires audioUrl');
@@ -811,7 +624,6 @@ async function insertContentSilent(item: NewContentItem): Promise<void> {
   await db.execute(sql`
     INSERT INTO content_items (
       type, title, difficulty_level, duration_seconds,
-      youtube_id, start_time, end_time,
       audio_url, text_content, text_url,
       language_features, topic, source_attribution, cultural_notes
     ) VALUES (
@@ -819,9 +631,6 @@ async function insertContentSilent(item: NewContentItem): Promise<void> {
       ${item.title},
       ${item.difficultyLevel},
       ${item.durationSeconds},
-      ${item.youtubeId || null},
-      ${item.startTime || null},
-      ${item.endTime || null},
       ${item.audioUrl || null},
       ${item.textContent || null},
       ${item.textUrl || null},
@@ -848,7 +657,7 @@ program
 program
   .command('add')
   .description('Interactively add a single content item')
-  .option('-t, --type <type>', 'Content type: video, audio, text')
+  .option('-t, --type <type>', 'Content type: audio, text')
   .action(async (options) => {
     let type = options.type;
 
@@ -856,30 +665,19 @@ program
       type = await select({
         message: 'What type of content?',
         choices: [
-          { value: 'video', name: 'YouTube Video' },
           { value: 'audio', name: 'Audio (podcast, etc.)' },
           { value: 'text', name: 'Text (article, etc.)' }
         ]
       });
     }
 
-    if (type === 'video') {
-      await addVideoContent();
-    } else if (type === 'audio') {
+    if (type === 'audio') {
       await addAudioContent();
     } else if (type === 'text') {
       await addTextContent();
     } else {
       console.error(`Unknown type: ${type}`);
     }
-  });
-
-// Quick add video command
-program
-  .command('video [url]')
-  .description('Add YouTube video (opens interactive prompts)')
-  .action(async (url) => {
-    await addVideoContent(url);
   });
 
 // Quick add audio command
@@ -910,7 +708,7 @@ program
 program
   .command('list')
   .description('List content items')
-  .option('-t, --type <type>', 'Filter by type: video, audio, text')
+  .option('-t, --type <type>', 'Filter by type: audio, text')
   .option('-l, --level <level>', 'Filter by CEFR level: A1, A2, B1, B2, C1, C2')
   .option('-n, --limit <number>', 'Limit results', '20')
   .action(async (options) => {

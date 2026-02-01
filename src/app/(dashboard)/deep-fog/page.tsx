@@ -7,7 +7,6 @@ import {
   Cloud,
   BookOpen,
   Headphones,
-  Video,
   Plus,
   Filter,
   Shuffle,
@@ -36,7 +35,6 @@ function formatDuration(seconds: number, type: string): string {
 }
 
 const typeIcons = {
-  video: Video,
   audio: Headphones,
   text: BookOpen,
 };
@@ -52,14 +50,9 @@ const typeColors = {
     text: "text-purple-400",
     border: "border-purple-500/20",
   },
-  video: {
-    bg: "bg-rose-500/10",
-    text: "text-rose-400",
-    border: "border-rose-500/20",
-  },
 };
 
-type ContentFilter = "all" | "text" | "audio" | "video";
+type ContentFilter = "all" | "text" | "audio";
 
 export default function DeepFogPage() {
   const [content, setContent] = useState<ContentItem[]>([]);
@@ -169,7 +162,7 @@ export default function DeepFogPage() {
 
       {/* Filter buttons */}
       <div className="flex gap-2 flex-wrap">
-        {(["all", "text", "audio", "video"] as const).map((f) => (
+        {(["all", "text", "audio"] as const).map((f) => (
           <Button
             key={f}
             variant={filter === f ? "default" : "outline"}
@@ -184,17 +177,12 @@ export default function DeepFogPage() {
             {f === "all" && "All Content"}
             {f === "text" && (
               <>
-                <BookOpen className="h-4 w-4 mr-1" /> Articles
+                <BookOpen className="h-4 w-4 mr-1" /> Read
               </>
             )}
             {f === "audio" && (
               <>
-                <Headphones className="h-4 w-4 mr-1" /> Podcasts
-              </>
-            )}
-            {f === "video" && (
-              <>
-                <Video className="h-4 w-4 mr-1" /> Videos
+                <Headphones className="h-4 w-4 mr-1" /> Listen
               </>
             )}
           </Button>

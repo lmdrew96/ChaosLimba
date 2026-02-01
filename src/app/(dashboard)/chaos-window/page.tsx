@@ -18,7 +18,6 @@ import {
   Volume2,
   Loader2,
   FileText,
-  Video,
   GraduationCap,
 } from "lucide-react"
 import { AIResponse } from "@/components/features/chaos-window/AIResponse"
@@ -26,28 +25,19 @@ import { ConversationHistory, ConversationMessage } from "@/components/features/
 import { SessionSummaryModal } from "@/components/features/chaos-window/SessionSummaryModal"
 import { TutorResponse, InitialQuestion } from "@/lib/ai/tutor"
 import { ContentItem } from "@/lib/db/schema"
+import { AudioPlayer } from "@/components/features/content-player/AudioPlayer"
 
 type Modality = "text" | "speech"
 
 // Content type icons
 const ContentTypeIcon = {
-  video: Video,
   audio: Headphones,
   text: FileText,
 }
 
 // ADHD-friendly, relatable loading messages for transcript fetching
-function getTranscriptLoadingMessage(contentType?: 'video' | 'audio' | 'text'): string {
-  if (contentType === 'video') {
-    const messages = [
-      "Fetching transcript... (this may take up to 60 seconds)",
-      "Wrangling those YouTube captions or extracting audio...",
-      "Getting transcript - trying captions first, then audio...",
-      "Loading transcript via captions or audio fallback...",
-      "Asking YouTube for captions (or extracting audio if needed)...",
-    ]
-    return messages[Math.floor(Math.random() * messages.length)]
-  } else if (contentType === 'audio') {
+function getTranscriptLoadingMessage(contentType?: 'audio' | 'text'): string {
+  if (contentType === 'audio') {
     const messages = [
       "Asking Groq to transcribe this audio magic...",
       "Running Whisper on this audio... (it's free! 🎉)",
@@ -231,7 +221,6 @@ export default function ChaosWindowPage() {
       console.error('[Chaos Window] Failed to generate initial question:', err)
       // Fallback to a generic question based on content type
       const fallback = {
-        video: 'Ce ai înțeles din acest videoclip? Povestește-mi în câteva propoziții.',
         audio: 'Ce ai auzit în acest audio? Descrie pe scurt conținutul.',
         text: 'Ce ai citit? Spune-mi ideea principală în propriile tale cuvinte.'
       }[content.type] || 'Ce ai înțeles din acest conținut?'
@@ -264,13 +253,13 @@ export default function ChaosWindowPage() {
       setCurrentContent(data.content)
       setUserLevel(data.userLevel)
 
-      // Update context with full content (transcript for video/audio, text for text content)
+      // Update context with full content (transcript for audio, text for text content)
       if (data.content.textContent) {
         // Text content: use first 300 chars
         const textContent = data.content.textContent;
         setCurrentContext(textContent.slice(0, 300) + (textContent.length > 300 ? "..." : ""))
       } else if (data.content.transcript) {
-        // Video/Audio with transcript: use full transcript (or first 2000 chars for very long content)
+        // Audio with transcript: use full transcript (or first 2000 chars for very long content)
         const transcript = data.content.transcript;
 
         if (transcript.length > 2000) {
@@ -281,7 +270,7 @@ export default function ChaosWindowPage() {
         }
       } else {
         // Fallback: No transcript available, use title only
-        setCurrentContext(`Ascultă/Privește: "${data.content.title}" și răspunde la întrebări. [Note: Full transcript not available]`)
+        setCurrentContext(`Ascultă: "${data.content.title}" și răspunde la întrebări. [Note: Full transcript not available]`)
       }
 
       // Generate initial AI tutor question for this content
@@ -291,8 +280,8 @@ export default function ChaosWindowPage() {
       // Check if we need to fetch transcript on-demand
       if (!data.content.textContent && !data.content.transcript) {
 
-        // Video/Audio without transcript - fetch it!
-        if (data.content.type === 'video' || data.content.type === 'audio') {
+        // Audio without transcript - fetch it!
+        if (data.content.type === 'audio') {
           console.log(`[Chaos Window] Content missing transcript, fetching on-demand...`)
           // Don't await - let it load in background
           fetchTranscript(data.content.id)
@@ -632,24 +621,12 @@ export default function ChaosWindowPage() {
                         </div>
                       )}
 
-                      {currentContent.type === 'video' && currentContent.youtubeId && (
-                        <div className="aspect-video rounded-lg overflow-hidden mb-4 bg-black/50">
-                          <iframe
-                            width="100%"
-                            height="100%"
-                            src={`https://www.youtube.com/embed/${currentContent.youtubeId}${currentContent.startTime ? `?start=${currentContent.startTime}` : ''}`}
-                            title={currentContent.title}
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            allowFullScreen
-                          />
-                        </div>
-                      )}
-
                       {currentContent.type === 'audio' && currentContent.audioUrl && (
-                        <div className="p-4 rounded-lg bg-muted/30 mb-4">
-                          <audio controls className="w-full" src={currentContent.audioUrl}>
-                            Your browser does not support audio playback.
-                          </audio>
+                        <div className="mb-4">
+                          <AudioPlayer
+                            audioUrl={currentContent.audioUrl}
+                            title={currentContent.title}
+                          />
                         </div>
                       )}
 

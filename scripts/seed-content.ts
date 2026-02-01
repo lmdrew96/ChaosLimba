@@ -10,16 +10,6 @@ dotenv.config({ path: resolve(process.cwd(), '.env.local') });
 const sampleContent: NewContentItem[] = [
     // A1 Level
     {
-        type: 'video',
-        title: 'Salut și prezentare',
-        difficultyLevel: '1.5',
-        durationSeconds: 180,
-        topic: 'Introducere',
-        youtubeId: 'dQw4w9WgXcQ', // Placeholder - Rick Roll serves as test video :D
-        culturalNotes: 'În România, se folosește "Bună ziua" până seara.',
-        sourceAttribution: { creator: 'Learn Romanian', license: 'Public Domain' },
-    },
-    {
         type: 'text',
         title: 'La piață',
         difficultyLevel: '2.0',
@@ -52,16 +42,6 @@ const sampleContent: NewContentItem[] = [
         culturalNotes: 'Vlad Țepeș este considerat un erou național, nu un monstru.',
         sourceAttribution: { creator: 'ChaosLimbă Team', license: 'Original' },
     },
-    {
-        type: 'video',
-        title: 'Cum se face mămăliga',
-        difficultyLevel: '5.0',
-        durationSeconds: 600,
-        topic: 'Gastronomie',
-        youtubeId: 'q6EoRBvdVPQ', // Katy Perry - placeholder but valid ID
-        sourceAttribution: { creator: 'Romanian Cooking', license: 'Youtube Standard' },
-    },
-
     // B2 Level
     {
         type: 'text',

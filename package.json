@@ -12,7 +12,6 @@
     "db:studio": "drizzle-kit studio",
     "curate": "npx tsx scripts/curate.ts",
     "curate:add": "npx tsx scripts/curate.ts add",
-    "curate:video": "npx tsx scripts/curate.ts video",
     "curate:stats": "npx tsx scripts/curate.ts stats",
     "curate:list": "npx tsx scripts/curate.ts list",
     "test": "jest",
@@ -45,8 +44,7 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "recharts": "^3.7.0",
-    "tailwind-merge": "^3.4.0",
-    "youtube-transcript": "^1.2.1"
+    "tailwind-merge": "^3.4.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

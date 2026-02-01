@@ -89,12 +89,6 @@ export async function POST(req: NextRequest) {
     }
 
     // Type-specific validation
-    if (body.type === 'video' && !body.youtubeId) {
-      return NextResponse.json(
-        { error: 'Video content requires youtubeId' },
-        { status: 400 }
-      );
-    }
     if (body.type === 'audio' && !body.audioUrl) {
       return NextResponse.json(
         { error: 'Audio content requires audioUrl' },

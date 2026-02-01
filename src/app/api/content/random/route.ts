@@ -46,8 +46,8 @@ export async function GET(req: NextRequest) {
             conditions.push(sql`${contentItems.id} != ${excludeId}`);
         }
 
-        if (type && ['video', 'audio', 'text'].includes(type)) {
-            conditions.push(eq(contentItems.type, type as 'video' | 'audio' | 'text'));
+        if (type && ['audio', 'text'].includes(type)) {
+            conditions.push(eq(contentItems.type, type as 'audio' | 'text'));
         }
 
         // Get random content using SQL RANDOM()

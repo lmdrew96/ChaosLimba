@@ -1,29 +1,5 @@
 [
   {
-    "type": "video",
-    "youtubeUrl": "https://youtube.com/watch?v=EXAMPLE_ID",
-    "level": "B1",
-    "topic": "cooking",
-    "durationSeconds": 420,
-    "languageFeatures": {
-      "grammar": ["imperative mood", "accusative case"],
-      "vocabulary": {
-        "keywords": ["bucătărie", "ingrediente", "a găti", "sare", "piper"],
-        "requiredVocabSize": 800
-      },
-      "structures": ["commands", "questions"]
-    },
-    "culturalNotes": "Traditional Romanian cooking techniques"
-  },
-  {
-    "type": "video",
-    "youtubeUrl": "https://youtu.be/EXAMPLE_ID_2",
-    "title": "Custom title override",
-    "level": "A2",
-    "topic": "daily life",
-    "durationSeconds": 180
-  },
-  {
     "type": "audio",
     "audioUrl": "https://your-r2-bucket.r2.dev/podcast-ep1.mp3",
     "title": "Romanian Podcast - Episode 1",

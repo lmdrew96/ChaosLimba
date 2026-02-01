@@ -24,10 +24,10 @@ const navItems = [
     description: "Your learning overview",
   },
   {
-    name: "Mystery Shelf",
-    href: "/mystery-shelf",
-    icon: BookOpen,
-    description: "Collected unknowns",
+    name: "Chaos Window",
+    href: "/chaos-window",
+    icon: Atom,
+    description: "Speak and write",
   },
   {
     name: "Deep Fog",
@@ -36,16 +36,16 @@ const navItems = [
     description: "Immersive content",
   },
   {
-    name: "Chaos Window",
-    href: "/chaos-window",
-    icon: Atom,
-    description: "Timed practice",
-  },
-  {
     name: "Error Garden",
     href: "/error-garden",
     icon: Flower2,
     description: "Your error patterns",
+  },
+  {
+    name: "Mystery Shelf",
+    href: "/mystery-shelf",
+    icon: BookOpen,
+    description: "Collected unknowns",
   },
   {
     name: "Proficiency Tracker",

@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const validTypes = ['video', 'audio', 'text'];
+        const validTypes = ['audio', 'text'];
         if (!validTypes.includes(contentType)) {
             return NextResponse.json(
                 { error: "Invalid content type" },
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
         const question = await generateInitialQuestion(
             contentTitle,
             contentTranscript || null,
-            contentType as 'video' | 'audio' | 'text',
+            contentType as 'audio' | 'text',
             errorPatterns || []
         );
 
