@@ -70,3 +70,7 @@ next-env.d.ts
 
 # Google TTS Credentials
 /google-tts-credentials.json
+*-credentials.json
+
+# Generated audio output (podcasts, etc.)
+/audio-output/

@@ -97,6 +97,15 @@ export default function ChaosWindowPage() {
   const [completedDuration, setCompletedDuration] = useState(0)
   const [completedInteractionCount, setCompletedInteractionCount] = useState(0)
 
+  // Practice audio generation state
+  const [practiceAudio, setPracticeAudio] = useState<{
+    audioUrl: string; romanianText: string; englishText: string | null; contentType: string
+  } | null>(null)
+  const [isGeneratingPractice, setIsGeneratingPractice] = useState(false)
+  const [practiceError, setPracticeError] = useState<string | null>(null)
+  const practiceAudioRef = useRef<HTMLAudioElement | null>(null)
+  const [isPracticePlaying, setIsPracticePlaying] = useState(false)
+
   const startSession = async () => {
     try {
       if (sessionId) return // Session already active
@@ -148,6 +157,13 @@ export default function ChaosWindowPage() {
         console.error("Failed to update proficiency:", proficiencyError)
         // Continue even if proficiency update fails - not critical for UX
       }
+
+      // Trigger background personalized content generation (fire-and-forget)
+      fetch('/api/generated-content/background', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId }),
+      }).catch(err => console.error('Background content generation failed:', err))
 
       // Save stats for summary modal
       setCompletedSessionId(sessionId)
@@ -873,12 +889,88 @@ export default function ChaosWindowPage() {
                     </Button>
                     <Button
                       variant="outline"
+                      onClick={async () => {
+                        setIsGeneratingPractice(true)
+                        setPracticeError(null)
+                        setPracticeAudio(null)
+                        try {
+                          const res = await fetch('/api/generated-content/generate', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ contentType: 'practice_sentences' }),
+                          })
+                          if (!res.ok) {
+                            const data = await res.json().catch(() => ({ error: 'Failed' }))
+                            throw new Error(data.error || `Failed (${res.status})`)
+                          }
+                          const data = await res.json()
+                          setPracticeAudio({
+                            audioUrl: data.content.audioUrl,
+                            romanianText: data.content.romanianText,
+                            englishText: data.content.englishText,
+                            contentType: data.content.contentType,
+                          })
+                        } catch (err: unknown) {
+                          setPracticeError(err instanceof Error ? err.message : 'Generation failed')
+                        } finally {
+                          setIsGeneratingPractice(false)
+                        }
+                      }}
+                      disabled={isGeneratingPractice}
+                      className="border-purple-500/30 text-purple-400 hover:text-purple-300"
+                    >
+                      {isGeneratingPractice ? (
+                        <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Generating...</>
+                      ) : (
+                        <><Volume2 className="mr-2 h-4 w-4" /> Practice Audio</>
+                      )}
+                    </Button>
+                    <Button
+                      variant="outline"
                       onClick={handleEndSession}
                       className="border-red-500/30 text-red-400 hover:text-red-300"
                     >
                       End Session
                     </Button>
                   </div>
+                  {practiceError && (
+                    <p className="text-sm text-red-400 mt-2">{practiceError}</p>
+                  )}
+                  {practiceAudio && (
+                    <div className="mt-3 bg-black/20 rounded-lg p-3 border border-purple-500/20">
+                      <div className="flex items-center gap-2 mb-2">
+                        <button
+                          onClick={() => {
+                            if (!practiceAudioRef.current) return
+                            if (isPracticePlaying) {
+                              practiceAudioRef.current.pause()
+                              setIsPracticePlaying(false)
+                            } else {
+                              practiceAudioRef.current.src = practiceAudio.audioUrl
+                              practiceAudioRef.current.play()
+                              setIsPracticePlaying(true)
+                            }
+                          }}
+                          className="p-1.5 rounded-full bg-purple-500/20 hover:bg-purple-500/30 transition-colors"
+                        >
+                          {isPracticePlaying ? (
+                            <Pause className="h-4 w-4 text-purple-300" />
+                          ) : (
+                            <Play className="h-4 w-4 text-purple-300" />
+                          )}
+                        </button>
+                        <span className="text-sm text-purple-200 font-medium">Practice Sentences</span>
+                      </div>
+                      <p className="text-sm text-slate-300 whitespace-pre-line">{practiceAudio.romanianText}</p>
+                      {practiceAudio.englishText && (
+                        <p className="text-xs text-slate-400 mt-1 whitespace-pre-line">{practiceAudio.englishText}</p>
+                      )}
+                      <audio
+                        ref={practiceAudioRef}
+                        onEnded={() => setIsPracticePlaying(false)}
+                      />
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 

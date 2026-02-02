@@ -97,6 +97,84 @@ export async function saveErrorPatternsToGarden(
 }
 
 /**
+ * Lightweight error pattern aggregation for content generation.
+ * Groups errors by (errorType, category) and returns top patterns
+ * with examples. Simpler than the full clustering in /api/errors/patterns
+ * (no Levenshtein distance, no weekly trends) but sufficient for
+ * generating personalized practice content.
+ */
+export interface ContentErrorPattern {
+  errorType: string;
+  category: string;
+  count: number;
+  frequency: number; // 0-100
+  isFossilizing: boolean;
+  examples: Array<{
+    incorrect: string;
+    correct: string | null;
+    context: string | null;
+  }>;
+  intervention: string;
+}
+
+export async function getUserErrorPatternsForContent(
+  userId: string,
+  limit: number = 5
+): Promise<ContentErrorPattern[]> {
+  const allLogs = await db
+    .select()
+    .from(errorLogs)
+    .where(eq(errorLogs.userId, userId));
+
+  if (allLogs.length === 0) return [];
+
+  // Group by errorType + category
+  const groups: Record<string, typeof allLogs> = {};
+  for (const log of allLogs) {
+    const key = `${log.errorType}|${log.category || 'general'}`;
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(log);
+  }
+
+  // Build patterns, sorted by frequency
+  const patterns: ContentErrorPattern[] = Object.entries(groups)
+    .map(([key, logs]) => {
+      const [errorType, category] = key.split('|');
+      const count = logs.length;
+      const frequency = Math.round((count / allLogs.length) * 100);
+
+      // Get up to 5 most recent examples
+      const sortedLogs = logs.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+      const examples = sortedLogs.slice(0, 5).map(log => ({
+        incorrect: log.context || '',
+        correct: log.correction,
+        context: log.source === 'chaos_window' ? 'Chaos Window' : 'Content',
+      }));
+
+      // Simple intervention text based on error type
+      let intervention = 'Focused practice recommended';
+      if (errorType === 'grammar') intervention = 'Input flood with correct forms';
+      else if (errorType === 'pronunciation') intervention = 'Minimal pair discrimination';
+      else if (errorType === 'vocabulary') intervention = 'Contextual vocabulary practice';
+      else if (errorType === 'word_order') intervention = 'Scrambled sentence reconstruction';
+
+      return {
+        errorType,
+        category,
+        count,
+        frequency,
+        isFossilizing: frequency >= 70,
+        examples,
+        intervention,
+      };
+    })
+    .sort((a, b) => b.frequency - a.frequency)
+    .slice(0, limit);
+
+  return patterns;
+}
+
+/**
  * Maps ExtractedErrorPattern.type to ErrorType enum values
  *
  * ExtractedErrorPattern types: 'grammar' | 'pronunciation' | 'semantic' | 'intonation'

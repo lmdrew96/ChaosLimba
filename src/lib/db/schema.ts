@@ -184,3 +184,47 @@ export const proficiencyHistory = pgTable('proficiency_history', {
 export type ProficiencyHistoryRecord = typeof proficiencyHistory.$inferSelect;
 export type NewProficiencyHistoryRecord = typeof proficiencyHistory.$inferInsert;
 
+// Generated content type enum
+export const generatedContentTypeEnum = ['practice_sentences', 'mini_lesson', 'corrected_version'] as const;
+export type GeneratedContentType = (typeof generatedContentTypeEnum)[number];
+
+// Generation trigger enum
+export const generationTriggerEnum = ['on_demand', 'background'] as const;
+export type GenerationTrigger = (typeof generationTriggerEnum)[number];
+
+// Generated personalized content table - stores audio content tailored to user error patterns
+export const generatedContent = pgTable('generated_content', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: text('user_id').notNull(),
+  contentType: text('content_type').$type<GeneratedContentType>().notNull(),
+  trigger: text('trigger').$type<GenerationTrigger>().notNull(),
+
+  // Content
+  romanianText: text('romanian_text').notNull(),
+  englishText: text('english_text'),
+
+  // Audio
+  audioUrl: text('audio_url'),
+  audioCharacterCount: integer('audio_character_count'),
+  audioEstimatedCost: decimal('audio_estimated_cost', { precision: 8, scale: 6 }),
+
+  // Error pattern linkage
+  targetErrorType: text('target_error_type').$type<ErrorType>(),
+  targetCategory: text('target_category'),
+  patternFingerprint: text('pattern_fingerprint'),
+
+  // Context
+  userLevel: text('user_level').$type<'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2'>(),
+  sessionId: uuid('session_id').references(() => sessions.id),
+  voiceGender: text('voice_gender').default('female'),
+
+  // Tracking
+  isListened: pgBoolean('is_listened').default(false).notNull(),
+  listenedAt: timestamp('listened_at'),
+  expiresAt: timestamp('expires_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export type GeneratedContent = typeof generatedContent.$inferSelect;
+export type NewGeneratedContent = typeof generatedContent.$inferInsert;
+

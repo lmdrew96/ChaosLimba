@@ -12,7 +12,14 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Sparkles, TrendingUp, Target, Clock } from "lucide-react"
+import { Sparkles, TrendingUp, Target, Clock, Volume2, Headphones } from "lucide-react"
+
+interface GeneratedContentItem {
+  id: string
+  contentType: string
+  audioUrl: string
+  romanianText: string
+}
 
 interface SessionSummaryModalProps {
   isOpen: boolean
@@ -39,10 +46,20 @@ export function SessionSummaryModal({
   const router = useRouter()
   const [stats, setStats] = useState<SessionStats>({ errorCount: 0, topErrors: [] })
   const [isLoading, setIsLoading] = useState(true)
+  const [practiceContent, setPracticeContent] = useState<GeneratedContentItem[]>([])
 
   useEffect(() => {
     if (isOpen && sessionId) {
       fetchSessionStats()
+      // Fetch recently generated practice content (from background generation)
+      fetch('/api/generated-content?limit=3')
+        .then(res => res.ok ? res.json() : null)
+        .then(data => {
+          if (data?.items?.length > 0) {
+            setPracticeContent(data.items.filter((item: GeneratedContentItem) => item.audioUrl))
+          }
+        })
+        .catch(() => {}) // non-critical
     }
   }, [isOpen, sessionId])
 
@@ -136,6 +153,43 @@ export function SessionSummaryModal({
                 <p className="text-xs text-muted-foreground mt-3">
                   Your AI tutor will focus on these in future sessions
                 </p>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Practice Audio Ready */}
+          {practiceContent.length > 0 && (
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-2 mb-3">
+                  <Headphones className="h-5 w-5 text-purple-500" />
+                  <h3 className="font-semibold">Practice Audio Ready</h3>
+                </div>
+                <div className="space-y-2">
+                  {practiceContent.slice(0, 3).map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => {
+                        const audio = new Audio(item.audioUrl)
+                        audio.play()
+                        // Mark as listened
+                        fetch(`/api/generated-content/${item.id}`, { method: 'PATCH' }).catch(() => {})
+                      }}
+                      className="w-full flex items-center gap-2 p-2 rounded-lg bg-muted/50 hover:bg-muted transition-colors text-left"
+                    >
+                      <Volume2 className="h-4 w-4 text-purple-400 shrink-0" />
+                      <div className="min-w-0">
+                        <div className="text-sm font-medium truncate">
+                          {item.contentType === 'practice_sentences' ? 'Practice Sentences' :
+                           item.contentType === 'mini_lesson' ? 'Mini Lesson' : 'Corrections'}
+                        </div>
+                        <div className="text-xs text-muted-foreground truncate">
+                          {item.romanianText.slice(0, 60)}...
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
               </CardContent>
             </Card>
           )}
