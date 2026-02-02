@@ -151,28 +151,6 @@ export type WordTimestamp = {
   end: number;   // seconds
 };
 
-// Common Voice clips table - for native speaker audio
-export const commonVoiceClips = pgTable('common_voice_clips', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  clipPath: text('clip_path').notNull().unique(), // "common_voice_ro_26149653.mp3"
-  sentence: text('sentence').notNull(),
-  sentenceId: text('sentence_id'),
-  r2Url: text('r2_url').notNull(),
-  durationMs: integer('duration_ms'),
-  wordTimestamps: jsonb('word_timestamps').$type<WordTimestamp[]>(), // For Mystery Shelf
-  age: text('age'), // "twenties", "thirties", etc.
-  gender: text('gender'), // "male_masculine", "female_feminine"
-  accent: text('accent'), // Regional accent
-  upVotes: integer('up_votes').default(0),
-  downVotes: integer('down_votes').default(0),
-  batchNumber: integer('batch_number').default(1), // Which upload batch
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-});
-
-// Infer types for common voice clips
-export type CommonVoiceClip = typeof commonVoiceClips.$inferSelect;
-export type NewCommonVoiceClip = typeof commonVoiceClips.$inferInsert;
-
 // TTS Usage table - tracks ElevenLabs character usage per user per day
 export const ttsUsage = pgTable('tts_usage', {
   id: uuid('id').primaryKey().defaultRandom(),

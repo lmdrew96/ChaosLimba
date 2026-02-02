@@ -257,10 +257,32 @@ export function AudioPlayer({
         </div>
       </div>
 
-      {/* Static transcript */}
-      {showTranscript && transcriptText && (
-        <div className="mt-4 max-h-48 overflow-y-auto rounded-lg bg-white/5 border border-purple-500/10 p-4 leading-relaxed text-foreground/80 whitespace-pre-line text-sm">
-          {transcriptText}
+      {/* Transcript */}
+      {showTranscript && hasTranscript && (
+        <div className="mt-4 max-h-48 overflow-y-auto rounded-lg bg-white/5 border border-purple-500/10 p-4 leading-relaxed text-sm">
+          {onWordClick ? (
+            // Clickable words mode (Deep Fog — tap word to capture for Mystery Shelf)
+            transcriptText!.split(/(\n)/).map((line, li) =>
+              line === "\n" ? (
+                <div key={li} className="w-full h-2" />
+              ) : (
+                <span key={li}>
+                  {line.split(/\s+/).filter(Boolean).map((word, wi) => (
+                    <span
+                      key={wi}
+                      onClick={() => onWordClick(word, line)}
+                      className="cursor-pointer rounded px-0.5 py-0.5 inline-block hover:bg-purple-500/20 hover:text-purple-200 text-foreground/80 transition-colors"
+                    >
+                      {word}{" "}
+                    </span>
+                  ))}
+                </span>
+              )
+            )
+          ) : (
+            // Plain text mode
+            <p className="text-foreground/80 whitespace-pre-line">{transcriptText}</p>
+          )}
         </div>
       )}
     </div>

@@ -4,7 +4,6 @@ const isPublicRoute = createRouteMatcher([
   "/sign-in(.*)",
   "/sign-up(.*)",
   "/api/webhooks(.*)",
-  "/api/common-voice(.*)", // Public audio clips for proficiency assessment
   "/api/health(.*)", // Health check endpoints for monitoring
 ]);
 

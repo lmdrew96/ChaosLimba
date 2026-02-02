@@ -67,3 +67,6 @@ next-env.d.ts
 # ElevenLabs-generated audio files
 /generated-audio/
 /public/audio/
+
+# Google TTS Credentials
+/google-tts-credentials.json

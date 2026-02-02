@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef, useMemo } from "react";
+import { useState, useCallback, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Headphones, ChevronRight, Play, Pause, Volume2, Loader2 } from "lucide-react";
+import { Headphones, ChevronRight, Play, Pause } from "lucide-react";
 
 export interface ListeningAnswer {
     questionId: string;
@@ -23,19 +23,7 @@ interface ListeningTestStepProps {
     onUpdate: (data: ListeningResult) => void;
 }
 
-// Common Voice clip from API
-interface CVClip {
-    id: string;
-    clipPath: string;
-    sentence: string;
-    r2Url: string;
-    durationMs: number | null;
-    age: string | null;
-    gender: string | null;
-}
-
-// Static questions with hardcoded answers (fallback if CV not available)
-const FALLBACK_QUESTIONS = [
+const QUESTIONS = [
     {
         id: "l1",
         level: "A1",
@@ -75,124 +63,19 @@ const FALLBACK_QUESTIONS = [
     },
 ];
 
-// Generate simple comprehension question from CV sentence
-function generateQuestion(sentence: string, index: number): {
-    question: string;
-    options: string[];
-    correctIndex: number;
-} {
-    // For now, we use a simple "what did you hear?" format
-    // The correct answer is a key phrase from the sentence
-    const words = sentence.split(' ').filter(w => w.length > 3);
-
-    // Pick a distinctive word from the sentence
-    const keyWord = words[Math.min(2, words.length - 1)] || words[0] || sentence.split(' ')[0];
-
-    // Generate distractor options (random Romanian words)
-    const distractors = [
-        ["casă", "mașină", "carte", "prieteni"],
-        ["frumos", "mare", "nou", "vechi"],
-        ["merge", "vine", "pleacă", "stă"],
-        ["azi", "mâine", "ieri", "acum"],
-    ];
-
-    const distractorSet = distractors[index % distractors.length];
-    const options = [...distractorSet];
-    const correctIndex = Math.floor(Math.random() * 4);
-    options[correctIndex] = keyWord;
-
-    return {
-        question: "Ce cuvânt ai auzit în propoziție?",
-        options,
-        correctIndex,
-    };
-}
-
-export function ListeningTestStep({ selfAssessment, data, onUpdate }: ListeningTestStepProps) {
+export function ListeningTestStep({ data, onUpdate }: ListeningTestStepProps) {
     const [currentQuestion, setCurrentQuestion] = useState(0);
     const [answers, setAnswers] = useState<ListeningAnswer[]>(data?.answers || []);
     const [selectedOption, setSelectedOption] = useState<number | null>(null);
     const [showFeedback, setShowFeedback] = useState(false);
     const [isPlaying, setIsPlaying] = useState(false);
     const [hasPlayed, setHasPlayed] = useState(false);
+    const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
-    // Native audio state
-    const [cvClips, setCvClips] = useState<CVClip[]>([]);
-    const [isLoadingClips, setIsLoadingClips] = useState(true);
-    const [useNativeAudio, setUseNativeAudio] = useState(false);
-    const audioRef = useRef<HTMLAudioElement | null>(null);
+    const question = QUESTIONS[currentQuestion];
+    const isLastQuestion = currentQuestion === QUESTIONS.length - 1;
 
-    // Fetch Common Voice clips on mount
-    useEffect(() => {
-        async function fetchClips() {
-            try {
-                const response = await fetch('/api/common-voice/random?count=4');
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.clips && data.clips.length >= 4) {
-                        setCvClips(data.clips);
-                        setUseNativeAudio(true);
-                    }
-                }
-            } catch (error) {
-                console.log('CV clips not available, using TTS fallback');
-            } finally {
-                setIsLoadingClips(false);
-            }
-        }
-        fetchClips();
-    }, []);
-
-    // Determine current question data - memoized to prevent shuffling on re-renders
-    const questions = useMemo(() => {
-        if (useNativeAudio && cvClips.length >= 4) {
-            return cvClips.map((clip, i) => ({
-                id: `cv-${clip.id}`,
-                level: ["A1", "A2", "B1", "B2"][i] || "A1",
-                transcript: clip.sentence,
-                audioUrl: clip.r2Url,
-                ...generateQuestion(clip.sentence, i),
-            }));
-        }
-        return FALLBACK_QUESTIONS.map(q => ({ ...q, audioUrl: null }));
-    }, [useNativeAudio, cvClips]);
-
-    const question = questions[currentQuestion];
-    const isLastQuestion = currentQuestion === questions.length - 1;
-    const hasNativeAudio = useNativeAudio && question?.audioUrl;
-
-    // Play native audio
-    const playNativeAudio = useCallback(() => {
-        if (!question?.audioUrl) return;
-
-        setIsPlaying(true);
-
-        if (audioRef.current) {
-            audioRef.current.pause();
-        }
-
-        const audio = new Audio(question.audioUrl);
-        audioRef.current = audio;
-
-        audio.onended = () => {
-            setIsPlaying(false);
-            setHasPlayed(true);
-        };
-
-        audio.onerror = () => {
-            console.error('Audio playback failed, falling back to TTS');
-            setIsPlaying(false);
-            playTTSFallback();
-        };
-
-        audio.play().catch(() => {
-            setIsPlaying(false);
-            playTTSFallback();
-        });
-    }, [question]);
-
-    // TTS fallback
-    const playTTSFallback = useCallback(() => {
+    const playAudio = useCallback(() => {
         if (!("speechSynthesis" in window)) {
             setHasPlayed(true);
             return;
@@ -202,6 +85,7 @@ export function ListeningTestStep({ selfAssessment, data, onUpdate }: ListeningT
         const utterance = new SpeechSynthesisUtterance(question.transcript);
         utterance.lang = "ro-RO";
         utterance.rate = 0.9;
+        utteranceRef.current = utterance;
 
         utterance.onend = () => {
             setIsPlaying(false);
@@ -214,16 +98,7 @@ export function ListeningTestStep({ selfAssessment, data, onUpdate }: ListeningT
         };
 
         window.speechSynthesis.speak(utterance);
-    }, [question?.transcript]);
-
-    // Main play handler
-    const playAudio = useCallback(() => {
-        if (hasNativeAudio) {
-            playNativeAudio();
-        } else {
-            playTTSFallback();
-        }
-    }, [hasNativeAudio, playNativeAudio, playTTSFallback]);
+    }, [question.transcript]);
 
     const handleSelect = (optionIndex: number) => {
         if (showFeedback) return;
@@ -244,16 +119,12 @@ export function ListeningTestStep({ selfAssessment, data, onUpdate }: ListeningT
         setAnswers(newAnswers);
         setShowFeedback(true);
 
-        const score = (newAnswers.filter((a) => a.correct).length / questions.length) * 100;
+        const score = (newAnswers.filter((a) => a.correct).length / QUESTIONS.length) * 100;
         onUpdate({ answers: newAnswers, score });
-    }, [selectedOption, question, answers, questions.length, onUpdate]);
+    }, [selectedOption, question, answers, onUpdate]);
 
     const handleNext = () => {
         if (!isLastQuestion) {
-            // Stop any playing audio
-            if (audioRef.current) {
-                audioRef.current.pause();
-            }
             window.speechSynthesis?.cancel();
 
             setCurrentQuestion((prev) => prev + 1);
@@ -263,18 +134,6 @@ export function ListeningTestStep({ selfAssessment, data, onUpdate }: ListeningT
             setIsPlaying(false);
         }
     };
-
-    // Loading state
-    if (isLoadingClips) {
-        return (
-            <Card className="border-purple-500/20 bg-card/50 backdrop-blur">
-                <CardContent className="py-12 flex flex-col items-center gap-4">
-                    <Loader2 className="h-8 w-8 animate-spin text-indigo-400" />
-                    <p className="text-muted-foreground">Loading native Romanian audio...</p>
-                </CardContent>
-            </Card>
-        );
-    }
 
     return (
         <Card className="border-purple-500/20 bg-card/50 backdrop-blur">
@@ -286,16 +145,10 @@ export function ListeningTestStep({ selfAssessment, data, onUpdate }: ListeningT
                     <div>
                         <span className="text-lg">Listening Comprehension</span>
                         <p className="text-sm font-normal text-muted-foreground">
-                            Question {currentQuestion + 1} of {questions.length}
+                            Question {currentQuestion + 1} of {QUESTIONS.length}
                         </p>
                     </div>
-                    <div className="ml-auto flex items-center gap-2">
-                        {hasNativeAudio && (
-                            <div className="px-2 py-1 rounded-full bg-green-500/10 text-xs text-green-400 flex items-center gap-1">
-                                <Volume2 className="h-3 w-3" />
-                                Native
-                            </div>
-                        )}
+                    <div className="ml-auto">
                         <div className="px-3 py-1 rounded-full bg-indigo-500/10 text-sm text-indigo-300">
                             {question.level}
                         </div>
@@ -329,10 +182,7 @@ export function ListeningTestStep({ selfAssessment, data, onUpdate }: ListeningT
                                 {isPlaying ? "Playing..." : hasPlayed ? "Click to replay" : "Click to listen"}
                             </p>
                             <p className="text-sm text-muted-foreground">
-                                {hasNativeAudio
-                                    ? "Listen to the native Romanian speaker"
-                                    : "Listen carefully, then answer the question below"
-                                }
+                                Listen carefully, then answer the question below
                             </p>
                         </div>
                         {hasPlayed && (
@@ -400,11 +250,6 @@ export function ListeningTestStep({ selfAssessment, data, onUpdate }: ListeningT
                                 ? "🎉 Excellent listening! You got it!"
                                 : "💡 Good try! Keep listening to Romanian audio to improve."}
                         </p>
-                        {hasNativeAudio && (
-                            <p className="text-sm text-muted-foreground mt-2">
-                                You heard: &ldquo;{question.transcript}&rdquo;
-                            </p>
-                        )}
                     </div>
                 )}
 
@@ -432,12 +277,12 @@ export function ListeningTestStep({ selfAssessment, data, onUpdate }: ListeningT
 
                 {/* Progress indicators */}
                 <div className="flex justify-center gap-2 pt-4">
-                    {questions.map((_, index) => {
+                    {QUESTIONS.map((_, index) => {
                         const answered = answers.some(
-                            (a) => a.questionId === questions[index].id
+                            (a) => a.questionId === QUESTIONS[index].id
                         );
                         const isCorrect = answers.find(
-                            (a) => a.questionId === questions[index].id
+                            (a) => a.questionId === QUESTIONS[index].id
                         )?.correct;
 
                         return (
