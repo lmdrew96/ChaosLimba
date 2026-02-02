@@ -74,3 +74,9 @@ next-env.d.ts
 
 # Generated audio output (podcasts, etc.)
 /audio-output/
+
+# Python cache files
+scripts/tts/__pycache__
+
+# Test scripts
+scripts/test-tts.js
