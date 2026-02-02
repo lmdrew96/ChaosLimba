@@ -13,7 +13,6 @@ import {
     Shield,
     Bell,
     Loader2,
-    ExternalLink,
     Save,
     CheckCircle2,
     Palette,
@@ -21,7 +20,7 @@ import {
     AlertTriangle,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useUser } from "@clerk/nextjs"
+import { useClerk, useUser } from "@clerk/nextjs"
 import type { UserPreferences } from "@/lib/db/schema"
 import ThemeSelector from "@/components/features/settings/ThemeSelector"
 
@@ -35,6 +34,7 @@ const CEFR_LEVELS = [
 ]
 
 export default function SettingsPage() {
+    const { openUserProfile } = useClerk()
     const { user, isLoaded: isUserLoaded } = useUser()
     const router = useRouter()
     const [preferences, setPreferences] = useState<UserPreferences | null>(null)
@@ -201,10 +201,9 @@ export default function SettingsPage() {
                         <Button
                             variant="outline"
                             className="rounded-xl border-purple-500/30 hover:bg-purple-500/10"
-                            onClick={() => window.open("https://accounts.clerk.dev/user", "_blank")}
+                            onClick={() => openUserProfile()}
                         >
                             Manage Account
-                            <ExternalLink className="ml-2 h-4 w-4" />
                         </Button>
                     </div>
                 </CardContent>

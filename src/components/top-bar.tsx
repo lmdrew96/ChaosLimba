@@ -15,7 +15,7 @@ import { useClerk, useUser } from "@clerk/nextjs"
 import Link from "next/link"
 
 export function TopBar() {
-  const { signOut } = useClerk()
+  const { signOut, openUserProfile } = useClerk()
   const { user } = useUser()
 
   // Get user initials for avatar fallback
@@ -89,7 +89,7 @@ export function TopBar() {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="cursor-pointer">
+            <DropdownMenuItem className="cursor-pointer" onClick={() => openUserProfile()}>
               <User className="mr-2 h-4 w-4" />
               Profile
             </DropdownMenuItem>
