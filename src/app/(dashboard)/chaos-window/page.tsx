@@ -97,6 +97,9 @@ export default function ChaosWindowPage() {
   const [completedDuration, setCompletedDuration] = useState(0)
   const [completedInteractionCount, setCompletedInteractionCount] = useState(0)
 
+  // Transcript toggle state (for text content — audio uses AudioPlayer's built-in toggle)
+  const [showTextTranscript, setShowTextTranscript] = useState(false)
+
   // Practice audio generation state
   const [practiceAudio, setPracticeAudio] = useState<{
     audioUrl: string; romanianText: string; englishText: string | null; contentType: string
@@ -269,6 +272,7 @@ export default function ChaosWindowPage() {
       const data = await res.json()
       setCurrentContent(data.content)
       setUserLevel(data.userLevel)
+      setShowTextTranscript(false)
 
       // Update context with full content (transcript for audio, text for text content)
       if (data.content.textContent) {
@@ -640,8 +644,21 @@ export default function ChaosWindowPage() {
 
                       {/* Content Display based on type */}
                       {currentContent.type === 'text' && currentContent.textContent && (
-                        <div className="p-4 rounded-lg bg-muted/30 italic text-muted-foreground mb-4 max-h-32 overflow-y-auto">
-                          "{currentContent.textContent.slice(0, 500)}{currentContent.textContent.length > 500 ? '...' : ''}"
+                        <div className="mb-4">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => setShowTextTranscript(!showTextTranscript)}
+                            className={showTextTranscript ? "text-purple-300 bg-purple-500/10 hover:bg-purple-500/20 mb-2" : "text-muted-foreground hover:bg-purple-500/20 mb-2"}
+                          >
+                            <FileText className="h-4 w-4 mr-1.5" />
+                            {showTextTranscript ? "Hide transcript" : "Show transcript"}
+                          </Button>
+                          {showTextTranscript && (
+                            <div className="max-h-48 overflow-y-auto rounded-lg bg-white/5 border border-purple-500/10 p-4 leading-relaxed text-sm">
+                              <p className="text-foreground/80 whitespace-pre-line">{currentContent.textContent}</p>
+                            </div>
+                          )}
                         </div>
                       )}
 
@@ -650,6 +667,7 @@ export default function ChaosWindowPage() {
                           <AudioPlayer
                             audioUrl={currentContent.audioUrl}
                             title={currentContent.title}
+                            transcript={currentContent.transcript || undefined}
                           />
                         </div>
                       )}
