@@ -422,6 +422,7 @@ export async function getRecentActivity(userId: string, limit: number = 5): Prom
     const typeLabel = session.sessionType === 'chaos_window' ? 'Chaos Window'
       : session.sessionType === 'deep_fog' ? 'Deep Fog'
       : session.sessionType === 'content' ? 'Content'
+      : session.sessionType === 'workshop' ? 'Workshop'
       : 'Mystery Shelf';
     const duration = session.durationSeconds
       ? `${Math.round(session.durationSeconds / 60)} min`
@@ -775,4 +776,83 @@ export async function getFeaturesDiscoveredCount(userId: string): Promise<number
     );
 
   return result[0]?.count ?? 0;
+}
+
+// ─── Workshop: Feature Target Selection ───
+
+export type WorkshopSelectionReason = 'noticing_gap' | 'error_reinforcement' | 'level_random';
+
+export interface WorkshopFeatureTarget {
+  feature: GrammarFeature;
+  selectionReason: WorkshopSelectionReason;
+}
+
+/**
+ * Select the next grammar/vocab feature to challenge the user on in Workshop.
+ *
+ * Weighted selection:
+ * - 50%: Features `encountered` but never `produced` (noticing gap)
+ * - 30%: Features the user has been `corrected` on or from Error Garden
+ * - 20%: Random feature at the user's CEFR level
+ */
+export async function getWorkshopFeatureTarget(
+  userId: string,
+  userLevel: CEFRLevelEnum
+): Promise<WorkshopFeatureTarget | null> {
+  const [exposure, levelFeatures, errorPatterns] = await Promise.all([
+    getUserFeatureExposureSummary(userId),
+    getFeaturesForLevel(userLevel),
+    getUserErrorPatternsForContent(userId, 10),
+  ]);
+
+  if (levelFeatures.length === 0) return null;
+
+  // Noticing gap: encountered but never produced
+  const noticingGapFeatures = levelFeatures.filter(
+    f => exposure.encountered.has(f.featureKey) && !exposure.produced.has(f.featureKey)
+  );
+
+  // Error reinforcement: corrected or mapped from Error Garden patterns
+  const errorFeatureKeys = new Set<string>();
+  for (const featureKey of exposure.corrected) {
+    errorFeatureKeys.add(featureKey);
+  }
+  for (const pattern of errorPatterns) {
+    const featureKey = mapErrorCategoryToFeatureKey(
+      pattern.errorType as ErrorType,
+      pattern.category
+    );
+    if (featureKey) errorFeatureKeys.add(featureKey);
+  }
+  const errorFeatures = levelFeatures.filter(f => errorFeatureKeys.has(f.featureKey));
+
+  // Weighted random roll
+  const roll = Math.random();
+  let selected: GrammarFeature | null = null;
+  let reason: WorkshopSelectionReason = 'level_random';
+
+  if (roll < 0.5 && noticingGapFeatures.length > 0) {
+    // 50%: noticing gap
+    selected = noticingGapFeatures[Math.floor(Math.random() * noticingGapFeatures.length)];
+    reason = 'noticing_gap';
+  } else if (roll < 0.8 && errorFeatures.length > 0) {
+    // 30%: error reinforcement
+    selected = errorFeatures[Math.floor(Math.random() * errorFeatures.length)];
+    reason = 'error_reinforcement';
+  } else {
+    // 20%: random from level (or fallback)
+    const pool = levelFeatures.length > 0 ? levelFeatures : [];
+    if (pool.length > 0) {
+      selected = pool[Math.floor(Math.random() * pool.length)];
+      reason = 'level_random';
+    }
+  }
+
+  // Fallback if weighted roll hit an empty bucket
+  if (!selected) {
+    selected = levelFeatures[Math.floor(Math.random() * levelFeatures.length)];
+    reason = 'level_random';
+  }
+
+  return { feature: selected, selectionReason: reason };
 }

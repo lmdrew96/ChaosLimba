@@ -12,6 +12,7 @@ import {
   Menu,
   X,
   Atom,
+  Wrench,
 } from "lucide-react"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
@@ -28,6 +29,12 @@ const navItems = [
     href: "/chaos-window",
     icon: Atom,
     description: "Speak and write",
+  },
+  {
+    name: "Workshop",
+    href: "/workshop",
+    icon: Wrench,
+    description: "Grammar micro-challenges",
   },
   {
     name: "Deep Fog",

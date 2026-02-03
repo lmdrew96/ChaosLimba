@@ -60,11 +60,11 @@ export const errorTypeEnum = ['grammar', 'pronunciation', 'vocabulary', 'word_or
 export type ErrorType = (typeof errorTypeEnum)[number];
 
 // Error source enum
-export const errorSourceEnum = ['chaos_window', 'content_player', 'deep_fog', 'manual'] as const;
+export const errorSourceEnum = ['chaos_window', 'content_player', 'deep_fog', 'manual', 'workshop'] as const;
 export type ErrorSource = (typeof errorSourceEnum)[number];
 
 // Session type enum
-export const sessionTypeEnum = ['chaos_window', 'deep_fog', 'content', 'mystery_shelf'] as const;
+export const sessionTypeEnum = ['chaos_window', 'deep_fog', 'content', 'mystery_shelf', 'workshop'] as const;
 export type SessionType = (typeof sessionTypeEnum)[number];
 
 // Modality enum (text vs speech)

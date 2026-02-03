@@ -16,6 +16,7 @@ import {
   GraduationCap,
   Speech,
   Brain,
+  Wrench,
   Loader2,
 } from "lucide-react"
 import Link from "next/link"
@@ -36,6 +37,14 @@ interface RecentActivityItem {
 }
 
 const quickActions = [
+  {
+    name: "Workshop",
+    description: "Grammar & vocab micro-challenges",
+    href: "/workshop",
+    icon: Wrench,
+    gradient: "from-indigo-500/20 to-blue-500/10",
+    iconColor: "text-indigo-400",
+  },
   {
     name: "Ask Tutor",
     description: "Get a linguistic explanation",
