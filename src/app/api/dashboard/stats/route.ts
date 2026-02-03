@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { getDashboardStats, getRecentActivity } from '@/lib/db/queries';
+import { getDashboardStats, getRecentActivity, getFeaturesDiscoveredCount } from '@/lib/db/queries';
 
 export async function GET() {
   try {
@@ -9,12 +9,13 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const [stats, recentActivity] = await Promise.all([
+    const [stats, recentActivity, featuresDiscovered] = await Promise.all([
       getDashboardStats(userId),
       getRecentActivity(userId, 5),
+      getFeaturesDiscoveredCount(userId),
     ]);
 
-    return NextResponse.json({ stats, recentActivity });
+    return NextResponse.json({ stats: { ...stats, featuresDiscovered }, recentActivity });
   } catch (error) {
     console.error('[API] Failed to fetch dashboard stats:', error);
     return NextResponse.json(

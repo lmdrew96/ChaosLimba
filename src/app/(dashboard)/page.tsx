@@ -25,6 +25,7 @@ interface DashboardStats {
   practiceStreak: number
   errorPatterns: number
   timeTodayMinutes: number
+  featuresDiscovered: number
 }
 
 interface RecentActivityItem {
@@ -120,6 +121,13 @@ export default function DashboardPage() {
       icon: Clock,
       color: "text-purple-400",
       bgColor: "bg-purple-500/10",
+    },
+    {
+      label: "Features Discovered",
+      value: stats ? String(stats.featuresDiscovered) : "—",
+      icon: Sparkles,
+      color: "text-cyan-400",
+      bgColor: "bg-cyan-500/10",
     },
   ]
 

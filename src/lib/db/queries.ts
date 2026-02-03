@@ -10,9 +10,15 @@ import {
   suggestedQuestions,
   readingQuestions,
   tutorOpeningMessages,
+  grammarFeatureMap,
+  userFeatureExposure,
+  contentItems,
+  type CEFRLevelEnum,
+  type ContentItem,
+  type GrammarFeature,
 } from './schema';
 import { ExtractedErrorPattern } from '@/types/aggregator';
-import { eq, and, asc, desc, gte, sql, count as drizzleCount } from 'drizzle-orm';
+import { eq, and, asc, desc, gte, lte, sql, count as drizzleCount, inArray } from 'drizzle-orm';
 
 /**
  * Saves error patterns from the Feedback Aggregator to the Error Garden database
@@ -486,4 +492,287 @@ function mapPatternTypeToErrorType(patternType: string): ErrorType {
       console.warn(`[mapPatternTypeToErrorType] Unknown pattern type: ${patternType}, defaulting to 'grammar'`);
       return 'grammar';
   }
+}
+
+// ─── Smart Chaos: Feature Exposure & Content Selection ───
+
+export interface FeatureExposureSummary {
+  encountered: Set<string>;
+  produced: Set<string>;
+  corrected: Set<string>;
+  totalExposures: number;
+}
+
+/**
+ * Get a summary of which grammar/vocab features a user has been exposed to.
+ */
+export async function getUserFeatureExposureSummary(userId: string): Promise<FeatureExposureSummary> {
+  const rows = await db
+    .select({
+      featureKey: userFeatureExposure.featureKey,
+      exposureType: userFeatureExposure.exposureType,
+    })
+    .from(userFeatureExposure)
+    .where(eq(userFeatureExposure.userId, userId));
+
+  const encountered = new Set<string>();
+  const produced = new Set<string>();
+  const corrected = new Set<string>();
+
+  for (const row of rows) {
+    if (row.exposureType === 'encountered') encountered.add(row.featureKey);
+    else if (row.exposureType === 'produced') produced.add(row.featureKey);
+    else if (row.exposureType === 'corrected') corrected.add(row.featureKey);
+  }
+
+  return { encountered, produced, corrected, totalExposures: rows.length };
+}
+
+/**
+ * Get grammar features for a given CEFR level.
+ */
+export async function getFeaturesForLevel(cefrLevel: CEFRLevelEnum): Promise<GrammarFeature[]> {
+  return db
+    .select()
+    .from(grammarFeatureMap)
+    .where(eq(grammarFeatureMap.cefrLevel, cefrLevel))
+    .orderBy(asc(grammarFeatureMap.sortOrder));
+}
+
+/**
+ * Map an Error Garden error category to a grammar feature key.
+ * Returns null if no mapping exists.
+ */
+export function mapErrorCategoryToFeatureKey(errorType: ErrorType, category: string | null): string | null {
+  if (!category) return null;
+
+  // Direct mapping: many error categories already match feature keys
+  const directMappings: Record<string, string> = {
+    'verb_conjugation': 'present_tense_regular_group1',
+    'definite_article': 'definite_article',
+    'indefinite_article': 'indefinite_article',
+    'gender_agreement': 'gender_agreement',
+    'negation': 'basic_negation',
+    'preposition': 'basic_prepositions',
+    'past_tense': 'past_tense_perfect_compus',
+    'reflexive': 'reflexive_verbs',
+    'accusative': 'accusative_pronouns',
+    'dative': 'dative_pronouns',
+    'comparative': 'comparative_adjectives',
+    'future': 'future_informal_o_sa',
+    'imperative': 'imperative_basic',
+    'possession': 'possession_al_a',
+    'plural': 'plural_nouns',
+    'word_order': 'basic_questions',
+  };
+
+  // Try direct match first
+  const normalized = category.toLowerCase().replace(/\s+/g, '_');
+  if (directMappings[normalized]) return directMappings[normalized];
+
+  // Try partial match
+  for (const [key, featureKey] of Object.entries(directMappings)) {
+    if (normalized.includes(key)) return featureKey;
+  }
+
+  return null;
+}
+
+// CEFR level to difficulty range mapping (shared with /api/content/random)
+const cefrToDifficulty: Record<string, { min: number; max: number }> = {
+  'A1': { min: 1.0, max: 2.5 },
+  'A2': { min: 2.0, max: 4.0 },
+  'B1': { min: 3.5, max: 5.5 },
+  'B2': { min: 5.0, max: 7.0 },
+  'C1': { min: 6.5, max: 8.5 },
+  'C2': { min: 8.0, max: 10.0 },
+};
+
+export type SelectionReason = 'unseen_feature' | 'weak_feature' | 'random';
+
+export interface SmartContentResult {
+  content: ContentItem;
+  selectionReason: SelectionReason;
+  targetFeatures: GrammarFeature[];
+  isFirstSession: boolean;
+}
+
+/**
+ * Smart content selection: replaces pure random with weighted selection.
+ *
+ * Algorithm:
+ * 1. Get user's feature exposure and error patterns
+ * 2. Roll weighted random: 50% unseen features, 30% weak features, 20% pure random
+ * 3. Query content tagged with target features at user's CEFR level
+ * 4. Fallback to pure random if no tagged content matches
+ */
+export async function getSmartContentForUser(
+  userId: string,
+  userLevel: CEFRLevelEnum,
+  excludeId?: string
+): Promise<SmartContentResult | null> {
+  const difficulty = cefrToDifficulty[userLevel] || cefrToDifficulty['B1'];
+
+  // Parallel: get exposure summary, level features, and error patterns
+  const [exposure, levelFeatures, errorPatterns] = await Promise.all([
+    getUserFeatureExposureSummary(userId),
+    getFeaturesForLevel(userLevel),
+    getUserErrorPatternsForContent(userId, 5),
+  ]);
+
+  const isFirstSession = exposure.totalExposures === 0;
+
+  // Identify unseen features (never encountered)
+  const unseenFeatures = levelFeatures.filter(f => !exposure.encountered.has(f.featureKey));
+
+  // Identify weak features (from Error Garden)
+  const weakFeatureKeys = new Set<string>();
+  for (const pattern of errorPatterns) {
+    const featureKey = mapErrorCategoryToFeatureKey(
+      pattern.errorType as ErrorType,
+      pattern.category
+    );
+    if (featureKey) weakFeatureKeys.add(featureKey);
+  }
+  const weakFeatures = levelFeatures.filter(f => weakFeatureKeys.has(f.featureKey));
+
+  // Weighted random roll: 50% unseen, 30% weak, 20% pure random
+  const roll = Math.random();
+  let targetFeatures: GrammarFeature[] = [];
+  let selectionReason: SelectionReason = 'random';
+
+  if (roll < 0.5 && unseenFeatures.length > 0) {
+    // Target unseen features
+    selectionReason = 'unseen_feature';
+    // For first session A1: prioritize foundational features
+    if (isFirstSession && userLevel === 'A1') {
+      const foundational = unseenFeatures.filter(f =>
+        ['present_tense_a_fi', 'basic_questions', 'vocab_greetings'].includes(f.featureKey)
+      );
+      targetFeatures = foundational.length > 0 ? foundational : unseenFeatures.slice(0, 3);
+    } else {
+      // Pick 1-3 random unseen features, respecting rough sort order
+      const shuffled = [...unseenFeatures].sort(() => Math.random() - 0.5);
+      targetFeatures = shuffled.slice(0, Math.min(3, shuffled.length));
+    }
+  } else if (roll < 0.8 && weakFeatures.length > 0) {
+    // Target weak features from Error Garden
+    selectionReason = 'weak_feature';
+    targetFeatures = weakFeatures.slice(0, 3);
+  }
+  // else: pure random (20% or fallback when no unseen/weak features)
+
+  // Try to find content matching target features
+  if (targetFeatures.length > 0) {
+    const targetKeys = targetFeatures.map(f => f.featureKey);
+    const content = await findContentByFeatures(targetKeys, difficulty, excludeId);
+    if (content) {
+      return { content, selectionReason, targetFeatures, isFirstSession };
+    }
+    // Fall through to random if no tagged content matches
+  }
+
+  // Pure random fallback (same as original behavior)
+  const content = await getRandomContent(difficulty, excludeId);
+  if (!content) return null;
+
+  // Even for random selection, determine what features the content contains
+  const contentFeatureKeys = (content.languageFeatures as { grammar?: string[] })?.grammar || [];
+  const contentFeatures = levelFeatures.filter(f => contentFeatureKeys.includes(f.featureKey));
+
+  return {
+    content,
+    selectionReason: 'random',
+    targetFeatures: contentFeatures,
+    isFirstSession,
+  };
+}
+
+/**
+ * Find content tagged with specific grammar feature keys.
+ * Uses JSONB containment to check if content's languageFeatures.grammar array
+ * overlaps with the target feature keys.
+ */
+async function findContentByFeatures(
+  featureKeys: string[],
+  difficulty: { min: number; max: number },
+  excludeId?: string
+): Promise<ContentItem | null> {
+  // Build a condition that checks if ANY of the feature keys are in the grammar array
+  // Using jsonb @> operator for each key with OR
+  const featureConditions = featureKeys.map(key =>
+    sql`${contentItems.languageFeatures}->'grammar' @> ${JSON.stringify([key])}::jsonb`
+  );
+
+  const conditions = [
+    gte(contentItems.difficultyLevel, difficulty.min.toString()),
+    lte(contentItems.difficultyLevel, difficulty.max.toString()),
+    sql`(${sql.join(featureConditions, sql` OR `)})`,
+  ];
+
+  if (excludeId) {
+    conditions.push(sql`${contentItems.id} != ${excludeId}`);
+  }
+
+  const items = await db
+    .select()
+    .from(contentItems)
+    .where(and(...conditions))
+    .orderBy(sql`RANDOM()`)
+    .limit(1);
+
+  return items[0] || null;
+}
+
+/**
+ * Get a random content item within a difficulty range (original behavior).
+ */
+async function getRandomContent(
+  difficulty: { min: number; max: number },
+  excludeId?: string
+): Promise<ContentItem | null> {
+  const conditions = [
+    gte(contentItems.difficultyLevel, difficulty.min.toString()),
+    lte(contentItems.difficultyLevel, difficulty.max.toString()),
+  ];
+
+  if (excludeId) {
+    conditions.push(sql`${contentItems.id} != ${excludeId}`);
+  }
+
+  let items = await db
+    .select()
+    .from(contentItems)
+    .where(and(...conditions))
+    .orderBy(sql`RANDOM()`)
+    .limit(1);
+
+  // Fallback: any content
+  if (items.length === 0) {
+    items = await db
+      .select()
+      .from(contentItems)
+      .where(excludeId ? sql`${contentItems.id} != ${excludeId}` : undefined)
+      .orderBy(sql`RANDOM()`)
+      .limit(1);
+  }
+
+  return items[0] || null;
+}
+
+/**
+ * Get the count of distinct features a user has encountered.
+ */
+export async function getFeaturesDiscoveredCount(userId: string): Promise<number> {
+  const result = await db
+    .select({ count: sql<number>`count(distinct ${userFeatureExposure.featureKey})::int` })
+    .from(userFeatureExposure)
+    .where(
+      and(
+        eq(userFeatureExposure.userId, userId),
+        eq(userFeatureExposure.exposureType, 'encountered')
+      )
+    );
+
+  return result[0]?.count ?? 0;
 }

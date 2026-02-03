@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
 import { generateTutorResponse } from "@/lib/ai/tutor";
 import { formatFeedback } from "@/lib/ai/formatter";
+import { trackFeatureExposure, extractFeaturesFromErrors } from "@/lib/ai/exposure-tracker";
 
 export async function POST(req: NextRequest) {
   try {
@@ -15,6 +17,9 @@ export async function POST(req: NextRequest) {
     let audioFile: File | null = null;
     let historicalErrorPatterns: string[] = [];
     let userLevel: string = 'B1';
+    let contentId: string | undefined;
+    let contentFeatures: string[] = [];
+    let targetFeatures: Array<{ featureKey: string; featureName: string; description: string }> = [];
 
     if (isSpeechMode) {
       // Speech mode - handle FormData
@@ -26,6 +31,17 @@ export async function POST(req: NextRequest) {
       modality = 'speech';
 
       userLevel = (formData.get('userLevel') as string) || 'B1';
+      contentId = (formData.get('contentId') as string) || undefined;
+
+      // Parse content features from JSON string
+      const contentFeaturesStr = formData.get('contentFeatures') as string | null;
+      if (contentFeaturesStr) {
+        try { contentFeatures = JSON.parse(contentFeaturesStr); } catch (e) { /* ignore */ }
+      }
+      const targetFeaturesStr = formData.get('targetFeatures') as string | null;
+      if (targetFeaturesStr) {
+        try { targetFeatures = JSON.parse(targetFeaturesStr); } catch (e) { /* ignore */ }
+      }
 
       // Parse error patterns from JSON string
       const errorPatternsStr = formData.get('errorPatterns') as string | null;
@@ -93,6 +109,9 @@ export async function POST(req: NextRequest) {
       modality = body.modality || 'text';
       historicalErrorPatterns = body.errorPatterns || [];
       userLevel = body.userLevel || 'B1';
+      contentId = body.contentId || undefined;
+      contentFeatures = body.contentFeatures || [];
+      targetFeatures = body.targetFeatures || [];
     }
 
     // Validate common inputs
@@ -182,7 +201,9 @@ export async function POST(req: NextRequest) {
       userResponse.trim(),
       context.trim(),
       historicalErrorPatterns,
-      userLevel
+      userLevel,
+      targetFeatures,
+      [] // newlyDiscoveredFeatures - populated by Chaos Window frontend in future
     );
 
     // Step 3: Format feedback for user display
@@ -193,6 +214,26 @@ export async function POST(req: NextRequest) {
       } catch (formatError) {
         console.error('[Chaos Window] Formatting error:', formatError);
       }
+    }
+
+    // Step 4: Track feature exposure (fire-and-forget)
+    const { userId } = await auth();
+    if (userId && sessionId) {
+      const errorFeaturesResult = extractFeaturesFromErrors(
+        (aggregatedFeedback?.errorPatterns || []).map((e: { type?: string; category?: string }) => ({
+          type: e.type || 'grammar',
+          category: e.category,
+        }))
+      );
+
+      trackFeatureExposure({
+        userId,
+        sessionId,
+        contentId,
+        contentFeatures,
+        producedFeatures: errorFeaturesResult.produced,
+        correctedFeatures: errorFeaturesResult.corrected,
+      }).catch(() => {}); // Fire-and-forget
     }
 
     // Return combined response with tutor feedback + grading data

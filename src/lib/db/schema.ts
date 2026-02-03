@@ -289,3 +289,42 @@ export const tutorOpeningMessages = pgTable('tutor_opening_messages', {
 export type TutorOpeningMessage = typeof tutorOpeningMessages.$inferSelect;
 export type NewTutorOpeningMessage = typeof tutorOpeningMessages.$inferInsert;
 
+// Feature category enum
+export const featureCategoryEnum = ['grammar', 'vocabulary_domain'] as const;
+export type FeatureCategory = (typeof featureCategoryEnum)[number];
+
+// Exposure type enum
+export const exposureTypeEnum = ['encountered', 'produced', 'corrected'] as const;
+export type ExposureType = (typeof exposureTypeEnum)[number];
+
+// Grammar Feature Map table - reference table of Romanian grammar/vocab features by CEFR level
+export const grammarFeatureMap = pgTable('grammar_feature_map', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  featureKey: text('feature_key').notNull().unique(), // e.g. 'present_tense_a_fi', 'definite_article'
+  featureName: text('feature_name').notNull(), // Human-readable, e.g. "Present Tense: a fi (to be)"
+  cefrLevel: text('cefr_level').$type<CEFRLevelEnum>().notNull(),
+  category: text('category').$type<FeatureCategory>().notNull(), // 'grammar' | 'vocabulary_domain'
+  description: text('description'), // Brief description for AI prompting
+  prerequisites: jsonb('prerequisites').$type<string[]>().default([]), // Soft ordering hints (featureKeys)
+  sortOrder: integer('sort_order').default(0).notNull(), // Rough priority within level
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export type GrammarFeature = typeof grammarFeatureMap.$inferSelect;
+export type NewGrammarFeature = typeof grammarFeatureMap.$inferInsert;
+
+// User Feature Exposure table - append-only log of user encounters with grammar/vocab features
+export const userFeatureExposure = pgTable('user_feature_exposure', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: text('user_id').notNull(),
+  featureKey: text('feature_key').notNull(), // References grammarFeatureMap.featureKey
+  exposureType: text('exposure_type').$type<ExposureType>().notNull(),
+  contentId: uuid('content_id').references(() => contentItems.id),
+  sessionId: uuid('session_id').references(() => sessions.id),
+  isCorrect: pgBoolean('is_correct'), // null for 'encountered', true/false for 'produced'/'corrected'
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export type UserFeatureExposureRecord = typeof userFeatureExposure.$inferSelect;
+export type NewUserFeatureExposure = typeof userFeatureExposure.$inferInsert;
+

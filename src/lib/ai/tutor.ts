@@ -229,12 +229,20 @@ function getFallbackQuestion(contentType: 'audio' | 'text', userLevel: string): 
  * Generates an initial question for the AI tutor based on content
  * This is called when new content loads, NOT when user submits a response
  */
+export type TargetFeature = {
+    featureKey: string;
+    featureName: string;
+    description: string | null;
+};
+
 export async function generateInitialQuestion(
     contentTitle: string,
     contentTranscript: string | null,
     contentType: 'audio' | 'text',
     errorPatterns: string[] = [],
-    userLevel: string = 'B1'
+    userLevel: string = 'B1',
+    targetFeatures: TargetFeature[] = [],
+    isFirstSession: boolean = false
 ): Promise<InitialQuestion> {
     const hasTranscript = contentTranscript && contentTranscript.length > 50;
 
@@ -245,12 +253,35 @@ export async function generateInitialQuestion(
 
     const cefrGuidelines = getCEFRGuidelines(userLevel);
 
+    // Build feature-aware prompt additions
+    let featurePrompt = '';
+    if (targetFeatures.length > 0) {
+        featurePrompt = `
+GRAMMAR TARGETING: Guide the learner toward using these Romanian structures in their response.
+Do NOT explain the structures — let them discover through your question:
+${targetFeatures.map(f => `- ${f.featureName}: ${f.description || ''}`).join('\n')}
+For example, if targeting "definite article", ask about something where the natural answer uses "cartea" rather than "o carte".`;
+    }
+
+    let firstSessionPrompt = '';
+    if (isFirstSession && userLevel === 'A1') {
+        firstSessionPrompt = `
+🌟 FIRST SESSION: This learner is BRAND NEW to Romanian. Their very first interaction.
+- Start with something they can actually answer (yes/no, pointing at a word, repeating "Bună!")
+- Use maximum English in your hint
+- If the content has a greeting, ask them to try saying it back
+- Make this feel exciting, not overwhelming
+- The goal is ONE successful production, not comprehension testing`;
+    }
+
     const prompt = `A ${userLevel}-level learner is about to ${contentType === 'audio' ? 'listen to audio' : 'read text'}.
 
 Content title: "${contentTitle}"
 ${transcriptContext ? `Content transcript/text: "${transcriptContext}"` : 'No transcript available - generate a general question about the title/topic.'}
 
 ${errorPatterns.length > 0 ? `The learner has these known weak areas: ${errorPatterns.join(', ')}` : ''}
+${featurePrompt}
+${firstSessionPrompt}
 
 Generate an engaging OPENING QUESTION to ask the learner after they consume this content.
 
@@ -260,6 +291,7 @@ Rules:
 3. Don't ask them to summarize everything - pick ONE interesting aspect
 4. Make it feel conversational, not like a test
 5. If targeting known error patterns, work them into the question naturally
+${targetFeatures.length > 0 ? '6. Design the question so the natural answer requires using the targeted grammar structures' : ''}
 
 Return JSON:
 {
@@ -381,7 +413,9 @@ export async function generateTutorResponse(
     userResponse: string,
     context: string,
     errorPatterns: string[] = [],
-    userLevel: string = 'B1'
+    userLevel: string = 'B1',
+    targetFeatures: TargetFeature[] = [],
+    newlyDiscoveredFeatures: string[] = []
 ): Promise<TutorResponse> {
 
     // Step 1: Extract vocabulary questions from parentheses
@@ -415,6 +449,14 @@ ${errorPatterns.length > 0 ? `Known error patterns to watch for: ${errorPatterns
 
 FOR THE "nextQuestion" FIELD - ${cefrGuidelines}
 ${['A1', 'A2'].includes(userLevel) ? 'Keep feedback explanations simple and short. Use English for grammar explanations. Be EXTRA encouraging - any attempt at this level deserves praise.' : ''}
+${targetFeatures.length > 0 ? `
+GRAMMAR TARGETING for nextQuestion: Design your follow-up question to naturally require these structures:
+${targetFeatures.map(f => `- ${f.featureName}: ${f.description || ''}`).join('\n')}
+Don't explain them — let the learner discover through production.` : ''}
+${newlyDiscoveredFeatures.length > 0 ? `
+DISCOVERY MOMENT: The learner just encountered these structures for the FIRST TIME: ${newlyDiscoveredFeatures.join(', ')}.
+If they used any of these correctly, briefly celebrate it in your encouragement (e.g., "Nice use of the past tense!") — but don't lecture about the rule.
+If they didn't notice a new structure in the content, gently draw attention in your nextQuestion (e.g., "Did you notice how 'X' works in that sentence?"). Plant a seed, don't lecture.` : ''}
 
 Analyze the response and provide feedback in this JSON format:
 {

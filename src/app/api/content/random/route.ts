@@ -1,20 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { db } from '@/lib/db';
-import { contentItems, userPreferences } from '@/lib/db/schema';
-import { and, gte, lte, sql, eq } from 'drizzle-orm';
+import { userPreferences } from '@/lib/db/schema';
+import { eq } from 'drizzle-orm';
+import { getSmartContentForUser } from '@/lib/db/queries';
+import type { CEFRLevelEnum } from '@/lib/db/schema';
 
-// CEFR level to difficulty mapping
-const cefrToDifficulty: Record<string, { min: number; max: number }> = {
-    'A1': { min: 1.0, max: 2.5 },
-    'A2': { min: 2.0, max: 4.0 },
-    'B1': { min: 3.5, max: 5.5 },
-    'B2': { min: 5.0, max: 7.0 },
-    'C1': { min: 6.5, max: 8.5 },
-    'C2': { min: 8.0, max: 10.0 },
-};
-
-// GET /api/content/random - Get a random content item for Chaos Window
+// GET /api/content/random - Smart content selection for Chaos Window
 export async function GET(req: NextRequest) {
     try {
         const { userId } = await auth();
@@ -23,8 +15,7 @@ export async function GET(req: NextRequest) {
         }
 
         const { searchParams } = new URL(req.url);
-        const excludeId = searchParams.get('excludeId'); // Exclude current content
-        const type = searchParams.get('type'); // Optional: filter by type
+        const excludeId = searchParams.get('excludeId') || undefined;
 
         // Get user's CEFR level
         const prefs = await db
@@ -33,58 +24,30 @@ export async function GET(req: NextRequest) {
             .where(eq(userPreferences.userId, userId))
             .limit(1);
 
-        const userLevel = prefs[0]?.languageLevel || 'B1'; // Default to B1
-        const difficulty = cefrToDifficulty[userLevel] || cefrToDifficulty['B1'];
+        const userLevel = (prefs[0]?.languageLevel || 'B1') as CEFRLevelEnum;
 
-        // Build query conditions
-        const conditions = [
-            gte(contentItems.difficultyLevel, difficulty.min.toString()),
-            lte(contentItems.difficultyLevel, difficulty.max.toString()),
-        ];
+        // Smart content selection: weighted random biased toward unseen/weak features
+        const result = await getSmartContentForUser(userId, userLevel, excludeId);
 
-        if (excludeId) {
-            conditions.push(sql`${contentItems.id} != ${excludeId}`);
-        }
-
-        if (type && ['audio', 'text'].includes(type)) {
-            conditions.push(eq(contentItems.type, type as 'audio' | 'text'));
-        }
-
-        // Get random content using SQL RANDOM()
-        const items = await db
-            .select()
-            .from(contentItems)
-            .where(and(...conditions))
-            .orderBy(sql`RANDOM()`)
-            .limit(1);
-
-        if (items.length === 0) {
-            // Fallback: get any random content if none at user's level
-            const fallbackItems = await db
-                .select()
-                .from(contentItems)
-                .where(excludeId ? sql`${contentItems.id} != ${excludeId}` : undefined)
-                .orderBy(sql`RANDOM()`)
-                .limit(1);
-
-            if (fallbackItems.length === 0) {
-                return NextResponse.json(
-                    { error: 'No content available' },
-                    { status: 404 }
-                );
-            }
-
-            return NextResponse.json({
-                content: fallbackItems[0],
-                userLevel,
-                matchedLevel: false,
-            });
+        if (!result) {
+            return NextResponse.json(
+                { error: 'No content available' },
+                { status: 404 }
+            );
         }
 
         return NextResponse.json({
-            content: items[0],
+            content: result.content,
             userLevel,
             matchedLevel: true,
+            // Smart Chaos metadata
+            selectionReason: result.selectionReason,
+            targetFeatures: result.targetFeatures.map(f => ({
+                featureKey: f.featureKey,
+                featureName: f.featureName,
+                description: f.description,
+            })),
+            isFirstSession: result.isFirstSession,
         });
     } catch (error) {
         console.error('[Random Content] Error:', error);

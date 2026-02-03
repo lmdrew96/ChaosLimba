@@ -100,6 +100,12 @@ export default function ChaosWindowPage() {
   // Transcript toggle state (for text content — audio uses AudioPlayer's built-in toggle)
   const [showTextTranscript, setShowTextTranscript] = useState(false)
 
+  // Smart Chaos: feature targeting state
+  const [targetFeatures, setTargetFeatures] = useState<Array<{ featureKey: string; featureName: string; description: string }>>([])
+  const [selectionReason, setSelectionReason] = useState<string | null>(null)
+  const [isFirstSession, setIsFirstSession] = useState(false)
+  const [discoveryToast, setDiscoveryToast] = useState<string | null>(null)
+
   // Practice audio generation state
   const [practiceAudio, setPracticeAudio] = useState<{
     audioUrl: string; romanianText: string; englishText: string | null; contentType: string
@@ -205,7 +211,9 @@ export default function ChaosWindowPage() {
   // Fetch initial AI tutor question for current content
   const fetchInitialQuestion = useCallback(async (
     content: ContentItem,
-    transcript: string | null
+    transcript: string | null,
+    features: Array<{ featureKey: string; featureName: string; description: string }> = [],
+    firstSession: boolean = false
   ) => {
     setIsLoadingQuestion(true)
     setTutorPrompt(null)
@@ -222,7 +230,9 @@ export default function ChaosWindowPage() {
           contentTranscript: transcript || content.textContent || null,
           contentType: content.type,
           errorPatterns: errorPatterns,
-          userLevel: userLevel
+          userLevel: userLevel,
+          targetFeatures: features,
+          isFirstSession: firstSession
         })
       })
 
@@ -274,6 +284,19 @@ export default function ChaosWindowPage() {
       setUserLevel(data.userLevel)
       setShowTextTranscript(false)
 
+      // Smart Chaos: store feature targeting metadata
+      const features = data.targetFeatures || []
+      setTargetFeatures(features)
+      setSelectionReason(data.selectionReason || null)
+      setIsFirstSession(data.isFirstSession || false)
+
+      // Show discovery toast for new features (subtle dopamine hit)
+      if (features.length > 0 && data.selectionReason === 'unseen_feature') {
+        const featureNames = features.map((f: { featureName: string }) => f.featureName)
+        setDiscoveryToast(`New: ${featureNames[0]}`)
+        setTimeout(() => setDiscoveryToast(null), 4000)
+      }
+
       // Update context with full content (transcript for audio, text for text content)
       if (data.content.textContent) {
         // Text content: use first 300 chars
@@ -294,9 +317,9 @@ export default function ChaosWindowPage() {
         setCurrentContext(`Ascultă: "${data.content.title}" și răspunde la întrebări. [Note: Full transcript not available]`)
       }
 
-      // Generate initial AI tutor question for this content
+      // Generate initial AI tutor question for this content (with feature targeting)
       const transcriptForQuestion = data.content.transcript || data.content.textContent || null
-      fetchInitialQuestion(data.content, transcriptForQuestion)
+      fetchInitialQuestion(data.content, transcriptForQuestion, features, data.isFirstSession || false)
 
       // Check if we need to fetch transcript on-demand
       if (!data.content.textContent && !data.content.transcript) {
@@ -494,7 +517,10 @@ export default function ChaosWindowPage() {
             errorPatterns: errorPatterns,
             sessionId,
             modality: "text",
-            userLevel: userLevel
+            userLevel: userLevel,
+            contentId: currentContent?.id,
+            contentFeatures: (currentContent?.languageFeatures as { grammar?: string[] })?.grammar || [],
+            targetFeatures: targetFeatures
           })
         })
       } else {
@@ -506,6 +532,9 @@ export default function ChaosWindowPage() {
         formData.append('modality', 'speech')
         formData.append('errorPatterns', JSON.stringify(errorPatterns))
         formData.append('userLevel', userLevel)
+        if (currentContent?.id) formData.append('contentId', currentContent.id)
+        formData.append('contentFeatures', JSON.stringify((currentContent?.languageFeatures as { grammar?: string[] })?.grammar || []))
+        formData.append('targetFeatures', JSON.stringify(targetFeatures))
 
         res = await fetch("/api/chaos-window/submit", {
           method: "POST",
@@ -633,9 +662,16 @@ export default function ChaosWindowPage() {
                         </div>
                         <div className="flex-1">
                           <h4 className="font-medium">{currentContent.title}</h4>
-                          <p className="text-xs text-muted-foreground">
-                            {currentContent.topic} • {Math.floor((currentContent.durationSeconds || 0) / 60)} min
-                          </p>
+                          <div className="flex items-center gap-2">
+                            <p className="text-xs text-muted-foreground">
+                              {currentContent.topic} • {Math.floor((currentContent.durationSeconds || 0) / 60)} min
+                            </p>
+                            {discoveryToast && (
+                              <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 animate-pulse">
+                                {discoveryToast}
+                              </span>
+                            )}
+                          </div>
                         </div>
                         <span className="px-2 py-1 text-xs rounded-full bg-green-500/20 text-green-400">
                           {userLevel} Level
