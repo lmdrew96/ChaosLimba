@@ -57,24 +57,28 @@ export async function POST(req: NextRequest) {
         feedbackType: err.feedbackType || 'error',
       }));
 
-      // Also capture the Groq evaluation's correction when the answer is wrong,
-      // so errors reach the Error Garden even if analyzeGrammar() missed them
-      if (!evaluation.isCorrect && evaluation.correction) {
-        const alreadyCovered = errorPatterns.some(
-          p => p.correctForm === evaluation.correction
-        );
-        if (!alreadyCovered) {
-          errorPatterns.push({
-            type: 'grammar',
-            category: challenge.featureKey || 'general',
-            pattern: `${response.trim()} → ${evaluation.correction}`,
-            learnerProduction: response.trim(),
-            correctForm: evaluation.correction,
-            confidence: 0.75,
-            severity: 'medium',
-            inputType: 'text',
-            feedbackType: 'error',
-          });
+      // When the answer is wrong, ensure the error reaches the Error Garden
+      // even if analyzeGrammar() missed it (common with short responses)
+      if (!evaluation.isCorrect) {
+        // Use Groq's correction, or fall back to the first expected answer
+        const correctForm = evaluation.correction || challenge.expectedAnswers?.[0];
+        if (correctForm) {
+          const alreadyCovered = errorPatterns.some(
+            p => p.correctForm === correctForm
+          );
+          if (!alreadyCovered) {
+            errorPatterns.push({
+              type: 'grammar',
+              category: challenge.featureKey || 'general',
+              pattern: `${response.trim()} → ${correctForm}`,
+              learnerProduction: response.trim(),
+              correctForm,
+              confidence: 0.75,
+              severity: 'medium',
+              inputType: 'text',
+              feedbackType: 'error',
+            });
+          }
         }
       }
 

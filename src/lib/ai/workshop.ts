@@ -68,6 +68,11 @@ IMPORTANT RULES:
 - Provide 2-4 acceptable answers (accounting for valid variations)
 - The hint should nudge without giving away the answer
 
+CRITICAL GRAMMAR — Your Romanian MUST be correct:
+- "a plăcea" agrees with the OBJECT: "Îți place cartea" (singular) vs "Îți plac merele" (plural). NEVER "Îți place merele".
+- Verbs agree with subject in person/number: "El merge", "Ei merg", "Noi mergem".
+- Check all verb-subject/object agreement before outputting.
+
 LANGUAGE OF PROMPTS AND HINTS:
 - For A1-A2 learners: Write the "prompt" and "hint" fields in simple Romanian followed by an English translation in parentheses. Example: "Completează propoziția cu forma corectă. (Complete the sentence with the correct form.)"
 - For B1+: Write prompts and hints entirely in Romanian — no English translation needed.`;

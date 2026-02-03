@@ -63,9 +63,21 @@ export async function saveErrorPatternsToGarden(
       )
     );
 
-    // Map patterns to NewErrorLog format, filtering duplicates
+    // Map patterns to NewErrorLog format, filtering duplicates and non-errors
     const newErrors: NewErrorLog[] = patterns
       .filter(pattern => {
+        // Only save actual errors, not suggestions/style recommendations
+        if (pattern.feedbackType === 'suggestion') {
+          console.log(`[saveErrorPatternsToGarden] Skipping suggestion (not an error): ${pattern.learnerProduction}`);
+          return false;
+        }
+
+        // Skip false positives where the "correction" says the original was correct
+        if (pattern.correctForm && /actually correct|is correct|not an error|no error/i.test(pattern.correctForm)) {
+          console.log(`[saveErrorPatternsToGarden] Skipping false positive: "${pattern.correctForm}"`);
+          return false;
+        }
+
         // Create fingerprint for this pattern
         const fingerprint = `${pattern.type}:${pattern.category}:${pattern.learnerProduction}:${pattern.correctForm}`;
 
@@ -95,16 +107,13 @@ export async function saveErrorPatternsToGarden(
       return [];
     }
 
-    // Bulk insert using Drizzle transaction
-    const insertedErrors = await db.transaction(async (tx) => {
-      const results = await tx
-        .insert(errorLogs)
-        .values(newErrors)
-        .returning();
+    // Bulk insert (neon-http driver does not support transactions)
+    const insertedErrors = await db
+      .insert(errorLogs)
+      .values(newErrors)
+      .returning();
 
-      console.log(`[saveErrorPatternsToGarden] Inserted ${results.length} error patterns to Error Garden`);
-      return results;
-    });
+    console.log(`[saveErrorPatternsToGarden] Inserted ${insertedErrors.length} error patterns to Error Garden`);
 
     return insertedErrors;
   } catch (error) {

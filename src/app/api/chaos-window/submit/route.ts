@@ -3,6 +3,8 @@ import { auth } from "@clerk/nextjs/server";
 import { generateTutorResponse } from "@/lib/ai/tutor";
 import { formatFeedback } from "@/lib/ai/formatter";
 import { trackFeatureExposure, extractFeaturesFromErrors } from "@/lib/ai/exposure-tracker";
+import { saveErrorPatternsToGarden } from "@/lib/db/queries";
+import type { ExtractedErrorPattern } from "@/types/aggregator";
 
 export async function POST(req: NextRequest) {
   try {
@@ -216,8 +218,40 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Step 4: Track feature exposure (fire-and-forget)
+    // Step 3.5: Save tutor-identified errors to Error Garden when aggregator missed them
+    // The aggregator only saves grammar-checker errors; the tutor often catches additional
+    // issues (especially for short responses where grammar analysis finds nothing)
     const { userId } = await auth();
+    const aggregatorErrorCount = aggregatedFeedback?.errorsSaved || 0;
+    if (userId && sessionId && tutorResponse.feedback?.grammar?.length > 0 && aggregatorErrorCount === 0) {
+      const tutorErrorPatterns: ExtractedErrorPattern[] = tutorResponse.feedback.grammar
+        .filter((g: { incorrect?: string; correct?: string; severity?: string; feedbackType?: string }) =>
+          g.incorrect && g.correct &&
+          // Only save major/critical errors — skip minor notes and suggestions
+          g.severity !== 'minor' &&
+          g.feedbackType !== 'suggestion'
+        )
+        .map((g: { type?: string; incorrect: string; correct: string; severity?: string; feedbackType?: string }) => ({
+          type: 'grammar' as const,
+          category: g.type || 'general',
+          pattern: `${g.incorrect} → ${g.correct}`,
+          learnerProduction: g.incorrect,
+          correctForm: g.correct,
+          confidence: 0.7,
+          severity: (g.severity === 'critical' ? 'high' : g.severity === 'major' ? 'medium' : 'low') as 'low' | 'medium' | 'high',
+          inputType: modality as 'text' | 'speech',
+          feedbackType: (g.feedbackType || 'error') as 'error' | 'suggestion',
+        }));
+
+      if (tutorErrorPatterns.length > 0) {
+        saveErrorPatternsToGarden(tutorErrorPatterns, userId, sessionId, 'chaos_window').catch(err => {
+          console.error('[Chaos Window] Failed to save tutor-identified errors:', err);
+        });
+        console.log(`[Chaos Window] Saved ${tutorErrorPatterns.length} tutor-identified errors to Error Garden (aggregator found none)`);
+      }
+    }
+
+    // Step 4: Track feature exposure (fire-and-forget)
     if (userId && sessionId) {
       const errorFeaturesResult = extractFeaturesFromErrors(
         (aggregatedFeedback?.errorPatterns || []).map((e: { type?: string; category?: string }) => ({
