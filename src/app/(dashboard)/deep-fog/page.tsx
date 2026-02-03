@@ -12,6 +12,8 @@ import {
   Shuffle,
   Loader2,
   X,
+  Check,
+  AlertTriangle,
 } from "lucide-react";
 import { ContentPlayer } from "@/components/features/content-player";
 import { ContentItem } from "@/lib/db/schema";
@@ -91,31 +93,76 @@ export default function DeepFogPage() {
     fetchContent();
   }, [filter]);
 
-  const handleTimestampCapture = (timestamp: number) => {
-    // TODO: Integrate with Mystery Shelf - save timestamp context
-    console.log(
-      "Captured timestamp:",
-      timestamp,
-      "for content:",
-      selectedContent?.title
-    );
-    // Future: Open modal to add context/notes before saving to Mystery Shelf
-  };
-
   const [capturedWord, setCapturedWord] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [savedWord, setSavedWord] = useState<string | null>(null);
 
-  const handleWordClick = useCallback((word: string, context: string) => {
-    // TODO: Integrate with Mystery Shelf - save word with context
-    // For now, show visual feedback that the word was captured
-    setCapturedWord(word);
-  }, []);
+  const saveToMysteryShelf = useCallback(
+    async (word: string, context: string) => {
+      if (isSaving) return;
+      setIsSaving(true);
+      setSaveError(null);
+      setSavedWord(null);
+      setCapturedWord(word);
 
-  // Auto-dismiss captured word toast
+      try {
+        const res = await fetch("/api/mystery-shelf", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ word, context, source: "deep_fog" }),
+        });
+
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(text || "Failed to save");
+        }
+
+        setSavedWord(word);
+      } catch (err) {
+        setSaveError(
+          err instanceof Error ? err.message : "Failed to save to Mystery Shelf"
+        );
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [isSaving]
+  );
+
+  const handleTimestampCapture = useCallback(
+    (timestamp: number) => {
+      if (!selectedContent) return;
+      const mins = Math.floor(timestamp / 60);
+      const secs = Math.floor(timestamp % 60);
+      const formatted = `${mins}:${secs.toString().padStart(2, "0")}`;
+      const word = `Timestamp ${formatted}`;
+      const context = `at ${formatted} in "${selectedContent.title}"`;
+      saveToMysteryShelf(word, context);
+    },
+    [selectedContent, saveToMysteryShelf]
+  );
+
+  const handleWordClick = useCallback(
+    (word: string, context: string) => {
+      const cleanWord = word.replace(/[.,!?;:"""''„…\-()[\]{}]/g, "").trim();
+      if (!cleanWord) return;
+      saveToMysteryShelf(cleanWord, context);
+    },
+    [saveToMysteryShelf]
+  );
+
+  // Auto-dismiss toast after save completes
   useEffect(() => {
     if (!capturedWord) return;
-    const timer = setTimeout(() => setCapturedWord(null), 2000);
+    if (isSaving) return; // Don't dismiss while saving
+    const timer = setTimeout(() => {
+      setCapturedWord(null);
+      setSavedWord(null);
+      setSaveError(null);
+    }, 2000);
     return () => clearTimeout(timer);
-  }, [capturedWord]);
+  }, [capturedWord, isSaving, savedWord, saveError]);
 
   const handleRandomContent = () => {
     if (content.length === 0) return;
@@ -280,10 +327,28 @@ export default function DeepFogPage() {
       {/* Word captured toast */}
       {capturedWord && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] animate-in fade-in slide-in-from-bottom-4 duration-300">
-          <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-500/90 text-white shadow-lg backdrop-blur-sm">
-            <Plus className="h-4 w-4" />
+          <div
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-white shadow-lg backdrop-blur-sm ${
+              saveError
+                ? "bg-red-500/90"
+                : savedWord
+                  ? "bg-green-500/90"
+                  : "bg-indigo-500/90"
+            }`}
+          >
+            {saveError ? (
+              <AlertTriangle className="h-4 w-4" />
+            ) : savedWord ? (
+              <Check className="h-4 w-4" />
+            ) : (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            )}
             <span className="text-sm font-medium">
-              &ldquo;{capturedWord}&rdquo; captured for Mystery Shelf
+              {saveError
+                ? `Failed to save "${capturedWord}"`
+                : savedWord
+                  ? `"${capturedWord}" added to Mystery Shelf`
+                  : `Saving "${capturedWord}"...`}
             </span>
           </div>
         </div>
@@ -337,10 +402,6 @@ export default function DeepFogPage() {
 
               {/* Action buttons */}
               <div className="flex gap-3 flex-wrap">
-                <Button className="flex-1 min-w-[200px] bg-indigo-400 hover:bg-indigo-500 rounded-xl">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add to Mystery Shelf
-                </Button>
                 <Button
                   variant="outline"
                   className="border-border"
