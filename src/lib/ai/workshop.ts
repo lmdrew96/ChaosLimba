@@ -79,7 +79,7 @@ function buildChallengePrompt(
 ): string {
   const typeInstructions: Record<WorkshopChallengeType, string> = {
     transform: `TRANSFORM challenge: Give a Romanian sentence, ask the learner to transform it (e.g., change tense, make negative, change subject). The learner must rewrite the sentence.`,
-    complete: `COMPLETE challenge: Give a Romanian sentence with a blank (___), ask the learner to fill in the correct form. The blank should test the target grammar feature.`,
+    complete: `COMPLETE challenge: Give a Romanian sentence with a blank (___) where the answer goes. The blank REPLACES the answer word entirely — do NOT include the infinitive or base form next to the blank. The blank should test the target grammar feature.`,
     fix: `FIX challenge: Give a Romanian sentence with a deliberate grammar error in it. The learner must identify and correct the error. Mark the error clearly.`,
     rewrite: `REWRITE challenge: Give a simple idea in English, ask the learner to write it in Romanian using the target grammar structure.`,
     use_it: `USE IT challenge: Give a Romanian word/phrase and ask the learner to write a complete sentence using it correctly in context.`,
@@ -89,7 +89,10 @@ function buildChallengePrompt(
 
   const isBeginnerLevel = userLevel === 'A1' || userLevel === 'A2';
   const languageNote = isBeginnerLevel
-    ? `\nIMPORTANT — This is an A1-A2 beginner. The "prompt" and "hint" MUST be written in simple Romanian with an English translation in parentheses afterward. Example prompt: "Schimbă propoziția la forma negativă. (Change the sentence to the negative form.)"`
+    ? `\nIMPORTANT — This is an A1-A2 beginner. The "prompt" and "hint" MUST be written in simple Romanian with an English translation in parentheses afterward.
+For COMPLETE challenges: the English translation must show the meaning of the missing word in *italics* (markdown) instead of a blank. Example prompt: "Eu ___ mere în fiecare zi. (I *eat* apples every day.)"
+Example hint: "Folosește forma corectă a verbului **a mânca** la persoana întâi singular. (Use the correct form of the verb **a mânca** in the first person singular.)"
+For other challenge types: follow the same bilingual pattern. Example: "Schimbă propoziția la forma negativă. (Change the sentence to the negative form.)"`
     : '';
 
   return `Create a ${challengeType.toUpperCase()} challenge for a ${userLevel} Romanian learner.
