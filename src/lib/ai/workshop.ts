@@ -66,7 +66,11 @@ IMPORTANT RULES:
 - For A1-A2: use simple vocabulary, present tense, basic structures
 - For B1+: can use past tense, more complex structures
 - Provide 2-4 acceptable answers (accounting for valid variations)
-- The hint should nudge without giving away the answer`;
+- The hint should nudge without giving away the answer
+
+LANGUAGE OF PROMPTS AND HINTS:
+- For A1-A2 learners: Write the "prompt" and "hint" fields in simple Romanian followed by an English translation in parentheses. Example: "Completează propoziția cu forma corectă. (Complete the sentence with the correct form.)"
+- For B1+: Write prompts and hints entirely in Romanian — no English translation needed.`;
 
 function buildChallengePrompt(
   feature: GrammarFeature,
@@ -83,12 +87,17 @@ function buildChallengePrompt(
     spot_the_trap: `SPOT THE TRAP challenge: Give a Romanian sentence that looks correct but has a subtle vocabulary/usage error (false friend, wrong context, etc). The learner must identify what's wrong.`,
   };
 
+  const isBeginnerLevel = userLevel === 'A1' || userLevel === 'A2';
+  const languageNote = isBeginnerLevel
+    ? `\nIMPORTANT — This is an A1-A2 beginner. The "prompt" and "hint" MUST be written in simple Romanian with an English translation in parentheses afterward. Example prompt: "Schimbă propoziția la forma negativă. (Change the sentence to the negative form.)"`
+    : '';
+
   return `Create a ${challengeType.toUpperCase()} challenge for a ${userLevel} Romanian learner.
 
 Target feature: "${feature.featureName}" (key: ${feature.featureKey})
 ${feature.description ? `Description: ${feature.description}` : ''}
 Category: ${feature.category}
-CEFR Level: ${userLevel}
+CEFR Level: ${userLevel}${languageNote}
 
 Challenge type instructions:
 ${typeInstructions[challengeType]}
