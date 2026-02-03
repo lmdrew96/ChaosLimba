@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import ReactMarkdown from "react-markdown"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -77,15 +78,34 @@ export function ChallengeCard({ challenge, onSubmit, onSkip, isSubmitting }: Cha
 
         {/* Challenge prompt */}
         <div className="space-y-3">
-          <p className="text-lg font-medium leading-relaxed">
-            {challenge.prompt}
-          </p>
+          <div className="text-lg font-medium leading-relaxed">
+            <ReactMarkdown
+              components={{
+                p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                strong: ({ children }) => <strong className="font-bold text-primary">{children}</strong>,
+                em: ({ children }) => <em className="italic">{children}</em>,
+                code: ({ children }) => (
+                  <code className="bg-muted/50 px-1 py-0.5 rounded text-base">{children}</code>
+                ),
+              }}
+            >
+              {challenge.prompt}
+            </ReactMarkdown>
+          </div>
 
           {challenge.targetSentence && (
             <div className="rounded-xl bg-muted/50 px-4 py-3 border border-border/40">
-              <p className="text-base italic text-foreground/90">
-                {challenge.targetSentence}
-              </p>
+              <div className="text-base italic text-foreground/90">
+                <ReactMarkdown
+                  components={{
+                    p: ({ children }) => <p className="mb-1 last:mb-0">{children}</p>,
+                    strong: ({ children }) => <strong className="font-bold">{children}</strong>,
+                    em: ({ children }) => <em className="italic">{children}</em>,
+                  }}
+                >
+                  {challenge.targetSentence}
+                </ReactMarkdown>
+              </div>
             </div>
           )}
         </div>
@@ -102,9 +122,17 @@ export function ChallengeCard({ challenge, onSubmit, onSkip, isSubmitting }: Cha
               {showHint ? "Hide hint" : "Show hint"}
             </button>
             {showHint && (
-              <p className="mt-2 text-sm text-muted-foreground bg-amber-500/5 border border-amber-500/20 rounded-lg px-3 py-2">
-                {challenge.hint}
-              </p>
+              <div className="mt-2 text-sm text-muted-foreground bg-amber-500/5 border border-amber-500/20 rounded-lg px-3 py-2">
+                <ReactMarkdown
+                  components={{
+                    p: ({ children }) => <p className="mb-1 last:mb-0">{children}</p>,
+                    strong: ({ children }) => <strong className="font-semibold text-foreground">{children}</strong>,
+                    em: ({ children }) => <em className="italic">{children}</em>,
+                  }}
+                >
+                  {challenge.hint}
+                </ReactMarkdown>
+              </div>
             )}
           </div>
         )}

@@ -1,5 +1,6 @@
 "use client"
 
+import ReactMarkdown from "react-markdown"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -68,7 +69,20 @@ export function WorkshopFeedback({ evaluation, challenge, onNext }: WorkshopFeed
         </div>
 
         {/* Feedback text */}
-        <p className="text-base leading-relaxed">{evaluation.feedback}</p>
+        <div className="text-base leading-relaxed">
+          <ReactMarkdown
+            components={{
+              p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+              strong: ({ children }) => <strong className="font-semibold text-primary">{children}</strong>,
+              em: ({ children }) => <em className="italic">{children}</em>,
+              ul: ({ children }) => <ul className="list-disc ml-4 mb-2">{children}</ul>,
+              ol: ({ children }) => <ol className="list-decimal ml-4 mb-2">{children}</ol>,
+              li: ({ children }) => <li className="mb-0.5">{children}</li>,
+            }}
+          >
+            {evaluation.feedback}
+          </ReactMarkdown>
+        </div>
 
         {/* Correction (if incorrect) */}
         {evaluation.correction && (
@@ -76,9 +90,17 @@ export function WorkshopFeedback({ evaluation, challenge, onNext }: WorkshopFeed
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
               Correction
             </p>
-            <p className="text-base font-medium text-foreground">
-              {evaluation.correction}
-            </p>
+            <div className="text-base font-medium text-foreground">
+              <ReactMarkdown
+                components={{
+                  p: ({ children }) => <p className="mb-1 last:mb-0">{children}</p>,
+                  strong: ({ children }) => <strong className="font-bold">{children}</strong>,
+                  em: ({ children }) => <em className="italic">{children}</em>,
+                }}
+              >
+                {evaluation.correction}
+              </ReactMarkdown>
+            </div>
           </div>
         )}
 
@@ -88,9 +110,20 @@ export function WorkshopFeedback({ evaluation, challenge, onNext }: WorkshopFeed
             <BookOpen className="h-3.5 w-3.5" />
             Grammar Rule
           </div>
-          <p className="text-sm text-foreground/80">
-            {evaluation.ruleExplanation}
-          </p>
+          <div className="text-sm text-foreground/80">
+            <ReactMarkdown
+              components={{
+                p: ({ children }) => <p className="mb-1 last:mb-0">{children}</p>,
+                strong: ({ children }) => <strong className="font-semibold text-foreground">{children}</strong>,
+                em: ({ children }) => <em className="italic">{children}</em>,
+                ul: ({ children }) => <ul className="list-disc ml-4 mb-1">{children}</ul>,
+                ol: ({ children }) => <ol className="list-decimal ml-4 mb-1">{children}</ol>,
+                li: ({ children }) => <li className="mb-0.5">{children}</li>,
+              }}
+            >
+              {evaluation.ruleExplanation}
+            </ReactMarkdown>
+          </div>
           <p className="text-xs text-muted-foreground mt-1">
             Feature: {challenge.featureName}
           </p>
