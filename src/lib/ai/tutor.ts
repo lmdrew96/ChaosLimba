@@ -112,6 +112,84 @@ export type InitialQuestion = {
 };
 
 /**
+ * Returns CEFR-specific question complexity guidelines for LLM prompts
+ */
+function getCEFRGuidelines(userLevel: string): string {
+    const guidelines: Record<string, string> = {
+        'A1': `CRITICAL - The learner is CEFR A1 (Beginner). You MUST:
+- Ask yes/no questions OR questions answerable in 1-3 words
+- Use ONLY present tense and basic verbs (a fi, a avea, a face, a merge, a place)
+- Keep your question under 10 words
+- Use informal "tu" form, NOT formal "dumneavoastră"
+- ALWAYS provide an English hint in the "hint" field
+- Example questions: "Îți place [topic]?", "Ce este [thing]?", "Unde este [place]?"
+- NEVER use subjunctive, conditional, or complex subordinate clauses`,
+
+        'A2': `CRITICAL - The learner is CEFR A2 (Elementary). You MUST:
+- Ask questions answerable in one short sentence (5-8 words)
+- Use present tense, simple past (am fost, am văzut, am auzit)
+- Keep your question under 15 words
+- Use basic connectors only (și, dar, pentru că)
+- Use informal "tu" form
+- Provide an English hint in the "hint" field
+- Example: "Ce animal din text îți place cel mai mult?", "Ce ai auzit despre [topic]?"`,
+
+        'B1': `The learner is CEFR B1 (Intermediate). You should:
+- Ask questions requiring 1-2 sentence answers
+- Can use opinions, comparisons, past/future tense
+- Keep your question under 20 words
+- Hint is optional but helpful for cultural topics
+- Example: "De ce crezi că Delta Dunării este importantă?"`,
+
+        'B2': `The learner is CEFR B2 (Upper Intermediate). You can:
+- Ask open-ended questions requiring multi-sentence answers
+- Use abstract topics, hypotheticals, nuanced opinions
+- No word limit constraints
+- Hint only needed for obscure cultural references`,
+
+        'C1': `The learner is CEFR C1 (Advanced). You can:
+- Ask complex analytical questions
+- Use idiomatic expressions and nuanced vocabulary
+- No constraints on complexity`,
+
+        'C2': `The learner is CEFR C2 (Mastery). You can:
+- Ask the most challenging questions possible
+- Use literary, academic, or highly specialized language
+- No constraints whatsoever`,
+    };
+
+    return guidelines[userLevel] || guidelines['B1'];
+}
+
+/**
+ * Returns level-appropriate fallback questions
+ */
+function getFallbackQuestion(contentType: 'audio' | 'text', userLevel: string): InitialQuestion {
+    const fallbacks: Record<string, Record<string, InitialQuestion>> = {
+        'A1': {
+            audio: { question: "Îți place acest audio?", questionType: 'comprehension', hint: "Do you like this audio? Answer da (yes) or nu (no)" },
+            text: { question: "Ce cuvinte cunoști din text?", questionType: 'vocabulary', hint: "What words do you recognize from the text?" },
+        },
+        'A2': {
+            audio: { question: "Ce ai auzit în audio? Spune un lucru.", questionType: 'comprehension', hint: "What did you hear? Say one thing." },
+            text: { question: "Ce ai citit? Spune o idee din text.", questionType: 'comprehension', hint: "What did you read? Say one idea from the text." },
+        },
+    };
+
+    const levelFallbacks = fallbacks[userLevel];
+    if (levelFallbacks) {
+        return levelFallbacks[contentType] || levelFallbacks['audio'];
+    }
+
+    // B1+ fallbacks (no hint needed)
+    const defaultFallbacks: Record<string, InitialQuestion> = {
+        audio: { question: "Ce ai auzit în acest audio? Descrie pe scurt conținutul.", questionType: 'comprehension' },
+        text: { question: "Ce ai citit? Spune-mi ideea principală în propriile tale cuvinte.", questionType: 'comprehension' },
+    };
+    return defaultFallbacks[contentType] || { question: "Ce ai înțeles din acest conținut?", questionType: 'comprehension' };
+}
+
+/**
  * Generates an initial question for the AI tutor based on content
  * This is called when new content loads, NOT when user submits a response
  */
@@ -119,7 +197,8 @@ export async function generateInitialQuestion(
     contentTitle: string,
     contentTranscript: string | null,
     contentType: 'audio' | 'text',
-    errorPatterns: string[] = []
+    errorPatterns: string[] = [],
+    userLevel: string = 'B1'
 ): Promise<InitialQuestion> {
     const hasTranscript = contentTranscript && contentTranscript.length > 50;
 
@@ -127,6 +206,8 @@ export async function generateInitialQuestion(
     const transcriptContext = hasTranscript
         ? contentTranscript!.slice(0, 1500)
         : null;
+
+    const cefrGuidelines = getCEFRGuidelines(userLevel);
 
     const prompt = `
 You are the ChaosLimbă Tutor. A learner is about to ${contentType === 'audio' ? 'listen to audio' : 'read text'}.
@@ -136,6 +217,8 @@ ${transcriptContext ? `Content transcript/text: "${transcriptContext}"` : 'No tr
 
 ${errorPatterns.length > 0 ? `The learner has these known weak areas: ${errorPatterns.join(', ')}` : ''}
 
+${cefrGuidelines}
+
 Generate an engaging OPENING QUESTION to ask the learner after they consume this content.
 
 Rules:
@@ -144,12 +227,13 @@ Rules:
 3. Don't ask them to summarize everything - pick ONE interesting aspect
 4. Make it feel conversational, not like a test
 5. If targeting known error patterns, work them into the question naturally
+6. RESPECT THE CEFR LEVEL GUIDELINES ABOVE - this is the most important rule!
 
 Return JSON:
 {
-  "question": "Your Romanian question here - should be 1-2 sentences",
+  "question": "Your Romanian question here - adapted to ${userLevel} level",
   "questionType": "comprehension|translation|grammar|vocabulary|cultural",
-  "hint": "Optional hint in English if the question is challenging"
+  "hint": "English hint - REQUIRED for A1/A2, optional for B1+"
 }
 `;
 
@@ -172,15 +256,7 @@ Return JSON:
 
     } catch (error) {
         console.error("[Tutor] Initial question generation failed:", error);
-        // Fallback questions based on content type
-        const fallbacks = {
-            audio: "Ce ai auzit în acest audio? Descrie pe scurt conținutul.",
-            text: "Ce ai citit? Spune-mi ideea principală în propriile tale cuvinte."
-        };
-        return {
-            question: fallbacks[contentType] || "Ce ai înțeles din acest conținut?",
-            questionType: 'comprehension'
-        };
+        return getFallbackQuestion(contentType, userLevel);
     }
 }
 
@@ -269,7 +345,8 @@ Provide a clear, concise answer in JSON format:
 export async function generateTutorResponse(
     userResponse: string,
     context: string,
-    errorPatterns: string[] = []
+    errorPatterns: string[] = [],
+    userLevel: string = 'B1'
 ): Promise<TutorResponse> {
 
     // Step 1: Extract vocabulary questions from parentheses
@@ -288,6 +365,8 @@ export async function generateTutorResponse(
     // Detect if context is full transcript vs. title-only fallback
     const hasFullTranscript = !context.includes('[Note: Full transcript not available]');
 
+    const cefrGuidelines = getCEFRGuidelines(userLevel);
+
     const prompt = `
 You are the ChaosLimbă Tutor, a brilliant but slightly chaotic Romanian language expert.
 Your goal is to help learners master Romanian through "productive confusion".
@@ -298,6 +377,9 @@ ${hasFullTranscript ? '' : '⚠️ NOTE: You only have the content title, not th
 User's response: "${textToGrade}"
 ${vocabQuestions.length > 0 ? `⚠️ NOTE: The user also asked a vocabulary question in parentheses, which has been handled separately. Do NOT grade the vocabulary question - only grade the actual Romanian production.` : ''}
 ${errorPatterns.length > 0 ? `Known error patterns to watch for: ${errorPatterns.join(', ')}` : ''}
+
+FOR THE "nextQuestion" FIELD - ${cefrGuidelines}
+${['A1', 'A2'].includes(userLevel) ? 'Keep feedback explanations simple and short. Use English for grammar explanations. Be EXTRA encouraging - any attempt at this level deserves praise.' : ''}
 
 Analyze the response and provide feedback in this JSON format:
 {
@@ -320,7 +402,7 @@ Analyze the response and provide feedback in this JSON format:
     },
     "encouragement": "motivational_comment"
   },
-  "nextQuestion": "follow_up_question${hasFullTranscript ? '_that_references_specific_content' : ''}",
+  "nextQuestion": "follow_up_question_at_${userLevel}_level${hasFullTranscript ? '_that_references_specific_content' : ''}",
   "errorPatterns": ["any_new_error_patterns_detected"],
   "isCorrect": false
 }
@@ -329,7 +411,7 @@ Focus on:
 1. Grammar accuracy with specific corrections
 ${hasFullTranscript ? '2. Semantic understanding of the content (DID THEY UNDERSTAND WHAT WAS SAID?)' : '2. ⚠️ SKIP semantic evaluation (no transcript available)'}
 3. Encouragement that maintains motivation
-4. Next question that ${hasFullTranscript ? 'addresses identified weaknesses AND references the content' : 'focuses on grammar/form'}
+4. Next question at ${userLevel} CEFR level that ${hasFullTranscript ? 'addresses identified weaknesses AND references the content' : 'focuses on grammar/form'}
 5. Error patterns that should go to the Error Garden
 `;
 

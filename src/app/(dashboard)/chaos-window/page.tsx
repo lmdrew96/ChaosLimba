@@ -218,7 +218,8 @@ export default function ChaosWindowPage() {
           contentTitle: content.title,
           contentTranscript: transcript || content.textContent || null,
           contentType: content.type,
-          errorPatterns: errorPatterns
+          errorPatterns: errorPatterns,
+          userLevel: userLevel
         })
       })
 
@@ -244,7 +245,7 @@ export default function ChaosWindowPage() {
     } finally {
       setIsLoadingQuestion(false)
     }
-  }, [errorPatterns])
+  }, [errorPatterns, userLevel])
 
   // Fetch random content from API
   const fetchRandomContent = useCallback(async (excludeId?: string) => {
@@ -488,7 +489,8 @@ export default function ChaosWindowPage() {
             context: currentContext,
             errorPatterns: errorPatterns,
             sessionId,
-            modality: "text"
+            modality: "text",
+            userLevel: userLevel
           })
         })
       } else {
@@ -499,6 +501,7 @@ export default function ChaosWindowPage() {
         formData.append('sessionId', sessionId)
         formData.append('modality', 'speech')
         formData.append('errorPatterns', JSON.stringify(errorPatterns))
+        formData.append('userLevel', userLevel)
 
         res = await fetch("/api/chaos-window/submit", {
           method: "POST",

@@ -14,6 +14,7 @@ export async function POST(req: NextRequest) {
     let modality: 'text' | 'speech';
     let audioFile: File | null = null;
     let historicalErrorPatterns: string[] = [];
+    let userLevel: string = 'B1';
 
     if (isSpeechMode) {
       // Speech mode - handle FormData
@@ -23,6 +24,8 @@ export async function POST(req: NextRequest) {
       expectedResponse = formData.get('expectedResponse') as string | undefined;
       sessionId = formData.get('sessionId') as string;
       modality = 'speech';
+
+      userLevel = (formData.get('userLevel') as string) || 'B1';
 
       // Parse error patterns from JSON string
       const errorPatternsStr = formData.get('errorPatterns') as string | null;
@@ -89,6 +92,7 @@ export async function POST(req: NextRequest) {
       sessionId = body.sessionId;
       modality = body.modality || 'text';
       historicalErrorPatterns = body.errorPatterns || [];
+      userLevel = body.userLevel || 'B1';
     }
 
     // Validate common inputs
@@ -177,7 +181,8 @@ export async function POST(req: NextRequest) {
     const tutorResponse = await generateTutorResponse(
       userResponse.trim(),
       context.trim(),
-      historicalErrorPatterns
+      historicalErrorPatterns,
+      userLevel
     );
 
     // Step 3: Format feedback for user display
