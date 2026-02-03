@@ -137,9 +137,6 @@ ANTHROPIC_API_KEY=your_anthropic_key     # For Claude Haiku 4.5 grammar checking
 GROQ_API_KEY=your_groq_api_key           # For speech recognition & AI tutor
 HUGGINGFACE_API_TOKEN=your_hf_token      # For pronunciation & semantic analysis
 
-# Grammar Provider (optional, defaults to 'claude')
-GRAMMAR_PROVIDER=claude                   # Options: 'claude' | 'openai'
-
 # Cloudflare R2 Storage
 CLOUDFLARE_R2_ACCOUNT_ID=your_account_id
 CLOUDFLARE_R2_ACCESS_KEY_ID=your_access_key

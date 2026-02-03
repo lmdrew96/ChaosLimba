@@ -1,6 +1,6 @@
 // src/lib/grammarChecker.ts
 // Provider-agnostic Romanian grammar checker
-// Supports multiple AI providers (Claude, OpenAI, etc.)
+// Romanian grammar checker using Claude Haiku
 
 export interface GrammarCheckError {
   type: string;
@@ -17,27 +17,15 @@ export interface GrammarCheckResult {
   errors: GrammarCheckError[];
 }
 
-type GrammarProvider = 'claude' | 'openai';
-
-const GRAMMAR_PROVIDER = (process.env.GRAMMAR_PROVIDER as GrammarProvider) || 'claude';
-
 /**
  * Main grammar checking function
- * Routes to appropriate provider based on environment variable
  */
 export async function checkGrammar(text: string): Promise<GrammarCheckResult> {
   if (!text || !text.trim()) {
     throw new Error('Text cannot be empty');
   }
 
-  switch (GRAMMAR_PROVIDER) {
-    case 'claude':
-      return await checkWithClaude(text);
-    case 'openai':
-      return await checkWithOpenAI(text);
-    default:
-      throw new Error(`Unknown grammar provider: ${GRAMMAR_PROVIDER}`);
-  }
+  return await checkWithClaude(text);
 }
 
 /**
@@ -161,11 +149,3 @@ function parseClaudeResponse(text: string): Partial<GrammarCheckResult> {
   }
 }
 
-/**
- * Check grammar using OpenAI (stub for future implementation)
- */
-async function checkWithOpenAI(text: string): Promise<GrammarCheckResult> {
-  // TODO: Implement OpenAI grammar checking
-  // Will use GPT-4o-mini or similar model
-  throw new Error('OpenAI provider not yet implemented');
-}
