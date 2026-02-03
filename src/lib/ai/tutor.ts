@@ -1,9 +1,45 @@
 import { callGroq, ChatMessage } from "./groq";
 
-const SYSTEM_PROMPT = `You are the ChaosLimbă Tutor, a brilliant but slightly chaotic Romanian language expert. 
+const BASE_SYSTEM_PROMPT = `You are the ChaosLimbă Tutor, a brilliant but slightly chaotic Romanian language expert.
 Your goal is to help learners master Romanian through "productive confusion".
 You explain things clearly but with personality. You love etymology and cultural nuances.
 You ALWAYS respond in JSON format.`;
+
+/**
+ * Builds a system prompt with CEFR level baked in at the system level
+ * so the model treats it as a hard constraint, not a suggestion.
+ */
+function getSystemPrompt(userLevel: string): string {
+    if (userLevel === 'A1') {
+        return `${BASE_SYSTEM_PROMPT}
+
+ABSOLUTE CONSTRAINT: The learner is CEFR A1 (absolute beginner). This overrides all other instructions.
+- Your Romanian questions MUST be answerable with "da", "nu", or 1-3 words maximum.
+- ONLY use: present tense, "tu" form, verbs like a fi/a avea/a face/a place/a merge.
+- Maximum 10 Romanian words in any question you ask.
+- ALWAYS include an English translation as the hint.
+- FORBIDDEN: "de ce", "crezi că", subjunctive, comparatives (mai...decât), conditional, subordinate clauses, formal "dumneavoastră".
+- GOOD: "Îți place audio-ul?", "Ce fruct vezi?", "Merele sunt bune?"
+- BAD: "De ce crezi că merele sunt mai ieftine decât portocalele?" (TOO COMPLEX - uses "de ce crezi că" + comparative)`;
+    }
+
+    if (userLevel === 'A2') {
+        return `${BASE_SYSTEM_PROMPT}
+
+ABSOLUTE CONSTRAINT: The learner is CEFR A2 (elementary). This overrides all other instructions.
+- Questions must be answerable in one short sentence (5-8 words).
+- Use present tense and simple past only (am fost, am văzut).
+- Maximum 15 Romanian words in any question.
+- Use "tu" form, basic connectors only (și, dar, pentru că).
+- ALWAYS include an English hint.
+- FORBIDDEN: "de ce crezi că", hypotheticals, subjunctive, complex comparisons.
+- GOOD: "Ce fruct îți place din magazin?", "Ce ai auzit despre mere?"
+- BAD: "Explicați de ce considerați că prețurile variază sezonier" (TOO COMPLEX)`;
+    }
+
+    // B1+ don't need hard constraints in system prompt
+    return BASE_SYSTEM_PROMPT;
+}
 
 export type MysteryAnalysis = {
     definition: string;
@@ -71,7 +107,7 @@ export async function analyzeMysteryItem(
 
     try {
         const output = await callGroq([
-            { role: "system", content: SYSTEM_PROMPT },
+            { role: "system", content: BASE_SYSTEM_PROMPT },
             { role: "user", content: prompt }
         ]);
 
@@ -209,15 +245,12 @@ export async function generateInitialQuestion(
 
     const cefrGuidelines = getCEFRGuidelines(userLevel);
 
-    const prompt = `
-You are the ChaosLimbă Tutor. A learner is about to ${contentType === 'audio' ? 'listen to audio' : 'read text'}.
+    const prompt = `A ${userLevel}-level learner is about to ${contentType === 'audio' ? 'listen to audio' : 'read text'}.
 
 Content title: "${contentTitle}"
 ${transcriptContext ? `Content transcript/text: "${transcriptContext}"` : 'No transcript available - generate a general question about the title/topic.'}
 
 ${errorPatterns.length > 0 ? `The learner has these known weak areas: ${errorPatterns.join(', ')}` : ''}
-
-${cefrGuidelines}
 
 Generate an engaging OPENING QUESTION to ask the learner after they consume this content.
 
@@ -227,19 +260,21 @@ Rules:
 3. Don't ask them to summarize everything - pick ONE interesting aspect
 4. Make it feel conversational, not like a test
 5. If targeting known error patterns, work them into the question naturally
-6. RESPECT THE CEFR LEVEL GUIDELINES ABOVE - this is the most important rule!
 
 Return JSON:
 {
-  "question": "Your Romanian question here - adapted to ${userLevel} level",
+  "question": "Your Romanian question here",
   "questionType": "comprehension|translation|grammar|vocabulary|cultural",
   "hint": "English hint - REQUIRED for A1/A2, optional for B1+"
 }
-`;
+
+${cefrGuidelines}
+
+FINAL CHECK before responding: Count the words in your question. For ${userLevel}: ${userLevel === 'A1' ? 'it MUST be under 10 words, answerable with da/nu or 1-3 words. If it contains "de ce", "crezi că", or comparatives — REWRITE IT SIMPLER.' : userLevel === 'A2' ? 'it MUST be under 15 words, answerable in one short sentence. If it contains "de ce crezi" or complex grammar — REWRITE IT SIMPLER.' : 'ensure appropriate complexity.'}`;
 
     try {
         const output = await callGroq([
-            { role: "system", content: SYSTEM_PROMPT },
+            { role: "system", content: getSystemPrompt(userLevel) },
             { role: "user", content: prompt }
         ]);
 
@@ -315,7 +350,7 @@ Provide a clear, concise answer in JSON format:
 
     try {
         const output = await callGroq([
-            { role: "system", content: SYSTEM_PROMPT },
+            { role: "system", content: BASE_SYSTEM_PROMPT },
             { role: "user", content: prompt }
         ]);
 
@@ -413,11 +448,13 @@ ${hasFullTranscript ? '2. Semantic understanding of the content (DID THEY UNDERS
 3. Encouragement that maintains motivation
 4. Next question at ${userLevel} CEFR level that ${hasFullTranscript ? 'addresses identified weaknesses AND references the content' : 'focuses on grammar/form'}
 5. Error patterns that should go to the Error Garden
+
+FINAL CHECK for nextQuestion: ${userLevel === 'A1' ? 'It MUST be under 10 words, answerable with da/nu or 1-3 words. NO "de ce", "crezi că", or comparatives.' : userLevel === 'A2' ? 'It MUST be under 15 words, answerable in one short sentence. NO "de ce crezi" or complex grammar.' : `Ensure appropriate complexity for ${userLevel}.`}
 `;
 
     try {
         const output = await callGroq([
-            { role: "system", content: SYSTEM_PROMPT },
+            { role: "system", content: getSystemPrompt(userLevel) },
             { role: "user", content: prompt }
         ]);
 
