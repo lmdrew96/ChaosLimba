@@ -43,9 +43,8 @@ export async function POST(req: NextRequest) {
     // Evaluate response
     const evaluation = await evaluateWorkshopResponse(challenge, response.trim(), userLevel);
 
-    // Track exposure and errors (fire-and-forget)
-    if (evaluation.grammarErrors.length > 0) {
-      // Save errors to Error Garden
+    // Track errors to Error Garden (fire-and-forget)
+    {
       const errorPatterns: ExtractedErrorPattern[] = evaluation.grammarErrors.map(err => ({
         type: (err.type || 'grammar') as ExtractedErrorPattern['type'],
         category: err.category || 'general',
@@ -58,9 +57,32 @@ export async function POST(req: NextRequest) {
         feedbackType: err.feedbackType || 'error',
       }));
 
-      saveErrorPatternsToGarden(errorPatterns, userId, sessionId, 'workshop').catch(err => {
-        console.error('[Workshop Evaluate] Failed to save errors:', err);
-      });
+      // Also capture the Groq evaluation's correction when the answer is wrong,
+      // so errors reach the Error Garden even if analyzeGrammar() missed them
+      if (!evaluation.isCorrect && evaluation.correction) {
+        const alreadyCovered = errorPatterns.some(
+          p => p.correctForm === evaluation.correction
+        );
+        if (!alreadyCovered) {
+          errorPatterns.push({
+            type: 'grammar',
+            category: challenge.featureKey || 'general',
+            pattern: `${response.trim()} → ${evaluation.correction}`,
+            learnerProduction: response.trim(),
+            correctForm: evaluation.correction,
+            confidence: 0.75,
+            severity: 'medium',
+            inputType: 'text',
+            feedbackType: 'error',
+          });
+        }
+      }
+
+      if (errorPatterns.length > 0) {
+        saveErrorPatternsToGarden(errorPatterns, userId, sessionId, 'workshop').catch(err => {
+          console.error('[Workshop Evaluate] Failed to save errors:', err);
+        });
+      }
     }
 
     // Track feature exposure
