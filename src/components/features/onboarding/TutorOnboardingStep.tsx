@@ -27,37 +27,39 @@ interface TutorOnboardingStepProps {
     onUpdate: (data: TutorOnboardingResult) => void;
 }
 
-// Opening messages based on self-assessment
-const OPENING_MESSAGES: Record<string, string> = {
-    complete_beginner: `Bună! 👋 Welcome to ChaosLimbă! I see you're just starting your Romanian journey - that's exciting!
-
-Don't worry, I'll speak mostly in English. Let's chat a bit so I can understand where you are. What brought you to learning Romanian?`,
-
-    some_basics: `Bună ziua! 👋 Welcome to ChaosLimbă! I see you already know some basics - foarte bine!
-
-Let's have a quick chat so I can find your level. Poți să-mi spui, in Romanian or English, what you already know?`,
-
-    intermediate: `Bună! 👋 Bine ai venit la ChaosLimbă! Văd că ai deja experiență cu româna.
-
-Hai să vorbim puțin ca să văd nivelul tău exact. Cum ai învățat limba română până acum?`,
-
-    advanced: `Salut! 🎭 Bine ai venit la ChaosLimbă! Înțeleg că ești destul de avansat cu limba română.
-
-Hai să vedem - povestește-mi puțin despre experiența ta cu româna. Unde ai învățat-o și cât de des o folosești?`,
-};
+const FALLBACK_OPENING = "Bună! 👋 Welcome to ChaosLimbă! Let's chat a bit so I can find your level. Tell me about your Romanian learning experience!";
 
 export function TutorOnboardingStep({ selfAssessment, data, onUpdate }: TutorOnboardingStepProps) {
     const [messages, setMessages] = useState<ChatMessage[]>(data?.conversationHistory || []);
     const [inputText, setInputText] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [assessmentComplete, setAssessmentComplete] = useState(!!data?.inferredLevel);
+    const [openingMessages, setOpeningMessages] = useState<Record<string, string> | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLTextAreaElement>(null);
 
-    // Initialize with opening message
+    // Fetch opening messages from DB
     useEffect(() => {
-        if (messages.length === 0 && selfAssessment) {
-            const openingMessage = OPENING_MESSAGES[selfAssessment] || OPENING_MESSAGES.complete_beginner;
+        async function fetchMessages() {
+            try {
+                const res = await fetch("/api/onboarding/tutor-messages");
+                if (res.ok) {
+                    const data = await res.json();
+                    setOpeningMessages(data.messages);
+                } else {
+                    setOpeningMessages({});
+                }
+            } catch {
+                setOpeningMessages({});
+            }
+        }
+        fetchMessages();
+    }, []);
+
+    // Initialize with opening message once fetched
+    useEffect(() => {
+        if (messages.length === 0 && selfAssessment && openingMessages !== null) {
+            const openingMessage = openingMessages[selfAssessment] || Object.values(openingMessages)[0] || FALLBACK_OPENING;
             const initialMessage: ChatMessage = {
                 id: "tutor-0",
                 role: "tutor",
@@ -66,7 +68,7 @@ export function TutorOnboardingStep({ selfAssessment, data, onUpdate }: TutorOnb
             };
             setMessages([initialMessage]);
         }
-    }, [selfAssessment, messages.length]);
+    }, [selfAssessment, messages.length, openingMessages]);
 
     // Scroll to bottom when messages change
     useEffect(() => {

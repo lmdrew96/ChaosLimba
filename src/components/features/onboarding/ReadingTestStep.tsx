@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { BookOpen, ChevronRight } from "lucide-react";
+import { BookOpen, ChevronRight, Loader2 } from "lucide-react";
 
 export interface ReadingAnswer {
     questionId: string;
@@ -17,64 +17,76 @@ export interface ReadingResult {
     score: number; // 0-100
 }
 
+interface ReadingQuestionData {
+    id: string;
+    level: string;
+    passage: string;
+    question: string;
+    options: string[];
+    correctIndex: number;
+}
+
 interface ReadingTestStepProps {
     selfAssessment?: string;
     data?: ReadingResult;
     onUpdate: (data: ReadingResult) => void;
 }
 
-// Reading passages and questions at different levels
-const READING_QUESTIONS = [
-    {
-        id: "r1",
-        level: "A1",
-        passage: "Bună ziua! Mă numesc Maria. Eu sunt din București. Am 25 de ani.",
-        question: "Cum se numește femeia?",
-        options: ["Ana", "Maria", "Elena", "Ioana"],
-        correctIndex: 1,
-    },
-    {
-        id: "r2",
-        level: "A2",
-        passage: "Astăzi mergem la piață. Vrem să cumpărăm legume proaspete: roșii, castraveți și ardei. Mama pregătește o salată pentru cină.",
-        question: "Ce vor să cumpere de la piață?",
-        options: ["Fructe", "Carne", "Legume", "Pâine"],
-        correctIndex: 2,
-    },
-    {
-        id: "r3",
-        level: "B1",
-        passage: "România este situată în sud-estul Europei. Capitala țării este București, cel mai mare oraș din țară. Limba oficială este româna, o limbă romanică derivată din latină.",
-        question: "Din ce limbă derivă limba română?",
-        options: ["Slavă", "Greacă", "Latină", "Germană"],
-        correctIndex: 2,
-    },
-    {
-        id: "r4",
-        level: "B2",
-        passage: "Transfăgărășanul este un drum montan spectaculos care traversează Munții Făgăraș. Construit în anii 1970, drumul a fost conceput inițial pentru scopuri militare, dar a devenit una dintre cele mai populare atracții turistice din România.",
-        question: "Care a fost scopul inițial al construcției Transfăgărășanului?",
-        options: ["Turism", "Militar", "Comercial", "Agricol"],
-        correctIndex: 1,
-    },
-];
-
 export function ReadingTestStep({ selfAssessment, data, onUpdate }: ReadingTestStepProps) {
+    const [questions, setQuestions] = useState<ReadingQuestionData[]>([]);
+    const [isLoadingQuestions, setIsLoadingQuestions] = useState(true);
     const [currentQuestion, setCurrentQuestion] = useState(0);
     const [answers, setAnswers] = useState<ReadingAnswer[]>(data?.answers || []);
     const [selectedOption, setSelectedOption] = useState<number | null>(null);
     const [showFeedback, setShowFeedback] = useState(false);
 
-    const question = READING_QUESTIONS[currentQuestion];
-    const isLastQuestion = currentQuestion === READING_QUESTIONS.length - 1;
-    const existingAnswer = answers.find((a) => a.questionId === question.id);
+    // Fetch reading questions from DB
+    useEffect(() => {
+        async function fetchQuestions() {
+            try {
+                const res = await fetch("/api/onboarding/reading-questions");
+                if (res.ok) {
+                    const data = await res.json();
+                    setQuestions(data.questions);
+                }
+            } catch {
+                // Questions won't load - component will show empty state
+            } finally {
+                setIsLoadingQuestions(false);
+            }
+        }
+        fetchQuestions();
+    }, []);
+
+    if (isLoadingQuestions) {
+        return (
+            <Card className="border-purple-500/20 bg-card/50 backdrop-blur">
+                <CardContent className="flex items-center justify-center py-16">
+                    <Loader2 className="h-8 w-8 animate-spin text-purple-400" />
+                </CardContent>
+            </Card>
+        );
+    }
+
+    if (questions.length === 0) {
+        return (
+            <Card className="border-purple-500/20 bg-card/50 backdrop-blur">
+                <CardContent className="text-center py-16 text-muted-foreground">
+                    No reading questions available.
+                </CardContent>
+            </Card>
+        );
+    }
+
+    const question = questions[currentQuestion];
+    const isLastQuestion = currentQuestion === questions.length - 1;
 
     const handleSelect = (optionIndex: number) => {
         if (showFeedback) return;
         setSelectedOption(optionIndex);
     };
 
-    const handleSubmitAnswer = useCallback(() => {
+    const handleSubmitAnswer = () => {
         if (selectedOption === null) return;
 
         const isCorrect = selectedOption === question.correctIndex;
@@ -89,9 +101,9 @@ export function ReadingTestStep({ selfAssessment, data, onUpdate }: ReadingTestS
         setShowFeedback(true);
 
         // Calculate score and update parent
-        const score = (newAnswers.filter((a) => a.correct).length / READING_QUESTIONS.length) * 100;
+        const score = (newAnswers.filter((a) => a.correct).length / questions.length) * 100;
         onUpdate({ answers: newAnswers, score });
-    }, [selectedOption, question, answers, onUpdate]);
+    };
 
     const handleNext = () => {
         if (!isLastQuestion) {
@@ -111,7 +123,7 @@ export function ReadingTestStep({ selfAssessment, data, onUpdate }: ReadingTestS
                     <div>
                         <span className="text-lg">Reading Comprehension</span>
                         <p className="text-sm font-normal text-muted-foreground">
-                            Question {currentQuestion + 1} of {READING_QUESTIONS.length}
+                            Question {currentQuestion + 1} of {questions.length}
                         </p>
                     </div>
                     <div className="ml-auto px-3 py-1 rounded-full bg-purple-500/10 text-sm text-purple-300">
@@ -175,8 +187,8 @@ export function ReadingTestStep({ selfAssessment, data, onUpdate }: ReadingTestS
                             selectedOption === question.correctIndex ? "text-green-400" : "text-amber-400"
                         )}>
                             {selectedOption === question.correctIndex
-                                ? "🎉 Corect! Great job!"
-                                : "💡 Not quite, but that's okay! Learning from mistakes is part of the journey."}
+                                ? "Corect! Great job!"
+                                : "Not quite, but that's okay! Learning from mistakes is part of the journey."}
                         </p>
                     </div>
                 )}
@@ -198,19 +210,19 @@ export function ReadingTestStep({ selfAssessment, data, onUpdate }: ReadingTestS
                         </Button>
                     ) : (
                         <div className="text-sm text-muted-foreground flex items-center gap-2">
-                            ✓ Reading test complete! Click "Continue" above to proceed.
+                            Reading test complete! Click &quot;Continue&quot; above to proceed.
                         </div>
                     )}
                 </div>
 
                 {/* Progress indicators */}
                 <div className="flex justify-center gap-2 pt-4">
-                    {READING_QUESTIONS.map((_, index) => {
+                    {questions.map((q, index) => {
                         const answered = answers.some(
-                            (a) => a.questionId === READING_QUESTIONS[index].id
+                            (a) => a.questionId === q.id
                         );
                         const isCorrect = answers.find(
-                            (a) => a.questionId === READING_QUESTIONS[index].id
+                            (a) => a.questionId === q.id
                         )?.correct;
 
                         return (

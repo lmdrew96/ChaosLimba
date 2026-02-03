@@ -1,7 +1,18 @@
 import { db } from './index';
-import { errorLogs, NewErrorLog, ErrorSource, ErrorType } from './schema';
+import {
+  errorLogs,
+  NewErrorLog,
+  ErrorSource,
+  ErrorType,
+  sessions,
+  mysteryItems,
+  stressMinimalPairs,
+  suggestedQuestions,
+  readingQuestions,
+  tutorOpeningMessages,
+} from './schema';
 import { ExtractedErrorPattern } from '@/types/aggregator';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, asc, desc, gte, sql, count as drizzleCount } from 'drizzle-orm';
 
 /**
  * Saves error patterns from the Feedback Aggregator to the Error Garden database
@@ -172,6 +183,285 @@ export async function getUserErrorPatternsForContent(
     .slice(0, limit);
 
   return patterns;
+}
+
+/**
+ * Fetches suggested pronunciation words and their stress minimal pairs.
+ * Returns a list of suggested words and a record mapping each word to its stress variants.
+ */
+export async function getSuggestedWordsWithPairs(): Promise<{
+  words: string[];
+  pairs: Record<string, { stress: string; meaning: string; example: string }[]>;
+}> {
+  const rows = await db
+    .select()
+    .from(stressMinimalPairs);
+
+  // Extract unique suggested words
+  const suggestedSet = new Set<string>();
+  const pairs: Record<string, { stress: string; meaning: string; example: string }[]> = {};
+
+  for (const row of rows) {
+    if (row.isSuggested) {
+      suggestedSet.add(row.word);
+    }
+    if (!pairs[row.word]) {
+      pairs[row.word] = [];
+    }
+    pairs[row.word].push({
+      stress: row.stress,
+      meaning: row.meaning,
+      example: row.example,
+    });
+  }
+
+  return {
+    words: Array.from(suggestedSet),
+    pairs,
+  };
+}
+
+/**
+ * Fetches active suggested questions for the Ask Tutor page.
+ */
+export async function getActiveSuggestedQuestions(): Promise<string[]> {
+  const rows = await db
+    .select({ question: suggestedQuestions.question })
+    .from(suggestedQuestions)
+    .where(eq(suggestedQuestions.isActive, true))
+    .orderBy(asc(suggestedQuestions.sortOrder));
+
+  return rows.map((r) => r.question);
+}
+
+/**
+ * Fetches active reading comprehension questions for onboarding.
+ */
+export async function getActiveReadingQuestions() {
+  const rows = await db
+    .select()
+    .from(readingQuestions)
+    .where(eq(readingQuestions.isActive, true))
+    .orderBy(asc(readingQuestions.sortOrder));
+
+  return rows.map((r) => ({
+    id: r.id,
+    level: r.level,
+    passage: r.passage,
+    question: r.question,
+    options: r.options,
+    correctIndex: r.correctIndex,
+  }));
+}
+
+/**
+ * Fetches tutor opening messages keyed by self-assessment level.
+ */
+export async function getTutorOpeningMessages(): Promise<Record<string, string>> {
+  const rows = await db
+    .select({
+      key: tutorOpeningMessages.selfAssessmentKey,
+      message: tutorOpeningMessages.message,
+    })
+    .from(tutorOpeningMessages)
+    .where(eq(tutorOpeningMessages.isActive, true));
+
+  const messages: Record<string, string> = {};
+  for (const row of rows) {
+    messages[row.key] = row.message;
+  }
+  return messages;
+}
+
+// ─── Dashboard Stats Queries ───
+
+export interface DashboardStats {
+  wordsCollected: number;
+  practiceStreak: number; // consecutive days with sessions
+  errorPatterns: number;
+  timeTodayMinutes: number;
+}
+
+export interface RecentActivityItem {
+  action: string;
+  item: string;
+  context: string;
+  time: string;
+}
+
+/**
+ * Returns dashboard stats: words collected, practice streak, error patterns, time today.
+ */
+export async function getDashboardStats(userId: string): Promise<DashboardStats> {
+  // Run all queries in parallel
+  const [wordsResult, errorPatternsResult, todaySessionsResult, streakDays] = await Promise.all([
+    // Words collected = mystery shelf items count
+    db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(mysteryItems)
+      .where(eq(mysteryItems.userId, userId)),
+
+    // Error patterns count (distinct errorType + category combos)
+    db
+      .select({ count: sql<number>`count(distinct concat(${errorLogs.errorType}, ':', coalesce(${errorLogs.category}, 'general')))::int` })
+      .from(errorLogs)
+      .where(eq(errorLogs.userId, userId)),
+
+    // Time today = sum of durationSeconds for today's sessions
+    db
+      .select({ totalSeconds: sql<number>`coalesce(sum(${sessions.durationSeconds}), 0)::int` })
+      .from(sessions)
+      .where(
+        and(
+          eq(sessions.userId, userId),
+          gte(sessions.startedAt, sql`current_date`)
+        )
+      ),
+
+    // Practice streak: get distinct session dates descending, count consecutive from today
+    calculatePracticeStreak(userId),
+  ]);
+
+  return {
+    wordsCollected: wordsResult[0]?.count ?? 0,
+    practiceStreak: streakDays,
+    errorPatterns: errorPatternsResult[0]?.count ?? 0,
+    timeTodayMinutes: Math.round((todaySessionsResult[0]?.totalSeconds ?? 0) / 60),
+  };
+}
+
+/**
+ * Calculate consecutive days with at least one session, counting back from today.
+ */
+async function calculatePracticeStreak(userId: string): Promise<number> {
+  const rows = await db
+    .select({ day: sql<string>`date(${sessions.startedAt})` })
+    .from(sessions)
+    .where(eq(sessions.userId, userId))
+    .groupBy(sql`date(${sessions.startedAt})`)
+    .orderBy(desc(sql`date(${sessions.startedAt})`));
+
+  if (rows.length === 0) return 0;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  let streak = 0;
+  let expected = new Date(today);
+
+  for (const row of rows) {
+    const sessionDay = new Date(row.day);
+    sessionDay.setHours(0, 0, 0, 0);
+
+    // Allow today or yesterday as the first day
+    if (streak === 0) {
+      const diffFromToday = Math.floor((today.getTime() - sessionDay.getTime()) / (1000 * 60 * 60 * 24));
+      if (diffFromToday > 1) break; // No session today or yesterday
+      expected = new Date(sessionDay);
+    }
+
+    if (sessionDay.getTime() === expected.getTime()) {
+      streak++;
+      expected.setDate(expected.getDate() - 1);
+    } else {
+      break;
+    }
+  }
+
+  return streak;
+}
+
+/**
+ * Get recent activity items for the dashboard.
+ * Combines mystery shelf additions, sessions, and error logs.
+ */
+export async function getRecentActivity(userId: string, limit: number = 5): Promise<RecentActivityItem[]> {
+  // Fetch recent items from each source in parallel
+  const [recentWords, recentSessions, recentErrors] = await Promise.all([
+    db
+      .select()
+      .from(mysteryItems)
+      .where(eq(mysteryItems.userId, userId))
+      .orderBy(desc(mysteryItems.createdAt))
+      .limit(limit),
+
+    db
+      .select()
+      .from(sessions)
+      .where(eq(sessions.userId, userId))
+      .orderBy(desc(sessions.startedAt))
+      .limit(limit),
+
+    db
+      .select()
+      .from(errorLogs)
+      .where(eq(errorLogs.userId, userId))
+      .orderBy(desc(errorLogs.createdAt))
+      .limit(limit),
+  ]);
+
+  const activities: (RecentActivityItem & { timestamp: Date })[] = [];
+
+  for (const word of recentWords) {
+    activities.push({
+      action: 'Collected',
+      item: word.word,
+      context: word.source === 'deep_fog' ? 'from Deep Fog reading' : 'added manually',
+      time: '',
+      timestamp: word.createdAt,
+    });
+  }
+
+  for (const session of recentSessions) {
+    const typeLabel = session.sessionType === 'chaos_window' ? 'Chaos Window'
+      : session.sessionType === 'deep_fog' ? 'Deep Fog'
+      : session.sessionType === 'content' ? 'Content'
+      : 'Mystery Shelf';
+    const duration = session.durationSeconds
+      ? `${Math.round(session.durationSeconds / 60)} min`
+      : '';
+    activities.push({
+      action: 'Practiced',
+      item: typeLabel,
+      context: duration ? `${duration} session` : 'session started',
+      time: '',
+      timestamp: session.startedAt,
+    });
+  }
+
+  for (const error of recentErrors) {
+    activities.push({
+      action: 'Logged error',
+      item: error.context || error.errorType,
+      context: `${error.errorType} in ${error.source === 'chaos_window' ? 'Chaos Window' : 'Content'}`,
+      time: '',
+      timestamp: error.createdAt,
+    });
+  }
+
+  // Sort by timestamp descending
+  activities.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+
+  // Format relative time and take top N
+  return activities.slice(0, limit).map(({ timestamp, ...rest }) => ({
+    ...rest,
+    time: formatRelativeTime(timestamp),
+  }));
+}
+
+function formatRelativeTime(date: Date): string {
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMinutes = Math.floor(diffMs / (1000 * 60));
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffMinutes < 1) return 'Just now';
+  if (diffMinutes < 60) return `${diffMinutes} min ago`;
+  if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+  if (diffDays === 1) return 'Yesterday';
+  if (diffDays < 7) return `${diffDays} days ago`;
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
 /**

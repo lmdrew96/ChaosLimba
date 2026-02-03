@@ -167,14 +167,11 @@ export async function POST(req: NextRequest) {
           console.log(`[AggregateFeedback] Pronunciation analysis complete, score: ${pronunciationResult.overallPronunciationScore}`);
         } catch (pronError) {
           console.error('[AggregateFeedback] Pronunciation analysis failed:', pronError);
-          // Fall back to mock
-          pronunciationResult = FeedbackAggregator.createMockPronunciationResult(75);
-          console.log('[AggregateFeedback] Using mock pronunciation result (fallback)');
+          // Pronunciation unavailable - aggregator will rebalance scoring
+          console.log('[AggregateFeedback] Pronunciation analysis failed, skipping');
         }
       } else {
-        // Use mock pronunciation result if no audio file
-        pronunciationResult = FeedbackAggregator.createMockPronunciationResult(75);
-        console.log('[AggregateFeedback] No audio file provided, using mock pronunciation result');
+        console.log('[AggregateFeedback] No audio file provided, pronunciation unavailable');
       }
 
       // Run intonation check if stress patterns provided

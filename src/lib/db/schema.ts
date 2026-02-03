@@ -228,3 +228,64 @@ export const generatedContent = pgTable('generated_content', {
 export type GeneratedContent = typeof generatedContent.$inferSelect;
 export type NewGeneratedContent = typeof generatedContent.$inferInsert;
 
+// CEFR level type
+export const cefrLevelEnum = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'] as const;
+export type CEFRLevelEnum = (typeof cefrLevelEnum)[number];
+
+// Stress minimal pairs table - pronunciation practice words with stress variants
+export const stressMinimalPairs = pgTable('stress_minimal_pairs', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  word: text('word').notNull(),
+  stress: text('stress').notNull(),
+  meaning: text('meaning').notNull(),
+  example: text('example').notNull(),
+  isSuggested: pgBoolean('is_suggested').default(false).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export type StressMinimalPair = typeof stressMinimalPairs.$inferSelect;
+export type NewStressMinimalPair = typeof stressMinimalPairs.$inferInsert;
+
+// Suggested questions table - curated questions for Ask Tutor page
+export const suggestedQuestions = pgTable('suggested_questions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  question: text('question').notNull(),
+  category: text('category'),
+  cefrLevel: text('cefr_level').$type<CEFRLevelEnum>(),
+  isActive: pgBoolean('is_active').default(true).notNull(),
+  sortOrder: integer('sort_order').default(0).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export type SuggestedQuestion = typeof suggestedQuestions.$inferSelect;
+export type NewSuggestedQuestion = typeof suggestedQuestions.$inferInsert;
+
+// Reading questions table - reading comprehension questions for onboarding
+export const readingQuestions = pgTable('reading_questions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  level: text('level').$type<CEFRLevelEnum>().notNull(),
+  passage: text('passage').notNull(),
+  question: text('question').notNull(),
+  options: jsonb('options').$type<string[]>().notNull(),
+  correctIndex: integer('correct_index').notNull(),
+  isActive: pgBoolean('is_active').default(true).notNull(),
+  sortOrder: integer('sort_order').default(0).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export type ReadingQuestion = typeof readingQuestions.$inferSelect;
+export type NewReadingQuestion = typeof readingQuestions.$inferInsert;
+
+// Tutor opening messages table - onboarding tutor greeting messages by self-assessment level
+export const tutorOpeningMessages = pgTable('tutor_opening_messages', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  selfAssessmentKey: text('self_assessment_key').notNull().unique(),
+  message: text('message').notNull(),
+  isActive: pgBoolean('is_active').default(true).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export type TutorOpeningMessage = typeof tutorOpeningMessages.$inferSelect;
+export type NewTutorOpeningMessage = typeof tutorOpeningMessages.$inferInsert;
+

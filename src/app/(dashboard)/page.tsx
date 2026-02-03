@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import {
@@ -15,39 +16,23 @@ import {
   GraduationCap,
   Speech,
   Brain,
+  Loader2,
 } from "lucide-react"
 import Link from "next/link"
 
-const stats = [
-  {
-    label: "Words Collected",
-    value: "47",
-    icon: BookOpen,
-    color: "text-amber-400",
-    bgColor: "bg-amber-500/10",
-  },
-  {
-    label: "Practice Streak",
-    value: "5 days",
-    icon: Zap,
-    color: "text-orange-400",
-    bgColor: "bg-orange-500/10",
-  },
-  {
-    label: "Error Patterns",
-    value: "4",
-    icon: Flower2,
-    color: "text-green-400",
-    bgColor: "bg-green-500/10",
-  },
-  {
-    label: "Time Today",
-    value: "23 min",
-    icon: Clock,
-    color: "text-purple-400",
-    bgColor: "bg-purple-500/10",
-  },
-]
+interface DashboardStats {
+  wordsCollected: number
+  practiceStreak: number
+  errorPatterns: number
+  timeTodayMinutes: number
+}
+
+interface RecentActivityItem {
+  action: string
+  item: string
+  context: string
+  time: string
+}
 
 const quickActions = [
   {
@@ -84,29 +69,60 @@ const quickActions = [
   },
 ]
 
-
-const recentActivity = [
-  {
-    action: "Collected",
-    item: "îndoielnic",
-    context: "from Deep Fog reading",
-    time: "10 min ago",
-  },
-  {
-    action: "Practiced",
-    item: "Genitive case",
-    context: "in Chaos Window",
-    time: "2 hours ago",
-  },
-  {
-    action: "Explored",
-    item: "răbdător",
-    context: "etymology and usage",
-    time: "Yesterday",
-  },
-]
-
 export default function DashboardPage() {
+  const [stats, setStats] = useState<DashboardStats | null>(null)
+  const [recentActivity, setRecentActivity] = useState<RecentActivityItem[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    async function fetchDashboardData() {
+      try {
+        const res = await fetch("/api/dashboard/stats")
+        if (res.ok) {
+          const data = await res.json()
+          setStats(data.stats)
+          setRecentActivity(data.recentActivity)
+        }
+      } catch (error) {
+        console.error("Failed to fetch dashboard stats:", error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchDashboardData()
+  }, [])
+
+  const statCards = [
+    {
+      label: "Words Collected",
+      value: stats ? String(stats.wordsCollected) : "—",
+      icon: BookOpen,
+      color: "text-amber-400",
+      bgColor: "bg-amber-500/10",
+    },
+    {
+      label: "Practice Streak",
+      value: stats ? `${stats.practiceStreak} day${stats.practiceStreak !== 1 ? "s" : ""}` : "—",
+      icon: Zap,
+      color: "text-orange-400",
+      bgColor: "bg-orange-500/10",
+    },
+    {
+      label: "Error Patterns",
+      value: stats ? String(stats.errorPatterns) : "—",
+      icon: Flower2,
+      color: "text-green-400",
+      bgColor: "bg-green-500/10",
+    },
+    {
+      label: "Time Today",
+      value: stats ? `${stats.timeTodayMinutes} min` : "—",
+      icon: Clock,
+      color: "text-purple-400",
+      bgColor: "bg-purple-500/10",
+    },
+  ]
+
   return (
     <div className="space-y-8 max-w-6xl mx-auto">
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-background via-primary/10 to-background p-8 border border-borders">
@@ -145,7 +161,7 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {stats.map((stat) => (
+        {statCards.map((stat) => (
           <Card
             key={stat.label}
             className="rounded-xl border-border/40 bg-card/50 backdrop-blur"
@@ -156,7 +172,11 @@ export default function DashboardPage() {
                   <stat.icon className={`h-5 w-5 ${stat.color}`} />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">{stat.value}</p>
+                  {isLoading ? (
+                    <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                  ) : (
+                    <p className="text-2xl font-bold">{stat.value}</p>
+                  )}
                   <p className="text-xs text-muted-foreground">{stat.label}</p>
                 </div>
               </div>
@@ -208,30 +228,40 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {recentActivity.map((activity, i) => (
-                <div
-                  key={i}
-                  className="flex items-start gap-3 pb-4 border-b border-border/40 last:border-0 last:pb-0"
-                >
-                  <div className="mt-1 h-2 w-2 rounded-full bg-primary animate-pulse" />
-                  <div className="flex-1">
-                    <p className="text-sm">
-                      <span className="text-muted-foreground">
-                        {activity.action}
-                      </span>{" "}
-                      <span className="font-medium text-primary">
-                        {activity.item}
-                      </span>
-                    </p>
+              {isLoading ? (
+                <div className="flex justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                </div>
+              ) : recentActivity.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-8">
+                  No activity yet. Start a Chaos Session to get going!
+                </p>
+              ) : (
+                recentActivity.map((activity, i) => (
+                  <div
+                    key={i}
+                    className="flex items-start gap-3 pb-4 border-b border-border/40 last:border-0 last:pb-0"
+                  >
+                    <div className="mt-1 h-2 w-2 rounded-full bg-primary animate-pulse" />
+                    <div className="flex-1">
+                      <p className="text-sm">
+                        <span className="text-muted-foreground">
+                          {activity.action}
+                        </span>{" "}
+                        <span className="font-medium text-primary">
+                          {activity.item}
+                        </span>
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {activity.context}
+                      </p>
+                    </div>
                     <p className="text-xs text-muted-foreground">
-                      {activity.context}
+                      {activity.time}
                     </p>
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    {activity.time}
-                  </p>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </CardContent>
         </Card>

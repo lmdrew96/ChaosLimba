@@ -5,14 +5,12 @@ import {
   ExtractedErrorPattern,
   ScoringWeights,
   DEFAULT_WEIGHTS,
-  PronunciationResult
 } from '../../types/aggregator';
 
 // Re-export types for external use
 export type { AggregatorInput, AggregatedReport };
 import { GrammarResult, GrammarError } from './grammar';
 import { SpamAResult } from './spamA';
-import { SpamBResult } from './spamB';
 import { IntonationWarning } from '../../types/intonation';
 
 /**
@@ -253,43 +251,4 @@ export class FeedbackAggregator {
     return 'low';
   }
 
-  /**
-   * Creates a mock pronunciation result for testing (placeholder until pronunciation model is implemented)
-   */
-  static createMockPronunciationResult(score: number = 75): PronunciationResult {
-    return {
-      phonemeScore: score,
-      stressAccuracy: score,
-      overallPronunciationScore: score,
-      detectedErrors: score < 80 ? [
-        {
-          phoneme: 'î',
-          expected: 'ɨ',
-          actual: 'i',
-          severity: 'medium',
-          position: 2
-        }
-      ] : []
-    };
-  }
-
-  /**
-   * Creates a mock intonation result for testing
-   */
-  static createMockIntonationResult(hasWarnings: boolean = false) {
-    return {
-      warnings: hasWarnings ? [
-        {
-          word: 'torturi',
-          position: 3,
-          expected_stress: 'TOR-tu-ri',
-          user_stress: 'tor-TU-ri',
-          expected_meaning: 'cakes',
-          actual_meaning: 'tortures',
-          severity: 'high' as const,
-          explanation: 'Stress pattern changes the meaning from "cakes" to "tortures"'
-        }
-      ] : []
-    };
-  }
 }

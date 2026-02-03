@@ -457,6 +457,11 @@ export default function ChaosWindowPage() {
       }
     }
 
+    if (!sessionId) {
+      setError("Session not ready. Please wait a moment and try again.")
+      return
+    }
+
     setError(null)
     setIsSubmitting(true)
     setIsLoadingAI(true)
@@ -482,7 +487,7 @@ export default function ChaosWindowPage() {
             userResponse: response.trim(),
             context: currentContext,
             errorPatterns: errorPatterns,
-            sessionId: sessionId || "demo-session",
+            sessionId,
             modality: "text"
           })
         })
@@ -491,7 +496,7 @@ export default function ChaosWindowPage() {
         const formData = new FormData()
         formData.append('audio', audioBlob!, 'response.webm')
         formData.append('context', currentContext)
-        formData.append('sessionId', sessionId || 'demo-session')
+        formData.append('sessionId', sessionId)
         formData.append('modality', 'speech')
         formData.append('errorPatterns', JSON.stringify(errorPatterns))
 
@@ -842,7 +847,7 @@ export default function ChaosWindowPage() {
                         ? "bg-primary/70 hover:bg-primary/50 rounded-xl w-full"
                         : "bg-primary/70 hover:bg-primary/50 rounded-xl w-full"
                       }
-                      disabled={isSubmitting || (modality === "text" ? response.trim().length < 5 : !audioBlob)}
+                      disabled={isSubmitting || !sessionId || (modality === "text" ? response.trim().length < 5 : !audioBlob)}
                     >
                       {isSubmitting ? (
                         <>

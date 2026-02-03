@@ -29,9 +29,35 @@ describe('FeedbackAggregator', () => {
     modelUsed: 'test-model'
   };
 
-  const mockPronunciationResult = FeedbackAggregator.createMockPronunciationResult(75);
+  const mockPronunciationResult = {
+    phonemeScore: 75,
+    stressAccuracy: 75,
+    overallPronunciationScore: 75,
+    detectedErrors: [
+      {
+        phoneme: 'î',
+        expected: 'ɨ',
+        actual: 'i',
+        severity: 'medium' as const,
+        position: 2
+      }
+    ]
+  };
 
-  const mockIntonationResult = FeedbackAggregator.createMockIntonationResult(true);
+  const mockIntonationResult = {
+    warnings: [
+      {
+        word: 'torturi',
+        position: 3,
+        expected_stress: 'TOR-tu-ri',
+        user_stress: 'tor-TU-ri',
+        expected_meaning: 'cakes',
+        actual_meaning: 'tortures',
+        severity: 'high' as const,
+        explanation: 'Stress pattern changes the meaning from "cakes" to "tortures"'
+      }
+    ]
+  };
 
   describe('Text Input Path', () => {
     it('should aggregate text input correctly', async () => {
@@ -276,39 +302,4 @@ describe('FeedbackAggregator', () => {
     });
   });
 
-  describe('Mock Data Helpers', () => {
-    it('should create mock pronunciation result with correct structure', () => {
-      const result = FeedbackAggregator.createMockPronunciationResult(85);
-
-      expect(result).toMatchObject({
-        phonemeScore: 85,
-        stressAccuracy: 85,
-        overallPronunciationScore: 85
-      });
-
-      if (result.overallPronunciationScore < 80) {
-        expect(result.detectedErrors).toHaveLength(1);
-        expect(result.detectedErrors[0]).toMatchObject({
-          phoneme: 'î',
-          severity: 'medium'
-        });
-      }
-    });
-
-    it('should create mock intonation result with correct structure', () => {
-      const result = FeedbackAggregator.createMockIntonationResult(true);
-
-      expect(result.warnings).toHaveLength(1);
-      expect(result.warnings[0]).toMatchObject({
-        word: 'torturi',
-        severity: 'high'
-      });
-    });
-
-    it('should create mock intonation result without warnings', () => {
-      const result = FeedbackAggregator.createMockIntonationResult(false);
-
-      expect(result.warnings).toHaveLength(0);
-    });
-  });
 });

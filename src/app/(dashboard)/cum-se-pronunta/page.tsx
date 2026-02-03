@@ -13,46 +13,7 @@ import {
   AlertCircle,
 } from "lucide-react"
 
-// Static list of suggested words from STRESS_MINIMAL_PAIRS
-const SUGGESTED_WORDS = [
-  "torturi",
-  "masa",
-  "copii",
-  "cara",
-  "acum",
-  "mintea",
-  "politica",
-  "orice",
-  "vedere",
-  "omul",
-]
-
-// Minimal pairs info (client-side subset for display)
-const MINIMAL_PAIRS: Record<
-  string,
-  { stress: string; meaning: string; example: string }[]
-> = {
-  torturi: [
-    { stress: "TOR-tu-ri", meaning: "cakes", example: "Vreau două torturi de ciocolată." },
-    { stress: "tor-TU-ri", meaning: "tortures", example: "Torturile din război au fost oribile." },
-  ],
-  masa: [
-    { stress: "MA-sa", meaning: "table", example: "Pune cartea pe masă." },
-    { stress: "ma-SA", meaning: "mass/crowd", example: "Masa de oameni se aduna în piață." },
-  ],
-  copii: [
-    { stress: "CO-pii", meaning: "children", example: "Copiii se joacă în parc." },
-    { stress: "co-PII", meaning: "copies", example: "Fă trei copii ale documentului." },
-  ],
-  cara: [
-    { stress: "CA-ra", meaning: "face (noun)", example: "Are o față frumoasă." },
-    { stress: "ca-RA", meaning: "gray (color)", example: "Cerul e cărăși gri astăzi." },
-  ],
-  acum: [
-    { stress: "A-cum", meaning: "now", example: "Trebuie să plec acum." },
-    { stress: "a-CUM", meaning: "just now/recently", example: "Acum am ajuns acasă." },
-  ],
-}
+type PairData = { stress: string; meaning: string; example: string }
 
 export default function CumSePronuntaPage() {
   const [targetText, setTargetText] = useState("")
@@ -63,14 +24,35 @@ export default function CumSePronuntaPage() {
   const [error, setError] = useState<string | null>(null)
   const [usage, setUsage] = useState<{ used: number; remaining: number; dailyLimit: number } | null>(null)
 
+  // DB-fetched content
+  const [suggestedWords, setSuggestedWords] = useState<string[]>([])
+  const [minimalPairsData, setMinimalPairsData] = useState<Record<string, PairData[]>>({})
+  const [isLoadingContent, setIsLoadingContent] = useState(true)
+
   const audioRef = useRef<HTMLAudioElement | null>(null)
   // Cache: text+speed → blob URL
   const audioCacheRef = useRef<Map<string, string>>(new Map())
 
-  // Fetch usage on mount
+  // Fetch suggested words and usage on mount
   useEffect(() => {
     fetchUsage()
+    fetchSuggestedWords()
   }, [])
+
+  async function fetchSuggestedWords() {
+    try {
+      const res = await fetch("/api/pronunciation/suggested-words")
+      if (res.ok) {
+        const data = await res.json()
+        setSuggestedWords(data.words)
+        setMinimalPairsData(data.pairs)
+      }
+    } catch {
+      // Non-critical: suggested words just won't show
+    } finally {
+      setIsLoadingContent(false)
+    }
+  }
 
   async function fetchUsage() {
     try {
@@ -214,7 +196,7 @@ export default function CumSePronuntaPage() {
     }
   }, [])
 
-  const minimalPairs = targetText ? MINIMAL_PAIRS[targetText.toLowerCase()] : null
+  const minimalPairs = targetText ? minimalPairsData[targetText.toLowerCase()] : null
   const limitReached = usage ? usage.remaining <= 0 : false
 
   return (
@@ -255,23 +237,31 @@ export default function CumSePronuntaPage() {
           </form>
 
           {/* Suggested words */}
-          <div className="space-y-2">
-            <p className="text-xs text-muted-foreground uppercase tracking-wide font-semibold">
-              Try these stress minimal pairs
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {SUGGESTED_WORDS.map((word) => (
-                <button
-                  key={word}
-                  onClick={() => handleSuggestedWord(word)}
-                  disabled={isLoading || limitReached}
-                  className="px-3 py-1 rounded-full bg-muted text-sm text-foreground hover:bg-accent/20 transition-colors disabled:opacity-50"
-                >
-                  {word}
-                </button>
-              ))}
+          {suggestedWords.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-xs text-muted-foreground uppercase tracking-wide font-semibold">
+                Try these stress minimal pairs
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {suggestedWords.map((word) => (
+                  <button
+                    key={word}
+                    onClick={() => handleSuggestedWord(word)}
+                    disabled={isLoading || limitReached}
+                    className="px-3 py-1 rounded-full bg-muted text-sm text-foreground hover:bg-accent/20 transition-colors disabled:opacity-50"
+                  >
+                    {word}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
+          {isLoadingContent && (
+            <div className="flex items-center gap-2 text-muted-foreground text-sm">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Loading suggested words...
+            </div>
+          )}
         </CardContent>
       </Card>
 

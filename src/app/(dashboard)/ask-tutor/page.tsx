@@ -12,15 +12,6 @@ type Message = {
   content: string
 }
 
-const SUGGESTED_QUESTIONS = [
-  "Explain the Romanian genitive case",
-  "What's the difference between pe and la?",
-  "How do verb conjugations work in Romanian?",
-  "Tell me about Romanian diacritics",
-  "What are the Romanian definite articles?",
-  "How does word order work in Romanian?",
-]
-
 export default function AskTutorPage() {
   const searchParams = useSearchParams()
   const [messages, setMessages] = useState<Message[]>([])
@@ -29,6 +20,7 @@ export default function AskTutorPage() {
   const [error, setError] = useState<string | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const [suggestedQuestions, setSuggestedQuestions] = useState<string[]>([])
 
   // Handle pre-filled question from URL (e.g., from Ce înseamnă? "Ask Tutor about this")
   useEffect(() => {
@@ -37,6 +29,22 @@ export default function AskTutorPage() {
       setInput(prefilled)
     }
   }, [searchParams, messages.length])
+
+  // Fetch suggested questions from DB
+  useEffect(() => {
+    async function fetchSuggestions() {
+      try {
+        const res = await fetch("/api/ask-tutor/suggested-questions")
+        if (res.ok) {
+          const data = await res.json()
+          setSuggestedQuestions(data.questions)
+        }
+      } catch {
+        // Non-critical
+      }
+    }
+    fetchSuggestions()
+  }, [])
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
@@ -142,7 +150,7 @@ export default function AskTutorPage() {
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-2 justify-center max-w-md">
-                  {SUGGESTED_QUESTIONS.map((q) => (
+                  {suggestedQuestions.map((q) => (
                     <button
                       key={q}
                       onClick={() => sendMessage(q)}
