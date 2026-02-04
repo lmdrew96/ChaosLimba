@@ -173,7 +173,7 @@ export default function MysteryShelfPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2 text-foreground">
-            <CrystalBall className="h-7 w-7 text-indigo-400" />
+            <CrystalBall className="h-7 w-7 text-accent" />
             Mystery Shelf
           </h1>
           <p className="text-muted-foreground">
@@ -184,7 +184,7 @@ export default function MysteryShelfPage() {
         <div className="flex gap-2 items-center">
           <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-accent hover:bg-accent/50 text-white">
+              <Button className="bg-accent hover:bg-accent/50 text-foreground">
                 <Plus className="h-4 w-4 mr-2" />
                 Add Item
               </Button>
@@ -282,7 +282,7 @@ export default function MysteryShelfPage() {
                     </div>
                     <div className="flex items-center gap-2">
                       {item.isExplored ? (
-                        <span className="px-2 py-1 text-xs rounded-full bg-green-500/20 text-green-400 flex items-center gap-1">
+                        <span className="px-2 py-1 text-xs rounded-full bg-chart-4/20 text-chart-4 flex items-center gap-1">
                           <CheckCircle2 className="h-3 w-3" /> Explored
                         </span>
                       ) : (
@@ -335,7 +335,7 @@ export default function MysteryShelfPage() {
             {filteredItems.length === 0 && (
               <Card className="rounded-xl border-dashed border-2 border-border">
                 <CardContent className="p-8 text-center">
-                  <BookOpen className="h-12 w-12 mx-auto text-indigo-700 mb-4" />
+                  <BookOpen className="h-12 w-12 mx-auto text-accent mb-4" />
                   <p className="text-muted-foreground">No items to display</p>
                   <p className="text-sm text-muted-foreground/60">
                     Add items manually or from Deep Fog mode
@@ -420,7 +420,7 @@ export default function MysteryShelfPage() {
 
                 {!selectedItem.isExplored && (
                   <Button
-                    className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 rounded-xl mt-4"
+                    className="w-full bg-chart-4 hover:bg-chart-4/80 rounded-xl mt-4"
                     onClick={() => markExplored(selectedItem.id)}
                   >
                     <CheckCircle2 className="mr-2 h-4 w-4" />

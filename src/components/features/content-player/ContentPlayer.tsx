@@ -32,12 +32,12 @@ export function ContentPlayer({
         return (
           <div
             className={cn(
-              "rounded-xl bg-red-500/10 border border-red-500/20 p-4 flex items-center gap-3",
+              "rounded-xl bg-destructive/10 border border-destructive/20 p-4 flex items-center gap-3",
               className
             )}
           >
-            <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0" />
-            <span className="text-red-400">
+            <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0" />
+            <span className="text-destructive">
               Audio content is missing a URL
             </span>
           </div>
@@ -65,12 +65,12 @@ export function ContentPlayer({
         return (
           <div
             className={cn(
-              "rounded-xl bg-red-500/10 border border-red-500/20 p-4 flex items-center gap-3",
+              "rounded-xl bg-destructive/10 border border-destructive/20 p-4 flex items-center gap-3",
               className
             )}
           >
-            <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0" />
-            <span className="text-red-400">Text content is empty</span>
+            <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0" />
+            <span className="text-destructive">Text content is empty</span>
           </div>
         );
       }
@@ -87,12 +87,12 @@ export function ContentPlayer({
       return (
         <div
           className={cn(
-            "rounded-xl bg-yellow-500/10 border border-yellow-500/20 p-4 flex items-center gap-3",
+            "rounded-xl bg-chart-3/10 border border-chart-3/20 p-4 flex items-center gap-3",
             className
           )}
         >
-          <AlertCircle className="h-5 w-5 text-yellow-400 flex-shrink-0" />
-          <span className="text-yellow-400">
+          <AlertCircle className="h-5 w-5 text-chart-3 flex-shrink-0" />
+          <span className="text-chart-3">
             Unknown content type: {content.type}
           </span>
         </div>

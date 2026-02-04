@@ -21,17 +21,17 @@ type SortOption = "frequency" | "risk" | "count"
 type ViewMode = "grid" | "list"
 
 const errorTypeColors: Record<string, string> = {
-  grammar: "from-red-500 to-orange-500",
-  pronunciation: "from-amber-500 to-yellow-500",
-  vocabulary: "from-blue-500 to-cyan-500",
-  word_order: "from-purple-500 to-violet-500",
+  grammar: "from-destructive to-destructive/70",
+  pronunciation: "from-chart-3 to-chart-3/70",
+  vocabulary: "from-accent to-accent/70",
+  word_order: "from-primary to-primary/70",
 }
 
 const errorFilterColors: Record<string, string> = {
-  grammar: "bg-red-500/10 text-red-400 border-red-500/20",
-  pronunciation: "bg-amber-500/10 text-amber-400 border-amber-500/20",
-  vocabulary: "bg-blue-500/10 text-blue-400 border-blue-500/20",
-  word_order: "bg-purple-500/10 text-purple-400 border-purple-500/20",
+  grammar: "bg-destructive/10 text-destructive border-destructive/20",
+  pronunciation: "bg-chart-3/10 text-chart-3 border-chart-3/20",
+  vocabulary: "bg-accent/10 text-accent border-accent/20",
+  word_order: "bg-primary/10 text-primary border-primary/20",
 }
 
 const errorTypeLabels: Record<string, string> = {
@@ -127,7 +127,7 @@ export default function ErrorGardenPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-emerald-400" />
+        <Loader2 className="h-8 w-8 animate-spin text-chart-4" />
       </div>
     )
   }
@@ -137,17 +137,17 @@ export default function ErrorGardenPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
-          <h1 className="text-4xl font-bold flex items-center gap-3 bg-gradient-to-r from-emerald-400 to-teal-300 bg-clip-text text-transparent">
-            <Flower2 className="h-10 w-10 text-emerald-400" />
+          <h1 className="text-4xl font-bold flex items-center gap-3 bg-gradient-to-r from-chart-4 to-chart-4/80 bg-clip-text text-transparent">
+            <Flower2 className="h-10 w-10 text-chart-4" />
             Error Garden
           </h1>
-          <p className="text-emerald-200/80 mt-2 text-lg">
+          <p className="text-muted-foreground mt-2 text-lg">
             Your mistakes are your curriculum
           </p>
         </div>
         <div className="text-right hidden md:block">
-          <div className="text-sm font-semibold text-emerald-300">Milestone 3</div>
-          <div className="text-xs text-emerald-400/60">Interlanguage Theory (Selinker, 1972)</div>
+          <div className="text-sm font-semibold text-chart-4">Milestone 3</div>
+          <div className="text-xs text-chart-4/60">Interlanguage Theory (Selinker, 1972)</div>
         </div>
       </div>
 
@@ -184,17 +184,17 @@ export default function ErrorGardenPage() {
       </div>
 
       {/* Controls */}
-      <div className="flex flex-col sm:flex-row gap-4 justify-between items-center bg-white/5 p-4 rounded-xl border border-white/10 backdrop-blur-sm">
+      <div className="flex flex-col sm:flex-row gap-4 justify-between items-center bg-muted/30 p-4 rounded-xl border border-border backdrop-blur-sm">
         <div className="flex gap-2">
           <SortButton active={sortBy === "frequency"} onClick={() => setSortBy("frequency")}>Sort by Frequency</SortButton>
           <SortButton active={sortBy === "risk"} onClick={() => setSortBy("risk")}>Sort by Risk</SortButton>
           <SortButton active={sortBy === "count"} onClick={() => setSortBy("count")}>Sort by Count</SortButton>
         </div>
-        <div className="flex gap-2 bg-black/20 p-1 rounded-lg">
+        <div className="flex gap-2 bg-muted/30 p-1 rounded-lg">
           <Button
             variant="ghost"
             size="sm"
-            className={cn("h-8 w-8 p-0", viewMode === "grid" && "bg-white/10 text-white")}
+            className={cn("h-8 w-8 p-0", viewMode === "grid" && "bg-foreground/10 text-foreground")}
             onClick={() => setViewMode("grid")}
           >
             <LayoutGrid className="h-4 w-4" />
@@ -202,7 +202,7 @@ export default function ErrorGardenPage() {
           <Button
             variant="ghost"
             size="sm"
-            className={cn("h-8 w-8 p-0", viewMode === "list" && "bg-white/10 text-white")}
+            className={cn("h-8 w-8 p-0", viewMode === "list" && "bg-foreground/10 text-foreground")}
             onClick={() => setViewMode("list")}
           >
             <ListIcon className="h-4 w-4" />
@@ -223,8 +223,8 @@ export default function ErrorGardenPage() {
             className={cn(
               "px-3 py-1.5 rounded-full text-sm font-medium transition-all border",
               activeFilters.has(type)
-                ? "bg-white/20 border-white/40 text-white shadow-sm"
-                : cn(errorFilterColors[type], "hover:bg-white/5")
+                ? "bg-foreground/20 border-foreground/40 text-foreground shadow-sm"
+                : cn(errorFilterColors[type], "hover:bg-foreground/5")
             )}
           >
             {errorTypeLabels[type]}
@@ -236,7 +236,7 @@ export default function ErrorGardenPage() {
         {activeFilters.size > 0 && (
           <button
             onClick={clearFilters}
-            className="px-2 py-1 text-xs text-muted-foreground hover:text-white transition-colors flex items-center gap-1"
+            className="px-2 py-1 text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
           >
             <X className="h-3 w-3" />
             Clear
@@ -249,8 +249,8 @@ export default function ErrorGardenPage() {
       <div className="space-y-6">
 
         {error && (
-          <Card className="rounded-xl border-red-500/30 bg-red-500/5">
-            <CardContent className="p-5 text-center text-red-400">
+          <Card className="rounded-xl border-destructive/30 bg-destructive/5">
+            <CardContent className="p-5 text-center text-destructive">
               {error}
             </CardContent>
           </Card>
@@ -275,19 +275,19 @@ export default function ErrorGardenPage() {
       </div>
 
       {/* Footer / Theory */}
-      <Card className="rounded-2xl border-emerald-500/20 bg-gradient-to-br from-emerald-900/40 to-teal-900/40 backdrop-blur-sm">
+      <Card className="rounded-2xl border-chart-4/20 bg-gradient-to-br from-chart-4/10 to-chart-4/5 backdrop-blur-sm">
         <CardContent className="p-8">
-          <div className="flex items-center gap-3 mb-4 text-emerald-300">
+          <div className="flex items-center gap-3 mb-4 text-chart-4">
             <Lightbulb className="h-6 w-6" />
             <h3 className="text-xl font-bold">Theoretical Foundation</h3>
           </div>
-          <div className="grid md:grid-cols-2 gap-8 text-sm text-emerald-100/80">
+          <div className="grid md:grid-cols-2 gap-8 text-sm text-foreground/70">
             <div>
-              <strong className="block text-emerald-200 mb-2">Interlanguage Theory</strong>
+              <strong className="block text-foreground/80 mb-2">Interlanguage Theory</strong>
               <p>Learners develop systematic intermediate grammars. Error patterns reveal these internal rules, allowing us to target the underlying "bug" in your mental model rather than just correcting surface mistakes.</p>
             </div>
             <div>
-              <strong className="block text-emerald-200 mb-2">Fossilization Detection</strong>
+              <strong className="block text-foreground/80 mb-2">Fossilization Detection</strong>
               <p>Patterns appearing in &gt;70% of production opportunities indicate a high risk of fossilization. The system identifies these early to inject "chaos" (varied input/forced production) to destabilize the incorrect rule.</p>
             </div>
           </div>
@@ -306,10 +306,10 @@ export default function ErrorGardenPage() {
 
 function StatsCard({ label, value, subtext, icon: Icon, color }: any) {
   const colorClasses: Record<string, string> = {
-    emerald: "text-emerald-400 border-emerald-500/30 bg-emerald-500/5",
-    orange: "text-orange-400 border-orange-500/30 bg-orange-500/5",
-    blue: "text-blue-400 border-blue-500/30 bg-blue-500/5",
-    purple: "text-purple-400 border-purple-500/30 bg-purple-500/5",
+    emerald: "text-chart-4 border-chart-4/30 bg-chart-4/5",
+    orange: "text-destructive border-destructive/30 bg-destructive/5",
+    blue: "text-accent border-accent/30 bg-accent/5",
+    purple: "text-primary border-primary/30 bg-primary/5",
   }
   const theme = colorClasses[color] || colorClasses.emerald
 
@@ -334,8 +334,8 @@ function SortButton({ children, active, onClick }: { children: React.ReactNode, 
       className={cn(
         "px-4 py-2 rounded-lg text-sm transition-all font-medium",
         active
-          ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/20"
-          : "bg-white/5 hover:bg-white/10 text-muted-foreground hover:text-white"
+          ? "bg-chart-4 text-foreground shadow-lg shadow-chart-4/20"
+          : "bg-muted/20 hover:bg-muted/30 text-muted-foreground hover:text-foreground"
       )}
     >
       {children}
@@ -347,51 +347,51 @@ function PatternCard({ pattern, onClick }: { pattern: ErrorPattern, onClick: () 
   return (
     <div
       onClick={onClick}
-      className="group relative bg-black/20 backdrop-blur-sm rounded-xl p-5 border border-emerald-500/20 hover:border-emerald-400/50 transition-all cursor-pointer hover:scale-[1.01] hover:shadow-xl hover:shadow-emerald-900/20"
+      className="group relative bg-muted/30 backdrop-blur-sm rounded-xl p-5 border border-chart-4/20 hover:border-chart-4/50 transition-all cursor-pointer hover:scale-[1.01] hover:shadow-xl hover:shadow-chart-4/20"
     >
       {/* Hover Glow */}
-      <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/0 via-emerald-500/0 to-emerald-500/0 group-hover:via-emerald-500/5 rounded-xl transition-all duration-500" />
+      <div className="absolute inset-0 bg-gradient-to-r from-chart-4/0 via-chart-4/0 to-chart-4/0 group-hover:via-chart-4/5 rounded-xl transition-all duration-500" />
 
       <div className="relative flex justify-between items-start mb-4">
         <div>
-          <h3 className="text-xl font-bold text-slate-100 group-hover:text-emerald-300 transition-colors">
+          <h3 className="text-xl font-bold text-foreground group-hover:text-chart-4 transition-colors">
             {pattern.errorType}
           </h3>
           <div className="flex gap-2 mt-2">
-            <span className={cn("text-xs px-2 py-1 rounded border", errorFilterColors[pattern.errorType] || "border-slate-700 text-slate-400")}>
+            <span className={cn("text-xs px-2 py-1 rounded border", errorFilterColors[pattern.errorType] || "border-border text-muted-foreground")}>
               {pattern.category || "General"}
             </span>
             {pattern.isFossilizing && (
-              <span className="text-xs px-2 py-1 rounded border border-orange-500/50 bg-orange-500/10 text-orange-400 font-semibold animate-pulse">
+              <span className="text-xs px-2 py-1 rounded border border-destructive/50 bg-destructive/10 text-destructive font-semibold animate-pulse">
                 HIGH RISK
               </span>
             )}
           </div>
         </div>
         <div className="text-right">
-          <div className="text-3xl font-bold text-emerald-400">{pattern.frequency}%</div>
+          <div className="text-3xl font-bold text-chart-4">{pattern.frequency}%</div>
           <div className="text-xs text-muted-foreground">frequency</div>
         </div>
       </div>
 
       {/* Progress Bar */}
       <div className="mb-4 space-y-1">
-        <div className="flex justify-between text-xs text-slate-400">
+        <div className="flex justify-between text-xs text-muted-foreground">
           <span>Usage Accuracy</span>
           <span>{pattern.incorrectUsage} err / {pattern.incorrectUsage + pattern.correctUsage} total</span>
         </div>
-        <div className="h-2 bg-black/40 rounded-full overflow-hidden">
+        <div className="h-2 bg-muted/50 rounded-full overflow-hidden">
           <div
             className={cn(
               "h-full rounded-full bg-gradient-to-r transition-all duration-1000",
-              pattern.isFossilizing ? "from-orange-600 to-red-500" : "from-emerald-600 to-green-400"
+              pattern.isFossilizing ? "from-destructive to-destructive/70" : "from-chart-4 to-chart-4/70"
             )}
             style={{ width: `${pattern.frequency}%` }}
           />
         </div>
       </div>
 
-      <div className="flex items-center gap-2 text-xs text-slate-400/80 bg-black/20 p-2 rounded-lg">
+      <div className="flex items-center gap-2 text-xs text-muted-foreground/80 bg-muted/30 p-2 rounded-lg">
         <Info className="h-3 w-3" />
         <span className="truncate italic">"{pattern.interlanguageRule}"</span>
       </div>
@@ -401,10 +401,10 @@ function PatternCard({ pattern, onClick }: { pattern: ErrorPattern, onClick: () 
 
 function EmptyState() {
   return (
-    <Card className="rounded-xl border-dashed border-2 border-emerald-500/20 bg-emerald-500/5">
+    <Card className="rounded-xl border-dashed border-2 border-chart-4/20 bg-chart-4/5">
       <CardContent className="p-12 text-center text-muted-foreground">
-        <Flower2 className="h-16 w-16 mx-auto mb-4 text-emerald-500/20" />
-        <h3 className="font-semibold text-xl text-emerald-200 mb-2">Your garden awaits its first seeds</h3>
+        <Flower2 className="h-16 w-16 mx-auto mb-4 text-chart-4/20" />
+        <h3 className="font-semibold text-xl text-foreground/80 mb-2">Your garden awaits its first seeds</h3>
         <p className="max-w-md mx-auto mb-6">
           Complete Chaos Window sessions and create written production.
           The AI will analyze your output and plant "seeds" (errors) here for you to nurture.

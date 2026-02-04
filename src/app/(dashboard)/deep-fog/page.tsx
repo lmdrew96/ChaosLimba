@@ -43,14 +43,14 @@ const typeIcons = {
 
 const typeColors = {
   text: {
-    bg: "bg-blue-500/10",
-    text: "text-blue-400",
-    border: "border-blue-500/20",
+    bg: "bg-accent/10",
+    text: "text-accent",
+    border: "border-accent/20",
   },
   audio: {
-    bg: "bg-purple-500/10",
-    text: "text-purple-400",
-    border: "border-purple-500/20",
+    bg: "bg-primary/10",
+    text: "text-primary",
+    border: "border-primary/20",
   },
 };
 
@@ -176,7 +176,7 @@ export default function DeepFogPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Cloud className="h-7 w-7 text-indigo-300" />
+            <Cloud className="h-7 w-7 text-accent" />
             Deep Fog Mode
           </h1>
           <p className="text-muted-foreground">
@@ -205,7 +205,7 @@ export default function DeepFogPage() {
         <CardContent className="p-4">
           <div className="flex items-center gap-4 text-sm flex-wrap">
             <span className="text-foreground">Your level:</span>
-            <span className="px-2 py-1 rounded-full bg-green-500/20 text-green-400">
+            <span className="px-2 py-1 rounded-full bg-chart-4/20 text-chart-4">
               B1 Intermediate
             </span>
             <span className="text-foreground hidden sm:inline">•</span>
@@ -254,8 +254,8 @@ export default function DeepFogPage() {
 
       {/* Error state */}
       {error && (
-        <Card className="rounded-xl border-red-500/30 bg-red-500/10">
-          <CardContent className="p-4 text-center text-red-400">
+        <Card className="rounded-xl border-destructive/30 bg-destructive/10">
+          <CardContent className="p-4 text-center text-destructive">
             {error}
           </CardContent>
         </Card>
@@ -281,7 +281,7 @@ export default function DeepFogPage() {
                       <Icon className={`h-5 w-5 ${colors.text}`} />
                     </div>
                     <div className="flex gap-2">
-                      <span className="px-2 py-0.5 text-xs rounded-full bg-green-500/20 text-green-400">
+                      <span className="px-2 py-0.5 text-xs rounded-full bg-chart-4/20 text-chart-4">
                         {cefr}
                       </span>
                     </div>
@@ -328,12 +328,12 @@ export default function DeepFogPage() {
       {capturedWord && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] animate-in fade-in slide-in-from-bottom-4 duration-300">
           <div
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-white shadow-lg backdrop-blur-sm ${
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-foreground shadow-lg backdrop-blur-sm ${
               saveError
-                ? "bg-red-500/90"
+                ? "bg-destructive"
                 : savedWord
-                  ? "bg-green-500/90"
-                  : "bg-indigo-500/90"
+                  ? "bg-chart-4"
+                  : "bg-accent"
             }`}
           >
             {saveError ? (
@@ -357,10 +357,10 @@ export default function DeepFogPage() {
       {/* Content modal */}
       {selectedContent && (
         <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <Card className="max-w-4xl w-full max-h-[90vh] overflow-y-auto rounded-2xl border-indigo-500/30">
+          <Card className="max-w-4xl w-full max-h-[90vh] overflow-y-auto rounded-2xl border-accent/30">
             <CardHeader className="flex flex-row items-start justify-between sticky top-0 bg-card z-10 border-b border-border/40">
               <div className="flex items-center gap-2">
-                <span className="px-2 py-1 text-xs rounded-full bg-green-500/20 text-green-400">
+                <span className="px-2 py-1 text-xs rounded-full bg-chart-4/20 text-chart-4">
                   {difficultyToCEFR(selectedContent.difficultyLevel)} - Above
                   Your Level
                 </span>
@@ -386,9 +386,9 @@ export default function DeepFogPage() {
               />
 
               {/* Mystery Shelf hint */}
-              <Card className="rounded-xl border-border bg-indigo-400/10">
+              <Card className="rounded-xl border-border bg-accent/10">
                 <CardContent className="p-4">
-                  <p className="text-sm text-indigo-400 mb-2">
+                  <p className="text-sm text-accent mb-2">
                     {selectedContent.type === "text"
                       ? "Add words to your Mystery Shelf to explore later"
                       : "Use the 'Save Timestamp' button to capture moments for later review"}

@@ -54,12 +54,12 @@ export function WelcomeStep({ data, onUpdate }: WelcomeStepProps) {
     };
 
     return (
-        <Card className="border-purple-500/20 bg-card/50 backdrop-blur">
+        <Card className="border-primary/20 bg-card/50 backdrop-blur">
             <CardContent className="p-8 space-y-8">
                 {/* Welcome Header */}
                 <div className="text-center space-y-4">
                     <div className="text-6xl mb-4">🎭</div>
-                    <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-violet-300 bg-clip-text text-transparent">
+                    <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
                         Bine ai venit la ChaosLimbă!
                     </h1>
                     <p className="text-lg text-muted-foreground max-w-xl mx-auto">
@@ -82,8 +82,8 @@ export function WelcomeStep({ data, onUpdate }: WelcomeStepProps) {
                                 className={cn(
                                     "h-auto p-4 flex flex-col items-start gap-2 text-left transition-all duration-200",
                                     selected === option.value
-                                        ? "border-purple-500 bg-purple-500/10 ring-2 ring-purple-500/50"
-                                        : "border-border/50 hover:border-purple-500/50 hover:bg-purple-500/5"
+                                        ? "border-primary bg-primary/10 ring-2 ring-primary/50"
+                                        : "border-border/50 hover:border-primary/50 hover:bg-primary/5"
                                 )}
                             >
                                 <div className="flex items-center gap-3 w-full">
@@ -99,8 +99,8 @@ export function WelcomeStep({ data, onUpdate }: WelcomeStepProps) {
                 </div>
 
                 {/* Encouragement */}
-                <div className="rounded-xl bg-amber-500/5 border border-amber-500/20 p-4">
-                    <p className="text-sm text-amber-200/80 italic text-center">
+                <div className="rounded-xl bg-chart-3/5 border border-chart-3/20 p-4">
+                    <p className="text-sm text-muted-foreground italic text-center">
                         💡 Don't worry about getting this exactly right! <br />
                         The test ahead will help us fine-tune your level.
                     </p>

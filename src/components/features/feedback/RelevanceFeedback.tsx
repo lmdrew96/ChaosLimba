@@ -20,15 +20,15 @@ export function RelevanceFeedback({ relevance, className }: RelevanceFeedbackPro
   const isPartiallyRelevant = relevance.interpretation === 'partially_relevant';
 
   const getIcon = () => {
-    if (isOffTopic) return <AlertCircle className="h-5 w-5 text-red-500" />;
-    if (isPartiallyRelevant) return <AlertTriangle className="h-5 w-5 text-yellow-500" />;
-    return <Info className="h-5 w-5 text-blue-500" />;
+    if (isOffTopic) return <AlertCircle className="h-5 w-5 text-destructive" />;
+    if (isPartiallyRelevant) return <AlertTriangle className="h-5 w-5 text-chart-3" />;
+    return <Info className="h-5 w-5 text-accent" />;
   };
 
   const getBorderColor = () => {
-    if (isOffTopic) return 'border-red-500';
-    if (isPartiallyRelevant) return 'border-yellow-500';
-    return 'border-blue-500';
+    if (isOffTopic) return 'border-destructive';
+    if (isPartiallyRelevant) return 'border-chart-3';
+    return 'border-accent';
   };
 
   const getBadgeVariant = () => {

@@ -17,37 +17,37 @@ const CEFR_INFO = {
         title: "Beginner",
         description: "You can understand and use basic phrases and introduce yourself.",
         emoji: "🌱",
-        color: "from-green-500 to-emerald-500",
+        color: "from-chart-4 to-chart-4/80",
     },
     A2: {
         title: "Elementary",
         description: "You can communicate in simple tasks and describe your background.",
         emoji: "🌿",
-        color: "from-green-400 to-teal-500",
+        color: "from-chart-4 to-chart-4/70",
     },
     B1: {
         title: "Intermediate",
         description: "You can handle most travel situations and describe experiences.",
         emoji: "🌳",
-        color: "from-blue-500 to-cyan-500",
+        color: "from-accent to-accent/80",
     },
     B2: {
         title: "Upper Intermediate",
         description: "You can interact fluently and produce detailed text on various topics.",
         emoji: "🏔️",
-        color: "from-purple-500 to-indigo-500",
+        color: "from-primary to-accent",
     },
     C1: {
         title: "Advanced",
         description: "You can express yourself fluently and use language flexibly.",
         emoji: "⭐",
-        color: "from-amber-500 to-orange-500",
+        color: "from-chart-3 to-chart-3/80",
     },
     C2: {
         title: "Proficient",
         description: "You can understand virtually everything and express yourself spontaneously.",
         emoji: "🏆",
-        color: "from-rose-500 to-pink-500",
+        color: "from-secondary to-secondary/80",
     },
 };
 
@@ -58,7 +58,7 @@ export function ResultsStep({ data, onComplete }: ResultsStepProps) {
     const reasoning = data.tutor?.reasoning;
 
     return (
-        <Card className="border-purple-500/20 bg-card/50 backdrop-blur overflow-hidden">
+        <Card className="border-primary/20 bg-card/50 backdrop-blur overflow-hidden">
             <CardContent className="p-8 space-y-8">
                 {/* Celebration Header */}
                 <motion.div
@@ -92,7 +92,7 @@ export function ResultsStep({ data, onComplete }: ResultsStepProps) {
                 </motion.div>
 
                 {/* Sparkle animation */}
-                <div className="flex justify-center gap-4 text-purple-400">
+                <div className="flex justify-center gap-4 text-primary">
                     {[0, 1, 2].map((i) => (
                         <motion.div
                             key={i}
@@ -112,21 +112,21 @@ export function ResultsStep({ data, onComplete }: ResultsStepProps) {
                     transition={{ delay: 0.6 }}
                     className="space-y-4"
                 >
-                    <div className="p-4 rounded-xl bg-purple-500/10 border border-purple-500/20">
+                    <div className="p-4 rounded-xl bg-primary/10 border border-primary/20">
                         <div className="flex items-start gap-3">
-                            <div className="p-2 rounded-lg bg-purple-500/20">
-                                <MessageSquare className="h-5 w-5 text-purple-400" />
+                            <div className="p-2 rounded-lg bg-primary/20">
+                                <MessageSquare className="h-5 w-5 text-primary" />
                             </div>
                             <div className="flex-1">
                                 <div className="flex items-center gap-2 mb-2">
-                                    <h3 className="font-medium text-purple-300">Tutor Assessment</h3>
+                                    <h3 className="font-medium text-primary">Tutor Assessment</h3>
                                     <span className={cn(
                                         "px-2 py-0.5 rounded-full text-xs",
                                         confidence >= 0.8
-                                            ? "bg-green-500/20 text-green-400"
+                                            ? "bg-chart-4/20 text-chart-4"
                                             : confidence >= 0.5
-                                                ? "bg-amber-500/20 text-amber-400"
-                                                : "bg-blue-500/20 text-blue-400"
+                                                ? "bg-chart-3/20 text-chart-3"
+                                                : "bg-accent/20 text-accent"
                                     )}>
                                         {Math.round(confidence * 100)}% confidence
                                     </span>
@@ -142,13 +142,13 @@ export function ResultsStep({ data, onComplete }: ResultsStepProps) {
                     {data.tutor?.conversationHistory && (
                         <div className="flex justify-center gap-6 text-sm">
                             <div className="flex items-center gap-2">
-                                <CheckCircle className="h-4 w-4 text-green-400" />
+                                <CheckCircle className="h-4 w-4 text-chart-4" />
                                 <span className="text-muted-foreground">
                                     {data.tutor.conversationHistory.length} exchanges
                                 </span>
                             </div>
                             <div className="flex items-center gap-2">
-                                <MessageSquare className="h-4 w-4 text-purple-400" />
+                                <MessageSquare className="h-4 w-4 text-primary" />
                                 <span className="text-muted-foreground">
                                     Conversational assessment
                                 </span>
@@ -162,14 +162,14 @@ export function ResultsStep({ data, onComplete }: ResultsStepProps) {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.9 }}
-                    className="rounded-xl bg-gradient-to-r from-purple-500/10 to-violet-500/10 border border-purple-500/20 p-6"
+                    className="rounded-xl bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 p-6"
                 >
                     <div className="flex items-start gap-4">
-                        <div className="p-3 rounded-lg bg-purple-500/20">
-                            <Trophy className="h-6 w-6 text-purple-400" />
+                        <div className="p-3 rounded-lg bg-primary/20">
+                            <Trophy className="h-6 w-6 text-primary" />
                         </div>
                         <div className="space-y-2">
-                            <h3 className="font-medium text-purple-300">What's Next?</h3>
+                            <h3 className="font-medium text-primary">What's Next?</h3>
                             <ul className="text-sm text-muted-foreground space-y-1">
                                 <li>• Your personalized content is ready at your level</li>
                                 <li>• Start with a Chaos Window session for AI-guided practice</li>
@@ -190,7 +190,7 @@ export function ResultsStep({ data, onComplete }: ResultsStepProps) {
                     <Button
                         size="lg"
                         onClick={onComplete}
-                        className="gap-2 bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 text-lg px-8"
+                        className="gap-2 bg-primary hover:bg-primary/80 text-lg px-8"
                     >
                         Start Learning!
                         <ArrowRight className="h-5 w-5" />

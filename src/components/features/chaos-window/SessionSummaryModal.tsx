@@ -102,7 +102,7 @@ export function SessionSummaryModal({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <div className="flex items-center gap-2 justify-center sm:justify-start">
-            <Sparkles className="h-6 w-6 text-yellow-500" />
+            <Sparkles className="h-6 w-6 text-chart-3" />
             <DialogTitle>Session Complete!</DialogTitle>
           </div>
           <DialogDescription>
@@ -116,7 +116,7 @@ export function SessionSummaryModal({
             <Card>
               <CardContent className="pt-6">
                 <div className="flex flex-col items-center">
-                  <Clock className="h-8 w-8 text-blue-500 mb-2" />
+                  <Clock className="h-8 w-8 text-accent mb-2" />
                   <div className="text-2xl font-bold">{formatDuration(duration)}</div>
                   <div className="text-xs text-muted-foreground">Practice Time</div>
                 </div>
@@ -126,7 +126,7 @@ export function SessionSummaryModal({
             <Card>
               <CardContent className="pt-6">
                 <div className="flex flex-col items-center">
-                  <Target className="h-8 w-8 text-green-500 mb-2" />
+                  <Target className="h-8 w-8 text-chart-4 mb-2" />
                   <div className="text-2xl font-bold">{interactionCount}</div>
                   <div className="text-xs text-muted-foreground">Interactions</div>
                 </div>
@@ -139,7 +139,7 @@ export function SessionSummaryModal({
             <Card>
               <CardContent className="pt-6">
                 <div className="flex items-center gap-2 mb-3">
-                  <TrendingUp className="h-5 w-5 text-orange-500" />
+                  <TrendingUp className="h-5 w-5 text-destructive" />
                   <h3 className="font-semibold">Areas for Growth</h3>
                 </div>
                 <ul className="space-y-2">
@@ -162,7 +162,7 @@ export function SessionSummaryModal({
             <Card>
               <CardContent className="pt-6">
                 <div className="flex items-center gap-2 mb-3">
-                  <Headphones className="h-5 w-5 text-purple-500" />
+                  <Headphones className="h-5 w-5 text-primary" />
                   <h3 className="font-semibold">Practice Audio Ready</h3>
                 </div>
                 <div className="space-y-2">
@@ -177,7 +177,7 @@ export function SessionSummaryModal({
                       }}
                       className="w-full flex items-center gap-2 p-2 rounded-lg bg-muted/50 hover:bg-muted transition-colors text-left"
                     >
-                      <Volume2 className="h-4 w-4 text-purple-400 shrink-0" />
+                      <Volume2 className="h-4 w-4 text-primary shrink-0" />
                       <div className="min-w-0">
                         <div className="text-sm font-medium truncate">
                           {item.contentType === 'practice_sentences' ? 'Practice Sentences' :

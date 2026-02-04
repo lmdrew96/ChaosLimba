@@ -16,19 +16,19 @@ export default function TermsOfServicePage() {
                 <div className="mb-12">
                     <Link
                         href="/"
-                        className="text-purple-400 hover:text-purple-300 transition-colors text-sm mb-6 inline-block"
+                        className="text-primary hover:text-primary/80 transition-colors text-sm mb-6 inline-block"
                     >
                         ← Back to ChaosLimbă
                     </Link>
-                    <h1 className="text-4xl font-bold text-white mb-4">Terms of Service</h1>
-                    <p className="text-gray-400">Last updated: {lastUpdated}</p>
+                    <h1 className="text-4xl font-bold text-foreground mb-4">Terms of Service</h1>
+                    <p className="text-muted-foreground">Last updated: {lastUpdated}</p>
                 </div>
 
                 {/* Content */}
                 <div className="prose prose-invert prose-purple max-w-none space-y-8">
                     <section>
-                        <h2 className="text-2xl font-semibold text-white mb-4">👋 Welcome to ChaosLimbă</h2>
-                        <p className="text-gray-300 leading-relaxed">
+                        <h2 className="text-2xl font-semibold text-foreground mb-4">👋 Welcome to ChaosLimbă</h2>
+                        <p className="text-muted-foreground leading-relaxed">
                             By using ChaosLimbă (&quot;the Service&quot;), you agree to these Terms of Service.
                             ChaosLimbă is an AI-powered Romanian language learning platform designed for
                             learners who thrive in structured chaos. Please read these terms carefully.
@@ -36,20 +36,20 @@ export default function TermsOfServicePage() {
                     </section>
 
                     <section>
-                        <h2 className="text-2xl font-semibold text-white mb-4">⚠️ Beta / Preview Status</h2>
-                        <div className="bg-yellow-900/30 border border-yellow-500/30 rounded-lg p-4">
-                            <p className="text-yellow-200 leading-relaxed">
+                        <h2 className="text-2xl font-semibold text-foreground mb-4">⚠️ Beta / Preview Status</h2>
+                        <div className="bg-chart-3/10 border border-chart-3/30 rounded-lg p-4">
+                            <p className="text-chart-3 leading-relaxed">
                                 <strong>IMPORTANT:</strong> ChaosLimbă is currently in <strong>live preview</strong> mode.
                                 This means:
                             </p>
-                            <ul className="list-disc list-inside text-yellow-200 space-y-2 mt-4">
+                            <ul className="list-disc list-inside text-chart-3 space-y-2 mt-4">
                                 <li>Features may change, break, or be removed without notice</li>
                                 <li>Data may be reset or migrated during updates</li>
                                 <li>The service may experience downtime</li>
                                 <li>AI outputs may contain errors or inaccuracies</li>
                                 <li>Not all planned features are available yet</li>
                             </ul>
-                            <p className="text-yellow-200 leading-relaxed mt-4">
+                            <p className="text-chart-3 leading-relaxed mt-4">
                                 By using the preview, you acknowledge and accept these limitations.
                                 We appreciate your patience and feedback as we build this together!
                             </p>
@@ -57,11 +57,11 @@ export default function TermsOfServicePage() {
                     </section>
 
                     <section>
-                        <h2 className="text-2xl font-semibold text-white mb-4">✅ Acceptable Use</h2>
-                        <p className="text-gray-300 leading-relaxed mb-4">
+                        <h2 className="text-2xl font-semibold text-foreground mb-4">✅ Acceptable Use</h2>
+                        <p className="text-muted-foreground leading-relaxed mb-4">
                             When using ChaosLimbă, you agree to:
                         </p>
-                        <ul className="list-disc list-inside text-gray-300 space-y-2">
+                        <ul className="list-disc list-inside text-muted-foreground space-y-2">
                             <li>Use the service for personal language learning purposes</li>
                             <li>Provide accurate account information</li>
                             <li>Keep your account credentials secure</li>
@@ -74,41 +74,41 @@ export default function TermsOfServicePage() {
                     </section>
 
                     <section>
-                        <h2 className="text-2xl font-semibold text-white mb-4">📝 Your Content</h2>
-                        <p className="text-gray-300 leading-relaxed">
+                        <h2 className="text-2xl font-semibold text-foreground mb-4">📝 Your Content</h2>
+                        <p className="text-muted-foreground leading-relaxed">
                             When you use ChaosLimbă, you create content (text, audio recordings, notes, etc.).
                             You retain ownership of your content, but you grant us a license to:
                         </p>
-                        <ul className="list-disc list-inside text-gray-300 space-y-2 mt-4">
+                        <ul className="list-disc list-inside text-muted-foreground space-y-2 mt-4">
                             <li>Store and display your content back to you</li>
                             <li>Process your content through our AI systems to provide feedback</li>
                             <li>Use anonymized, aggregated data to improve our AI models</li>
                         </ul>
-                        <p className="text-gray-300 leading-relaxed mt-4">
+                        <p className="text-muted-foreground leading-relaxed mt-4">
                             We will never share your individual content with third parties without your permission.
                         </p>
                     </section>
 
                     <section>
-                        <h2 className="text-2xl font-semibold text-white mb-4">🤖 AI-Generated Content</h2>
-                        <p className="text-gray-300 leading-relaxed">
+                        <h2 className="text-2xl font-semibold text-foreground mb-4">🤖 AI-Generated Content</h2>
+                        <p className="text-muted-foreground leading-relaxed">
                             ChaosLimbă uses AI to provide grammar feedback, pronunciation assessment,
                             tutoring, and other features. Important notes:
                         </p>
-                        <ul className="list-disc list-inside text-gray-300 space-y-2 mt-4">
-                            <li><strong className="text-purple-300">AI is not perfect:</strong> Feedback may contain errors. Always verify important information.</li>
-                            <li><strong className="text-purple-300">Not a replacement:</strong> AI tutoring supplements, not replaces, human instruction.</li>
-                            <li><strong className="text-purple-300">Continuous improvement:</strong> Our models improve over time with usage and feedback.</li>
+                        <ul className="list-disc list-inside text-muted-foreground space-y-2 mt-4">
+                            <li><strong className="text-primary">AI is not perfect:</strong> Feedback may contain errors. Always verify important information.</li>
+                            <li><strong className="text-primary">Not a replacement:</strong> AI tutoring supplements, not replaces, human instruction.</li>
+                            <li><strong className="text-primary">Continuous improvement:</strong> Our models improve over time with usage and feedback.</li>
                         </ul>
                     </section>
 
                     <section>
-                        <h2 className="text-2xl font-semibold text-white mb-4">💳 Payments & Subscriptions</h2>
-                        <p className="text-gray-300 leading-relaxed">
+                        <h2 className="text-2xl font-semibold text-foreground mb-4">💳 Payments & Subscriptions</h2>
+                        <p className="text-muted-foreground leading-relaxed">
                             During the live preview period, ChaosLimbă is <strong className="text-green-400">free to use</strong>.
                             When we introduce paid features:
                         </p>
-                        <ul className="list-disc list-inside text-gray-300 space-y-2 mt-4">
+                        <ul className="list-disc list-inside text-muted-foreground space-y-2 mt-4">
                             <li>We&apos;ll provide advance notice of any pricing changes</li>
                             <li>Early preview users may receive special benefits</li>
                             <li>Core learning features will remain accessible</li>
@@ -117,12 +117,12 @@ export default function TermsOfServicePage() {
                     </section>
 
                     <section>
-                        <h2 className="text-2xl font-semibold text-white mb-4">🚫 Disclaimers</h2>
-                        <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-4">
-                            <p className="text-gray-300 leading-relaxed">
+                        <h2 className="text-2xl font-semibold text-foreground mb-4">🚫 Disclaimers</h2>
+                        <div className="bg-muted/50 border border-border rounded-lg p-4">
+                            <p className="text-muted-foreground leading-relaxed">
                                 THE SERVICE IS PROVIDED &quot;AS IS&quot; WITHOUT WARRANTY OF ANY KIND. WE DO NOT GUARANTEE:
                             </p>
-                            <ul className="list-disc list-inside text-gray-300 space-y-2 mt-4">
+                            <ul className="list-disc list-inside text-muted-foreground space-y-2 mt-4">
                                 <li>That you will achieve any particular learning outcomes</li>
                                 <li>That the service will be uninterrupted or error-free</li>
                                 <li>The accuracy of AI-generated feedback or content</li>
@@ -132,14 +132,14 @@ export default function TermsOfServicePage() {
                     </section>
 
                     <section>
-                        <h2 className="text-2xl font-semibold text-white mb-4">⚖️ Limitation of Liability</h2>
-                        <p className="text-gray-300 leading-relaxed">
+                        <h2 className="text-2xl font-semibold text-foreground mb-4">⚖️ Limitation of Liability</h2>
+                        <p className="text-muted-foreground leading-relaxed">
                             To the maximum extent permitted by law, ChaosLimbă and its creator(s) shall not be
                             liable for any indirect, incidental, special, consequential, or punitive damages,
                             or any loss of profits or revenues, whether incurred directly or indirectly, or any
                             loss of data, use, goodwill, or other intangible losses resulting from:
                         </p>
-                        <ul className="list-disc list-inside text-gray-300 space-y-2 mt-4">
+                        <ul className="list-disc list-inside text-muted-foreground space-y-2 mt-4">
                             <li>Your use or inability to use the service</li>
                             <li>Any errors or inaccuracies in AI-generated content</li>
                             <li>Unauthorized access to your data</li>
@@ -148,12 +148,12 @@ export default function TermsOfServicePage() {
                     </section>
 
                     <section>
-                        <h2 className="text-2xl font-semibold text-white mb-4">🔄 Account Termination</h2>
-                        <p className="text-gray-300 leading-relaxed">
+                        <h2 className="text-2xl font-semibold text-foreground mb-4">🔄 Account Termination</h2>
+                        <p className="text-muted-foreground leading-relaxed">
                             You may delete your account at any time. We may suspend or terminate accounts that
                             violate these terms. Upon termination:
                         </p>
-                        <ul className="list-disc list-inside text-gray-300 space-y-2 mt-4">
+                        <ul className="list-disc list-inside text-muted-foreground space-y-2 mt-4">
                             <li>You can request an export of your data before deletion</li>
                             <li>We&apos;ll delete your personal data within 30 days (some anonymized data may be retained)</li>
                             <li>These terms survive termination where applicable</li>
@@ -161,8 +161,8 @@ export default function TermsOfServicePage() {
                     </section>
 
                     <section>
-                        <h2 className="text-2xl font-semibold text-white mb-4">📝 Changes to Terms</h2>
-                        <p className="text-gray-300 leading-relaxed">
+                        <h2 className="text-2xl font-semibold text-foreground mb-4">📝 Changes to Terms</h2>
+                        <p className="text-muted-foreground leading-relaxed">
                             We may update these terms as ChaosLimbă evolves. We&apos;ll notify you of significant
                             changes via email or in-app notification. Continued use after changes means you
                             accept the new terms.
@@ -170,19 +170,19 @@ export default function TermsOfServicePage() {
                     </section>
 
                     <section>
-                        <h2 className="text-2xl font-semibold text-white mb-4">📬 Contact</h2>
-                        <p className="text-gray-300 leading-relaxed">
+                        <h2 className="text-2xl font-semibold text-foreground mb-4">📬 Contact</h2>
+                        <p className="text-muted-foreground leading-relaxed">
                             Questions about these terms? Reach out at{" "}
-                            <a href="mailto:nae@adhdesigns.dev" className="text-purple-400 hover:text-purple-300 underline">
+                            <a href="mailto:nae@adhdesigns.dev" className="text-primary hover:text-primary/80 underline">
                                 nae@adhdesigns.dev
                             </a>
                         </p>
                     </section>
 
                     <section>
-                        <h2 className="text-2xl font-semibold text-white mb-4">🎯 The TL;DR</h2>
-                        <div className="bg-purple-900/30 border border-purple-500/30 rounded-lg p-4">
-                            <ul className="list-disc list-inside text-purple-200 space-y-2">
+                        <h2 className="text-2xl font-semibold text-foreground mb-4">🎯 The TL;DR</h2>
+                        <div className="bg-primary/10 border border-primary/30 rounded-lg p-4">
+                            <ul className="list-disc list-inside text-foreground/80 space-y-2">
                                 <li>This is a beta—expect bugs and changes</li>
                                 <li>Use the service for learning, not mischief</li>
                                 <li>AI feedback isn&apos;t perfect, use your judgment</li>
@@ -195,15 +195,15 @@ export default function TermsOfServicePage() {
                 </div>
 
                 {/* Footer */}
-                <div className="mt-16 pt-8 border-t border-gray-800">
+                <div className="mt-16 pt-8 border-t border-border">
                     <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
                         <Link
                             href="/privacy"
-                            className="text-purple-400 hover:text-purple-300 transition-colors"
+                            className="text-primary hover:text-primary/80 transition-colors"
                         >
                             ← Privacy Policy
                         </Link>
-                        <p className="text-gray-500 text-sm">
+                        <p className="text-muted-foreground/60 text-sm">
                             © 2026 ChaosLimbă. All rights reserved.
                         </p>
                     </div>

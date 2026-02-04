@@ -136,7 +136,7 @@ export default function SettingsPage() {
     if (loading || !isUserLoaded) {
         return (
             <div className="flex items-center justify-center min-h-[400px]">
-                <Loader2 className="h-8 w-8 animate-spin text-purple-400" />
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
         )
     }
@@ -144,8 +144,8 @@ export default function SettingsPage() {
     if (error && !preferences) {
         return (
             <div className="max-w-4xl mx-auto">
-                <Card className="rounded-xl border-red-500/30 bg-red-500/5">
-                    <CardContent className="p-8 text-center text-red-400">
+                <Card className="rounded-xl border-destructive/30 bg-destructive/5">
+                    <CardContent className="p-8 text-center text-destructive">
                         {error}
                     </CardContent>
                 </Card>
@@ -158,8 +158,8 @@ export default function SettingsPage() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-4xl font-bold flex items-center gap-3 bg-gradient-to-r from-purple-400 to-violet-300 bg-clip-text text-transparent">
-                        <SettingsIcon className="h-10 w-10 text-purple-400" />
+                    <h1 className="text-4xl font-bold flex items-center gap-3 bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                        <SettingsIcon className="h-10 w-10 text-primary" />
                         Settings
                     </h1>
                     <p className="text-muted-foreground mt-2">
@@ -167,7 +167,7 @@ export default function SettingsPage() {
                     </p>
                 </div>
                 {saved && (
-                    <div className="flex items-center gap-2 text-green-400 animate-in fade-in slide-in-from-right-2">
+                    <div className="flex items-center gap-2 text-chart-4 animate-in fade-in slide-in-from-right-2">
                         <CheckCircle2 className="h-5 w-5" />
                         <span className="text-sm font-medium">Saved!</span>
                     </div>
@@ -178,14 +178,14 @@ export default function SettingsPage() {
             <Card className="rounded-2xl border-border/40 bg-card/50 backdrop-blur">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-lg">
-                        <User className="h-5 w-5 text-purple-400" />
+                        <User className="h-5 w-5 text-primary" />
                         Account
                     </CardTitle>
                     <CardDescription>Your ChaosLimbă account information</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div className="flex items-center gap-4">
-                        <div className="h-16 w-16 rounded-full bg-gradient-to-br from-purple-500 to-violet-600 flex items-center justify-center text-white text-xl font-bold">
+                        <div className="h-16 w-16 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center text-primary-foreground text-xl font-bold">
                             {user?.firstName?.[0] || user?.emailAddresses?.[0]?.emailAddress?.[0] || "C"}
                         </div>
                         <div className="flex-1">
@@ -200,7 +200,7 @@ export default function SettingsPage() {
                         </div>
                         <Button
                             variant="outline"
-                            className="rounded-xl border-purple-500/30 hover:bg-purple-500/10"
+                            className="rounded-xl border-primary/30 hover:bg-primary/10"
                             onClick={() => openUserProfile()}
                         >
                             Manage Account
@@ -213,7 +213,7 @@ export default function SettingsPage() {
             <Card className="rounded-2xl border-border/40 bg-card/50 backdrop-blur">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-lg">
-                        <Palette className="h-5 w-5 text-purple-400" />
+                        <Palette className="h-5 w-5 text-primary" />
                         Theme & Appearance
                     </CardTitle>
                     <CardDescription>Customize how ChaosLimbă looks and feels</CardDescription>
@@ -227,7 +227,7 @@ export default function SettingsPage() {
             <Card className="rounded-2xl border-border/40 bg-card/50 backdrop-blur">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-lg">
-                        <Book className="h-5 w-5 text-purple-400" />
+                        <Book className="h-5 w-5 text-primary" />
                         Learning Preferences
                     </CardTitle>
                     <CardDescription>Customize your learning experience</CardDescription>
@@ -243,8 +243,8 @@ export default function SettingsPage() {
                                 </p>
                             </div>
                             <div className="text-right">
-                                <div className="px-4 py-2 rounded-xl bg-purple-500/10 border border-purple-500/30">
-                                    <span className="text-xl font-bold text-purple-300">
+                                <div className="px-4 py-2 rounded-xl bg-primary/10 border border-primary/30">
+                                    <span className="text-xl font-bold text-primary">
                                         {preferences?.languageLevel || "A1"}
                                     </span>
                                     <span className="text-sm text-muted-foreground ml-2">
@@ -262,7 +262,7 @@ export default function SettingsPage() {
             <Card className="rounded-2xl border-border/40 bg-card/50 backdrop-blur">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-lg">
-                        <Shield className="h-5 w-5 text-purple-400" />
+                        <Shield className="h-5 w-5 text-primary" />
                         Privacy & Data
                     </CardTitle>
                     <CardDescription>Control how your data is used</CardDescription>
@@ -283,7 +283,7 @@ export default function SettingsPage() {
                             checked={preferences?.analyticsEnabled || false}
                             onCheckedChange={(checked) => updatePreference("analyticsEnabled", checked)}
                             disabled={saving}
-                            className="data-[state=checked]:bg-purple-600"
+                            className="data-[state=checked]:bg-primary"
                         />
                     </div>
 
@@ -302,13 +302,13 @@ export default function SettingsPage() {
                             checked={preferences?.dataCollectionEnabled || false}
                             onCheckedChange={(checked) => updatePreference("dataCollectionEnabled", checked)}
                             disabled={saving}
-                            className="data-[state=checked]:bg-purple-600"
+                            className="data-[state=checked]:bg-primary"
                         />
                     </div>
 
-                    <div className="rounded-xl bg-purple-400/5 border border-purple-400/20 p-4">
-                        <p className="text-sm text-purple-400">
-                            <strong className="text-purple-400">Privacy Promise:</strong> We never track your text or audio inputs.
+                    <div className="rounded-xl bg-primary/5 border border-primary/20 p-4">
+                        <p className="text-sm text-primary">
+                            <strong className="text-primary">Privacy Promise:</strong> We never track your text or audio inputs.
                             Only error patterns and usage statistics are collected, and only with your <strong>explicit</strong> consent. Your personal information is <em>yours</em>; we never sell it, share it, or use it for anything other than improving your learning experience.
                         </p>
                     </div>
@@ -319,7 +319,7 @@ export default function SettingsPage() {
             <Card className="rounded-2xl border-border/40 bg-card/50 backdrop-blur">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-lg">
-                        <Bell className="h-5 w-5 text-purple-400" />
+                        <Bell className="h-5 w-5 text-primary" />
                         Notifications
                     </CardTitle>
                     <CardDescription>Manage your notification preferences</CardDescription>
@@ -339,12 +339,12 @@ export default function SettingsPage() {
                             checked={preferences?.emailNotifications || false}
                             onCheckedChange={(checked) => updatePreference("emailNotifications", checked)}
                             disabled={saving}
-                            className="data-[state=checked]:bg-purple-600"
+                            className="data-[state=checked]:bg-primary"
                         />
                     </div>
 
-                    <div className="rounded-xl bg-amber-500/5 border border-amber-500/20 p-4">
-                        <p className="text-sm text-amber-500 italic">
+                    <div className="rounded-xl bg-chart-3/5 border border-chart-3/20 p-4">
+                        <p className="text-sm text-chart-3 italic">
                             "We provide the method. You provide the mess." <br />
                             No streak pressure. Just optional gentle reminders when you want them.
                         </p>
@@ -353,10 +353,10 @@ export default function SettingsPage() {
             </Card>
 
             {/* Danger Zone */}
-            <Card className="rounded-2xl border-red-500/40 bg-gradient-to-br from-red-900/20 to-orange-900/20 backdrop-blur">
+            <Card className="rounded-2xl border-destructive/40 bg-gradient-to-br from-destructive/10 to-destructive/5 backdrop-blur">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-lg">
-                        <AlertTriangle className="h-5 w-5 text-red-400" />
+                        <AlertTriangle className="h-5 w-5 text-destructive" />
                         Danger Zone
                     </CardTitle>
                     <CardDescription>Destructive actions that cannot be undone</CardDescription>
@@ -367,7 +367,7 @@ export default function SettingsPage() {
                         <div className="flex items-start justify-between gap-4">
                             <div className="flex-1">
                                 <Label className="text-base flex items-center gap-2">
-                                    <RotateCcw className="h-4 w-4 text-red-400" />
+                                    <RotateCcw className="h-4 w-4 text-destructive" />
                                     Reset All Progress
                                 </Label>
                                 <p className="text-sm text-muted-foreground mt-1">
@@ -389,8 +389,8 @@ export default function SettingsPage() {
                         </div>
                     </div>
 
-                    <div className="rounded-xl bg-red-500/5 border border-red-500/20 p-4">
-                        <p className="text-sm text-red-400 flex items-start gap-2">
+                    <div className="rounded-xl bg-destructive/5 border border-destructive/20 p-4">
+                        <p className="text-sm text-destructive flex items-start gap-2">
                             <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
                             <span>
                                 <strong>Warning:</strong> Actions in this section are irreversible and will permanently delete your learning data.

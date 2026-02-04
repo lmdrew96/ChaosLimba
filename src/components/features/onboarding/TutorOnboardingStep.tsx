@@ -168,11 +168,11 @@ export function TutorOnboardingStep({ selfAssessment, data, onUpdate }: TutorOnb
     };
 
     return (
-        <Card className="border-purple-500/20 bg-card/50 backdrop-blur">
+        <Card className="border-primary/20 bg-card/50 backdrop-blur">
             <CardHeader>
                 <CardTitle className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-purple-500/20">
-                        <MessageSquare className="h-5 w-5 text-purple-400" />
+                    <div className="p-2 rounded-lg bg-primary/20">
+                        <MessageSquare className="h-5 w-5 text-primary" />
                     </div>
                     <div>
                         <span className="text-lg">Chat with Your Tutor</span>
@@ -181,7 +181,7 @@ export function TutorOnboardingStep({ selfAssessment, data, onUpdate }: TutorOnb
                         </p>
                     </div>
                     {assessmentComplete && (
-                        <div className="ml-auto px-3 py-1 rounded-full bg-green-500/20 text-sm text-green-400">
+                        <div className="ml-auto px-3 py-1 rounded-full bg-chart-4/20 text-sm text-chart-4">
                             ✓ Ready to continue
                         </div>
                     )}
@@ -190,7 +190,7 @@ export function TutorOnboardingStep({ selfAssessment, data, onUpdate }: TutorOnb
 
             <CardContent className="space-y-4">
                 {/* Chat Messages */}
-                <div className="h-[400px] overflow-y-auto space-y-4 p-4 rounded-xl bg-background/50 border border-white/5">
+                <div className="h-[400px] overflow-y-auto space-y-4 p-4 rounded-xl bg-background/50 border border-border">
                     {messages.map((message) => (
                         <div
                             key={message.id}
@@ -204,14 +204,14 @@ export function TutorOnboardingStep({ selfAssessment, data, onUpdate }: TutorOnb
                                 className={cn(
                                     "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0",
                                     message.role === "tutor"
-                                        ? "bg-purple-500/20"
-                                        : "bg-blue-500/20"
+                                        ? "bg-primary/20"
+                                        : "bg-accent/20"
                                 )}
                             >
                                 {message.role === "tutor" ? (
-                                    <Sparkles className="h-4 w-4 text-purple-400" />
+                                    <Sparkles className="h-4 w-4 text-primary" />
                                 ) : (
-                                    <User className="h-4 w-4 text-blue-400" />
+                                    <User className="h-4 w-4 text-accent" />
                                 )}
                             </div>
 
@@ -220,8 +220,8 @@ export function TutorOnboardingStep({ selfAssessment, data, onUpdate }: TutorOnb
                                 className={cn(
                                     "max-w-[80%] rounded-2xl px-4 py-3",
                                     message.role === "tutor"
-                                        ? "bg-purple-500/10 border border-purple-500/20"
-                                        : "bg-blue-500/10 border border-blue-500/20"
+                                        ? "bg-primary/10 border border-primary/20"
+                                        : "bg-accent/10 border border-accent/20"
                                 )}
                             >
                                 <p className="text-sm whitespace-pre-wrap">{message.content}</p>
@@ -232,14 +232,14 @@ export function TutorOnboardingStep({ selfAssessment, data, onUpdate }: TutorOnb
                     {/* Loading indicator */}
                     {isLoading && (
                         <div className="flex gap-3">
-                            <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center">
-                                <Sparkles className="h-4 w-4 text-purple-400 animate-pulse" />
+                            <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                                <Sparkles className="h-4 w-4 text-primary animate-pulse" />
                             </div>
-                            <div className="bg-purple-500/10 border border-purple-500/20 rounded-2xl px-4 py-3">
+                            <div className="bg-primary/10 border border-primary/20 rounded-2xl px-4 py-3">
                                 <div className="flex gap-1">
-                                    <span className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                                    <span className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                                    <span className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                                    <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                                    <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                                    <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
                                 </div>
                             </div>
                         </div>
@@ -256,13 +256,13 @@ export function TutorOnboardingStep({ selfAssessment, data, onUpdate }: TutorOnb
                         onChange={(e) => setInputText(e.target.value)}
                         onKeyDown={handleKeyDown}
                         placeholder="Type your response..."
-                        className="flex-1 min-h-[60px] max-h-[120px] rounded-xl bg-background border border-purple-500/20 p-3 focus:ring-2 focus:ring-purple-500/30 focus:outline-none resize-none"
+                        className="flex-1 min-h-[60px] max-h-[120px] rounded-xl bg-background border border-primary/20 p-3 focus:ring-2 focus:ring-primary/30 focus:outline-none resize-none"
                         disabled={isLoading}
                     />
                     <Button
                         onClick={handleSubmit}
                         disabled={inputText.trim().length < 2 || isLoading}
-                        className="bg-purple-600 hover:bg-purple-700 rounded-xl px-6"
+                        className="bg-primary hover:bg-primary/80 rounded-xl px-6"
                     >
                         {isLoading ? (
                             <Loader2 className="h-4 w-4 animate-spin" />

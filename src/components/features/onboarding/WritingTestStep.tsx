@@ -146,17 +146,17 @@ export function WritingTestStep({ selfAssessment, data, onUpdate }: WritingTestS
     };
 
     const getScoreColor = (score: number) => {
-        if (score >= 80) return "text-green-400";
-        if (score >= 60) return "text-amber-400";
-        return "text-red-400";
+        if (score >= 80) return "text-chart-4";
+        if (score >= 60) return "text-chart-3";
+        return "text-destructive";
     };
 
     return (
-        <Card className="border-purple-500/20 bg-card/50 backdrop-blur">
+        <Card className="border-primary/20 bg-card/50 backdrop-blur">
             <CardHeader>
                 <CardTitle className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-emerald-500/20">
-                        <PenTool className="h-5 w-5 text-emerald-400" />
+                    <div className="p-2 rounded-lg bg-chart-4/20">
+                        <PenTool className="h-5 w-5 text-chart-4" />
                     </div>
                     <div>
                         <span className="text-lg">Writing Production</span>
@@ -164,7 +164,7 @@ export function WritingTestStep({ selfAssessment, data, onUpdate }: WritingTestS
                             Prompt {currentPrompt + 1} of {WRITING_PROMPTS.length}
                         </p>
                     </div>
-                    <div className="ml-auto px-3 py-1 rounded-full bg-emerald-500/10 text-sm text-emerald-300">
+                    <div className="ml-auto px-3 py-1 rounded-full bg-chart-4/10 text-sm text-chart-4">
                         {prompt.level}
                     </div>
                 </CardTitle>
@@ -172,8 +172,8 @@ export function WritingTestStep({ selfAssessment, data, onUpdate }: WritingTestS
 
             <CardContent className="space-y-6">
                 {/* Prompt */}
-                <div className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20">
-                    <p className="text-lg font-medium text-emerald-300">{prompt.prompt}</p>
+                <div className="p-4 rounded-xl bg-chart-4/5 border border-chart-4/20">
+                    <p className="text-lg font-medium text-chart-4">{prompt.prompt}</p>
                     <p className="text-sm text-muted-foreground mt-2">💡 {prompt.hint}</p>
                 </div>
 
@@ -183,13 +183,13 @@ export function WritingTestStep({ selfAssessment, data, onUpdate }: WritingTestS
                         value={currentText}
                         onChange={(e) => setCurrentText(e.target.value)}
                         placeholder="Scrie aici... (Write here...)"
-                        className="min-h-[150px] bg-white/5 border-emerald-500/20 focus:border-emerald-500/50"
+                        className="min-h-[150px] bg-muted/20 border-chart-4/20 focus:border-chart-4/50"
                         disabled={showFeedback || isAnalyzing}
                     />
                     <div className="flex justify-between text-sm text-muted-foreground">
                         <span>{currentText.length} characters</span>
                         <span className={cn(
-                            currentText.length >= prompt.minLength ? "text-green-400" : "text-muted-foreground"
+                            currentText.length >= prompt.minLength ? "text-chart-4" : "text-muted-foreground"
                         )}>
                             Min {prompt.minLength} characters
                         </span>
@@ -199,7 +199,7 @@ export function WritingTestStep({ selfAssessment, data, onUpdate }: WritingTestS
                 {/* Feedback */}
                 {showFeedback && currentFeedback && (
                     <div className="space-y-4">
-                        <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                        <div className="p-4 rounded-xl bg-muted/20 border border-border">
                             <div className="flex items-center justify-between mb-3">
                                 <span className="font-medium">Grammar Score</span>
                                 <span className={cn("text-2xl font-bold", getScoreColor(currentFeedback.score))}>
@@ -211,24 +211,24 @@ export function WritingTestStep({ selfAssessment, data, onUpdate }: WritingTestS
                                 <div className="space-y-2">
                                     <p className="text-sm text-muted-foreground">Errors detected:</p>
                                     {currentFeedback.errors.slice(0, 3).map((error, index) => (
-                                        <div key={index} className="text-sm p-2 rounded bg-amber-500/10 border border-amber-500/20">
-                                            <span className="text-amber-300">{error.type}</span>
+                                        <div key={index} className="text-sm p-2 rounded bg-chart-3/10 border border-chart-3/20">
+                                            <span className="text-chart-3">{error.type}</span>
                                             {error.context && (
                                                 <span className="text-muted-foreground">: "{error.context}"</span>
                                             )}
                                             {error.correction && (
-                                                <span className="text-green-400"> → "{error.correction}"</span>
+                                                <span className="text-chart-4"> → "{error.correction}"</span>
                                             )}
                                         </div>
                                     ))}
                                 </div>
                             ) : (
-                                <p className="text-sm text-green-400">✓ No major errors detected! Great work!</p>
+                                <p className="text-sm text-chart-4">✓ No major errors detected! Great work!</p>
                             )}
                         </div>
 
-                        <div className="p-4 rounded-xl bg-purple-500/5 border border-purple-500/20">
-                            <p className="text-sm text-purple-300">
+                        <div className="p-4 rounded-xl bg-primary/5 border border-primary/20">
+                            <p className="text-sm text-primary">
                                 🌱 These errors are being saved to your Error Garden for future practice!
                             </p>
                         </div>
@@ -241,7 +241,7 @@ export function WritingTestStep({ selfAssessment, data, onUpdate }: WritingTestS
                         <Button
                             onClick={handleSubmit}
                             disabled={currentText.length < prompt.minLength || isAnalyzing}
-                            className="bg-emerald-600 hover:bg-emerald-700"
+                            className="bg-chart-4 hover:bg-chart-4/80"
                         >
                             {isAnalyzing ? (
                                 <>
@@ -253,7 +253,7 @@ export function WritingTestStep({ selfAssessment, data, onUpdate }: WritingTestS
                             )}
                         </Button>
                     ) : !isLastPrompt ? (
-                        <Button onClick={handleNext} className="gap-2 bg-emerald-600 hover:bg-emerald-700">
+                        <Button onClick={handleNext} className="gap-2 bg-chart-4 hover:bg-chart-4/80">
                             Next Prompt
                             <ChevronRight className="h-4 w-4" />
                         </Button>
@@ -279,12 +279,12 @@ export function WritingTestStep({ selfAssessment, data, onUpdate }: WritingTestS
                                 key={index}
                                 className={cn(
                                     "w-3 h-3 rounded-full transition-all",
-                                    index === currentPrompt && "ring-2 ring-emerald-500 ring-offset-2 ring-offset-background",
+                                    index === currentPrompt && "ring-2 ring-chart-4 ring-offset-2 ring-offset-background",
                                     responded
                                         ? score && score >= 70
-                                            ? "bg-green-500"
-                                            : "bg-amber-500"
-                                        : "bg-white/20"
+                                            ? "bg-chart-4"
+                                            : "bg-chart-3"
+                                        : "bg-muted/40"
                                 )}
                             />
                         );

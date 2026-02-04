@@ -89,7 +89,7 @@ export function Sidebar() {
 
       <aside
         className={cn(
-          "fixed top-0 left-0 z-40 h-screen w-64 border-r border-border/40 bg-gradient-to-b from-background via-background to-purple-950/10 transition-transform duration-300 ease-in-out md:translate-x-0",
+          "fixed top-0 left-0 z-40 h-screen w-64 border-r border-border/40 bg-gradient-to-b from-background via-background to-primary/10 transition-transform duration-300 ease-in-out md:translate-x-0",
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
@@ -125,7 +125,7 @@ export function Sidebar() {
                   <item.icon
                     className={cn(
                       "h-5 w-5 transition-transform duration-200 group-hover:scale-110",
-                      isActive ? "text-purple-400" : "text-muted-foreground"
+                      isActive ? "text-primary" : "text-muted-foreground"
                     )}
                   />
                   <div className="flex flex-col">
@@ -150,7 +150,7 @@ export function Sidebar() {
           </nav>
 
           <div className="p-4 border-t border-border/40">
-            <div className="rounded-xl bg-gradient-to-br from-purple-500/10 to-violet-500/5 p-4 text-center">
+            <div className="rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 p-4 text-center">
               <p className="text-xs text-muted-foreground italic">
                 "We provide the method.
                 <br />

@@ -33,13 +33,13 @@ const challengeTypeConfig: Record<
   string,
   { label: string; color: string; icon: React.ElementType }
 > = {
-  transform: { label: "Transform", color: "bg-blue-500/20 text-blue-400 border-blue-500/30", icon: ArrowRightLeft },
-  complete: { label: "Complete", color: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30", icon: PenLine },
-  fix: { label: "Fix", color: "bg-amber-500/20 text-amber-400 border-amber-500/30", icon: Wrench },
-  rewrite: { label: "Rewrite", color: "bg-violet-500/20 text-violet-400 border-violet-500/30", icon: RotateCcw },
-  use_it: { label: "Use It", color: "bg-cyan-500/20 text-cyan-400 border-cyan-500/30", icon: MessageSquare },
-  which_one: { label: "Which One?", color: "bg-pink-500/20 text-pink-400 border-pink-500/30", icon: CircleHelp },
-  spot_the_trap: { label: "Spot the Trap", color: "bg-orange-500/20 text-orange-400 border-orange-500/30", icon: TriangleAlert },
+  transform: { label: "Transform", color: "bg-accent/20 text-accent border-accent/30", icon: ArrowRightLeft },
+  complete: { label: "Complete", color: "bg-chart-4/20 text-chart-4 border-chart-4/30", icon: PenLine },
+  fix: { label: "Fix", color: "bg-chart-3/20 text-chart-3 border-chart-3/30", icon: Wrench },
+  rewrite: { label: "Rewrite", color: "bg-primary/20 text-primary border-primary/30", icon: RotateCcw },
+  use_it: { label: "Use It", color: "bg-accent/20 text-accent border-accent/30", icon: MessageSquare },
+  which_one: { label: "Which One?", color: "bg-secondary/20 text-secondary border-secondary/30", icon: CircleHelp },
+  spot_the_trap: { label: "Spot the Trap", color: "bg-destructive/20 text-destructive border-destructive/30", icon: TriangleAlert },
 }
 
 export function ChallengeCard({ challenge, onSubmit, onSkip, isSubmitting }: ChallengeCardProps) {
@@ -63,7 +63,7 @@ export function ChallengeCard({ challenge, onSubmit, onSkip, isSubmitting }: Cha
   }
 
   return (
-    <Card className="rounded-2xl border-border/40 bg-gradient-to-br from-indigo-500/5 via-background to-blue-500/5">
+    <Card className="rounded-2xl border-border/40 bg-gradient-to-br from-accent/5 via-background to-accent/5">
       <CardContent className="p-6 space-y-5">
         {/* Header: challenge type + feature name */}
         <div className="flex items-center justify-between">
@@ -122,7 +122,7 @@ export function ChallengeCard({ challenge, onSubmit, onSkip, isSubmitting }: Cha
               {showHint ? "Hide hint" : "Show hint"}
             </button>
             {showHint && (
-              <div className="mt-2 text-sm text-muted-foreground bg-amber-500/5 border border-amber-500/20 rounded-lg px-3 py-2">
+              <div className="mt-2 text-sm text-muted-foreground bg-chart-3/5 border border-chart-3/20 rounded-lg px-3 py-2">
                 <ReactMarkdown
                   components={{
                     p: ({ children }) => <p className="mb-1 last:mb-0">{children}</p>,
@@ -143,7 +143,7 @@ export function ChallengeCard({ challenge, onSubmit, onSkip, isSubmitting }: Cha
           onChange={(e) => setResponse(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Type your answer in Romanian..."
-          className="min-h-[80px] rounded-xl border-border/40 bg-background/50 focus:border-indigo-500/50 resize-none"
+          className="min-h-[80px] rounded-xl border-border/40 bg-background/50 focus:border-accent/50 resize-none"
           disabled={isSubmitting}
         />
 
@@ -163,7 +163,7 @@ export function ChallengeCard({ challenge, onSubmit, onSkip, isSubmitting }: Cha
           <Button
             onClick={handleSubmit}
             disabled={response.trim().length < 3 || isSubmitting}
-            className="bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 rounded-xl shadow-lg shadow-indigo-500/20"
+            className="bg-gradient-to-r from-accent to-accent/80 hover:from-accent/90 hover:to-accent/70 rounded-xl shadow-lg shadow-accent/20"
           >
             {isSubmitting ? (
               <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />

@@ -88,7 +88,7 @@ export function ErrorLogModal({ onErrorLogged }: ErrorLogModalProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="rounded-lg bg-green-600 hover:bg-green-700">
+        <Button className="rounded-lg bg-chart-4 hover:bg-chart-4/80">
           <Plus className="mr-2 h-4 w-4" />
           Log Error
         </Button>
@@ -167,7 +167,7 @@ export function ErrorLogModal({ onErrorLogged }: ErrorLogModalProps) {
             <Button
               type="submit"
               disabled={!errorType || loading}
-              className="rounded-lg bg-green-600 hover:bg-green-700"
+              className="rounded-lg bg-chart-4 hover:bg-chart-4/80"
             >
               {loading ? (
                 <>

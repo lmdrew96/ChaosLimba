@@ -131,11 +131,11 @@ export function AudioPlayer({
     return (
       <div
         className={cn(
-          "rounded-xl bg-red-500/10 border border-red-500/20 p-4",
+          "rounded-xl bg-destructive/10 border border-destructive/20 p-4",
           className
         )}
       >
-        <div className="flex items-center gap-3 text-red-400">
+        <div className="flex items-center gap-3 text-destructive">
           <Headphones className="h-5 w-5" />
           <span>{error}</span>
         </div>
@@ -146,7 +146,7 @@ export function AudioPlayer({
   return (
     <div
       className={cn(
-        "rounded-xl bg-gradient-to-r from-purple-500/10 to-indigo-500/10 border border-purple-500/20 p-4",
+        "rounded-xl bg-primary/10 border border-primary/20 p-4",
         className
       )}
     >
@@ -154,33 +154,33 @@ export function AudioPlayer({
 
       {/* Header */}
       <div className="flex items-center gap-3 mb-4">
-        <div className="p-3 rounded-lg bg-purple-500/20">
-          <Headphones className="h-6 w-6 text-purple-400" />
+        <div className="p-3 rounded-lg bg-primary/20">
+          <Headphones className="h-6 w-6 text-primary" />
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="font-medium text-purple-300 truncate">{title}</h3>
+          <h3 className="font-medium text-primary truncate">{title}</h3>
           <p className="text-xs text-muted-foreground">Podcast / Audio</p>
         </div>
       </div>
 
       {/* Progress bar with buffer indicator */}
       <div
-        className="h-2 bg-white/10 rounded-full cursor-pointer mb-4 relative overflow-hidden group"
+        className="h-2 bg-muted/20 rounded-full cursor-pointer mb-4 relative overflow-hidden group"
         onClick={handleSeek}
       >
         {/* Buffered indicator */}
         <div
-          className="absolute h-full bg-white/10 rounded-full transition-all"
+          className="absolute h-full bg-muted/20 rounded-full transition-all"
           style={{ width: `${bufferedProgress}%` }}
         />
         {/* Progress indicator */}
         <div
-          className="absolute h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full transition-all"
+          className="absolute h-full bg-primary rounded-full transition-all"
           style={{ width: `${progress}%` }}
         />
         {/* Scrubber dot */}
         <div
-          className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+          className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-foreground rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
           style={{ left: `calc(${progress}% - 6px)` }}
         />
       </div>
@@ -192,11 +192,11 @@ export function AudioPlayer({
           <Button
             size="icon"
             onClick={togglePlay}
-            className="bg-purple-600 hover:bg-purple-700 rounded-full h-10 w-10"
+            className="bg-primary hover:bg-primary/80 rounded-full h-10 w-10"
             disabled={isLoading}
           >
             {isLoading ? (
-              <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              <div className="h-4 w-4 border-2 border-foreground/30 border-t-foreground rounded-full animate-spin" />
             ) : isPlaying ? (
               <Pause className="h-4 w-4" />
             ) : (
@@ -218,8 +218,8 @@ export function AudioPlayer({
               variant="ghost"
               onClick={() => setShowTranscript(!showTranscript)}
               className={cn(
-                "hover:bg-purple-500/20",
-                showTranscript ? "text-purple-300 bg-purple-500/10" : "text-muted-foreground"
+                "hover:bg-primary/20",
+                showTranscript ? "text-primary bg-primary/10" : "text-muted-foreground"
               )}
               title={showTranscript ? "Hide transcript" : "Show transcript"}
             >
@@ -233,7 +233,7 @@ export function AudioPlayer({
               size="sm"
               variant="ghost"
               onClick={captureTimestamp}
-              className="text-amber-400 hover:bg-amber-500/20 hover:text-amber-300"
+              className="text-chart-3 hover:bg-chart-3/20 hover:text-chart-3/80"
             >
               <Bookmark className="h-4 w-4 mr-1" />
               <span className="hidden sm:inline">Save</span>
@@ -246,7 +246,7 @@ export function AudioPlayer({
             onChange={(e) =>
               handleSpeedChange(parseFloat(e.target.value) as PlaybackSpeed)
             }
-            className="bg-white/10 text-sm rounded px-2 py-1.5 border border-purple-500/20 outline-none cursor-pointer hover:bg-white/15 transition-colors"
+            className="bg-muted/20 text-sm rounded px-2 py-1.5 border border-primary/20 outline-none cursor-pointer hover:bg-muted/30 transition-colors"
           >
             {PLAYBACK_SPEEDS.map((speed) => (
               <option key={speed} value={speed}>
@@ -259,7 +259,7 @@ export function AudioPlayer({
 
       {/* Transcript */}
       {showTranscript && hasTranscript && (
-        <div className="mt-4 max-h-48 overflow-y-auto rounded-lg bg-white/5 border border-purple-500/10 p-4 leading-relaxed text-sm">
+        <div className="mt-4 max-h-48 overflow-y-auto rounded-lg bg-muted/20 border border-primary/10 p-4 leading-relaxed text-sm">
           {onWordClick ? (
             // Clickable words mode (Deep Fog — tap word to capture for Mystery Shelf)
             transcriptText!.split(/(\n)/).map((line, li) =>
@@ -271,7 +271,7 @@ export function AudioPlayer({
                     <span
                       key={wi}
                       onClick={() => onWordClick(word, line)}
-                      className="cursor-pointer rounded px-0.5 py-0.5 inline-block hover:bg-purple-500/20 hover:text-purple-200 text-foreground/80 transition-colors"
+                      className="cursor-pointer rounded px-0.5 py-0.5 inline-block hover:bg-primary/20 hover:text-primary text-foreground/80 transition-colors"
                     >
                       {word}{" "}
                     </span>

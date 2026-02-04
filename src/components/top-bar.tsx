@@ -65,11 +65,11 @@ export function TopBar() {
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
-              className="relative h-10 w-10 rounded-full ring-2 ring-purple-500/20 hover:ring-purple-500/40 transition-all"
+              className="relative h-10 w-10 rounded-full ring-2 ring-primary/20 hover:ring-primary/40 transition-all"
             >
               <Avatar className="h-9 w-9">
                 <AvatarImage src={user?.imageUrl || ""} alt={getDisplayName()} />
-                <AvatarFallback className="bg-gradient-to-br from-purple-500 to-violet-600 text-white text-sm">
+                <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground text-sm">
                   {getInitials()}
                 </AvatarFallback>
               </Avatar>

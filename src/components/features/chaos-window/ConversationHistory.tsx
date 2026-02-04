@@ -43,9 +43,9 @@ function MessageBubble({ message }: { message: ConversationMessage }) {
             <span className="text-xs text-muted-foreground">
               {message.timestamp.toLocaleTimeString()}
             </span>
-            <User className="h-4 w-4 text-blue-400" />
+            <User className="h-4 w-4 text-accent" />
           </div>
-          <Card className="rounded-xl border-blue-500/20 bg-blue-500/10">
+          <Card className="rounded-xl border-accent/20 bg-accent/10">
             <CardContent className="p-4">
               <p className="text-sm">{message.content}</p>
             </CardContent>
@@ -59,7 +59,7 @@ function MessageBubble({ message }: { message: ConversationMessage }) {
     <div className="flex justify-start">
       <div className="max-w-[80%]">
         <div className="flex items-center gap-2 mb-1">
-          <MessageSquare className="h-4 w-4 text-purple-400" />
+          <MessageSquare className="h-4 w-4 text-primary" />
           <span className="text-xs text-muted-foreground">
             {message.timestamp.toLocaleTimeString()}
           </span>
@@ -67,19 +67,19 @@ function MessageBubble({ message }: { message: ConversationMessage }) {
         {message.aiResponse ? (
           <div className="space-y-3">
             {/* Overall feedback */}
-            <Card className="rounded-xl border-purple-500/20 bg-purple-500/10">
+            <Card className="rounded-xl border-primary/20 bg-primary/10">
               <CardContent className="p-4">
                 <p className="text-sm">{message.aiResponse.feedback.overall}</p>
               </CardContent>
             </Card>
-            
+
             {/* Next question if present */}
             {message.aiResponse.nextQuestion && (
-              <Card className="rounded-xl border-pink-500/20 bg-pink-500/10">
+              <Card className="rounded-xl border-secondary/20 bg-secondary/10">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2 mb-2">
-                    <Sparkles className="h-4 w-4 text-pink-400" />
-                    <span className="text-xs font-medium text-pink-300">Next question:</span>
+                    <Sparkles className="h-4 w-4 text-secondary" />
+                    <span className="text-xs font-medium text-secondary-foreground">Next question:</span>
                   </div>
                   <p className="text-sm">{message.aiResponse.nextQuestion}</p>
                 </CardContent>
@@ -87,7 +87,7 @@ function MessageBubble({ message }: { message: ConversationMessage }) {
             )}
           </div>
         ) : (
-          <Card className="rounded-xl border-purple-500/20 bg-purple-500/10">
+          <Card className="rounded-xl border-primary/20 bg-primary/10">
             <CardContent className="p-4">
               <p className="text-sm">{message.content}</p>
             </CardContent>

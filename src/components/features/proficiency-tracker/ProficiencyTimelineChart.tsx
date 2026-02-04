@@ -20,10 +20,10 @@ interface ProficiencyTimelineChartProps {
 export function ProficiencyTimelineChart({ history, hasData }: ProficiencyTimelineChartProps) {
     if (!hasData) {
         return (
-            <Card className="rounded-xl border-dashed border-2 border-violet-500/20 bg-violet-500/5">
+            <Card className="rounded-xl border-dashed border-2 border-primary/20 bg-primary/5">
                 <CardContent className="p-8 text-center">
-                    <BookOpen className="h-12 w-12 mx-auto mb-4 text-violet-500/30" />
-                    <h3 className="font-semibold text-lg text-violet-200 mb-2">
+                    <BookOpen className="h-12 w-12 mx-auto mb-4 text-primary/30" />
+                    <h3 className="font-semibold text-lg text-primary mb-2">
                         Continue your studies to see your progress!
                     </h3>
                     <p className="text-sm text-muted-foreground max-w-md mx-auto">
@@ -41,9 +41,9 @@ export function ProficiencyTimelineChart({ history, hasData }: ProficiencyTimeli
     const range = maxScore - minScore || 1
 
     return (
-        <Card className="rounded-xl border-violet-500/20 bg-gradient-to-br from-violet-900/20 to-purple-900/20">
+        <Card className="rounded-xl border-primary/20 bg-primary/10">
             <CardContent className="p-6">
-                <div className="flex items-center gap-2 mb-6 text-violet-300">
+                <div className="flex items-center gap-2 mb-6 text-primary">
                     <TrendingUp className="h-5 w-5" />
                     <h3 className="font-semibold">Progress Over Time</h3>
                 </div>
@@ -60,7 +60,7 @@ export function ProficiencyTimelineChart({ history, hasData }: ProficiencyTimeli
                                 className="flex-1 flex flex-col items-center gap-1"
                             >
                                 <div
-                                    className="w-full bg-gradient-to-t from-violet-600 to-purple-400 rounded-t transition-all duration-500 hover:from-violet-500 hover:to-purple-300"
+                                    className="w-full bg-gradient-to-t from-primary to-primary/70 rounded-t transition-all duration-500 hover:from-primary/90 hover:to-primary/60"
                                     style={{ height: `${normalizedHeight}%` }}
                                     title={`Score: ${point.overall.toFixed(1)}`}
                                 />
@@ -70,7 +70,7 @@ export function ProficiencyTimelineChart({ history, hasData }: ProficiencyTimeli
                 </div>
 
                 {/* X-axis labels */}
-                <div className="flex justify-between mt-2 text-xs text-slate-500">
+                <div className="flex justify-between mt-2 text-xs text-muted-foreground">
                     <span>{history.length > 0 ? formatDate(history[0].date) : ''}</span>
                     <span>{history.length > 0 ? formatDate(history[history.length - 1].date) : ''}</span>
                 </div>

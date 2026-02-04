@@ -244,17 +244,17 @@ export function SpeakingTestStep({ selfAssessment, data, onUpdate }: SpeakingTes
     };
 
     const getScoreColor = (score: number) => {
-        if (score >= 80) return "text-green-400";
-        if (score >= 60) return "text-amber-400";
-        return "text-red-400";
+        if (score >= 80) return "text-chart-4";
+        if (score >= 60) return "text-chart-3";
+        return "text-destructive";
     };
 
     return (
-        <Card className="border-purple-500/20 bg-card/50 backdrop-blur">
+        <Card className="border-primary/20 bg-card/50 backdrop-blur">
             <CardHeader>
                 <CardTitle className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-rose-500/20">
-                        <Mic className="h-5 w-5 text-rose-400" />
+                    <div className="p-2 rounded-lg bg-secondary/20">
+                        <Mic className="h-5 w-5 text-secondary" />
                     </div>
                     <div>
                         <span className="text-lg">Speaking Production</span>
@@ -262,7 +262,7 @@ export function SpeakingTestStep({ selfAssessment, data, onUpdate }: SpeakingTes
                             Prompt {currentPrompt + 1} of {SPEAKING_PROMPTS.length}
                         </p>
                     </div>
-                    <div className="ml-auto px-3 py-1 rounded-full bg-rose-500/10 text-sm text-rose-300">
+                    <div className="ml-auto px-3 py-1 rounded-full bg-secondary/10 text-sm text-secondary">
                         {prompt.level}
                     </div>
                 </CardTitle>
@@ -270,13 +270,13 @@ export function SpeakingTestStep({ selfAssessment, data, onUpdate }: SpeakingTes
 
             <CardContent className="space-y-6">
                 {/* Prompt */}
-                <div className="p-4 rounded-xl bg-rose-500/5 border border-rose-500/20">
-                    <p className="text-lg font-medium text-rose-300">{prompt.prompt}</p>
+                <div className="p-4 rounded-xl bg-secondary/5 border border-secondary/20">
+                    <p className="text-lg font-medium text-secondary">{prompt.prompt}</p>
                     <p className="text-sm text-muted-foreground mt-2 italic">{prompt.translation}</p>
                 </div>
 
                 {/* Recording Interface */}
-                <div className="p-6 rounded-xl bg-gradient-to-r from-rose-500/10 to-pink-500/10 border border-rose-500/20">
+                <div className="p-6 rounded-xl bg-gradient-to-r from-secondary/10 to-secondary/5 border border-secondary/20">
                     <div className="flex flex-col items-center gap-4">
                         {/* Recording button */}
                         <Button
@@ -286,8 +286,8 @@ export function SpeakingTestStep({ selfAssessment, data, onUpdate }: SpeakingTes
                             className={cn(
                                 "h-20 w-20 rounded-full p-0 transition-all",
                                 isRecording
-                                    ? "bg-red-600 hover:bg-red-700 animate-pulse"
-                                    : "bg-rose-600 hover:bg-rose-700"
+                                    ? "bg-destructive hover:bg-destructive/80 animate-pulse"
+                                    : "bg-secondary hover:bg-secondary/80"
                             )}
                         >
                             {isRecording ? (
@@ -301,7 +301,7 @@ export function SpeakingTestStep({ selfAssessment, data, onUpdate }: SpeakingTes
                         <div className="text-center">
                             {isRecording ? (
                                 <>
-                                    <p className="font-medium text-red-400">Recording... {formatTime(recordingTime)}</p>
+                                    <p className="font-medium text-destructive">Recording... {formatTime(recordingTime)}</p>
                                     <p className="text-sm text-muted-foreground">Click to stop</p>
                                 </>
                             ) : recordedAudio ? (
@@ -321,7 +321,7 @@ export function SpeakingTestStep({ selfAssessment, data, onUpdate }: SpeakingTes
                                 </div>
                             ) : (
                                 <>
-                                    <p className="font-medium text-rose-300">Click to start recording</p>
+                                    <p className="font-medium text-secondary">Click to start recording</p>
                                     <p className="text-sm text-muted-foreground">Answer in Romanian</p>
                                 </>
                             )}
@@ -333,13 +333,13 @@ export function SpeakingTestStep({ selfAssessment, data, onUpdate }: SpeakingTes
                 {showFeedback && currentFeedback && (
                     <div className="space-y-4">
                         {transcript && (
-                            <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                            <div className="p-4 rounded-xl bg-muted/20 border border-border">
                                 <p className="text-sm text-muted-foreground mb-2">What we heard:</p>
                                 <p className="text-lg">{transcript}</p>
                             </div>
                         )}
 
-                        <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                        <div className="p-4 rounded-xl bg-muted/20 border border-border">
                             <div className="flex items-center justify-between mb-3">
                                 <span className="font-medium">Grammar Score</span>
                                 <span className={cn("text-2xl font-bold", getScoreColor(currentFeedback.score))}>
@@ -351,19 +351,19 @@ export function SpeakingTestStep({ selfAssessment, data, onUpdate }: SpeakingTes
                                 <div className="space-y-2">
                                     <p className="text-sm text-muted-foreground">Errors detected:</p>
                                     {currentFeedback.errors.slice(0, 3).map((error, index) => (
-                                        <div key={index} className="text-sm p-2 rounded bg-amber-500/10 border border-amber-500/20">
-                                            <span className="text-amber-300">{error.type}</span>
+                                        <div key={index} className="text-sm p-2 rounded bg-chart-3/10 border border-chart-3/20">
+                                            <span className="text-chart-3">{error.type}</span>
                                             {error.context && (
                                                 <span className="text-muted-foreground">: "{error.context}"</span>
                                             )}
                                             {error.correction && (
-                                                <span className="text-green-400"> → "{error.correction}"</span>
+                                                <span className="text-chart-4"> → "{error.correction}"</span>
                                             )}
                                         </div>
                                     ))}
                                 </div>
                             ) : (
-                                <p className="text-sm text-green-400">✓ Good speaking! Keep practicing.</p>
+                                <p className="text-sm text-chart-4">✓ Good speaking! Keep practicing.</p>
                             )}
                         </div>
                     </div>
@@ -375,7 +375,7 @@ export function SpeakingTestStep({ selfAssessment, data, onUpdate }: SpeakingTes
                         <Button
                             onClick={handleSubmit}
                             disabled={!recordedAudio || isAnalyzing}
-                            className="bg-rose-600 hover:bg-rose-700"
+                            className="bg-secondary hover:bg-secondary/80"
                         >
                             {isAnalyzing ? (
                                 <>
@@ -387,7 +387,7 @@ export function SpeakingTestStep({ selfAssessment, data, onUpdate }: SpeakingTes
                             )}
                         </Button>
                     ) : !isLastPrompt ? (
-                        <Button onClick={handleNext} className="gap-2 bg-rose-600 hover:bg-rose-700">
+                        <Button onClick={handleNext} className="gap-2 bg-secondary hover:bg-secondary/80">
                             Next Prompt
                             <ChevronRight className="h-4 w-4" />
                         </Button>
@@ -413,12 +413,12 @@ export function SpeakingTestStep({ selfAssessment, data, onUpdate }: SpeakingTes
                                 key={index}
                                 className={cn(
                                     "w-3 h-3 rounded-full transition-all",
-                                    index === currentPrompt && "ring-2 ring-rose-500 ring-offset-2 ring-offset-background",
+                                    index === currentPrompt && "ring-2 ring-secondary ring-offset-2 ring-offset-background",
                                     responded
                                         ? score && score >= 70
-                                            ? "bg-green-500"
-                                            : "bg-amber-500"
-                                        : "bg-white/20"
+                                            ? "bg-chart-4"
+                                            : "bg-chart-3"
+                                        : "bg-muted/40"
                                 )}
                             />
                         );

@@ -76,8 +76,8 @@ export function TextReader({
             onClick={onWordClick ? handleClick : undefined}
             className={cn(
               onWordClick && "cursor-pointer transition-all duration-150 rounded px-0.5 -mx-0.5",
-              onWordClick && "hover:bg-indigo-500/30 hover:text-indigo-100",
-              isSelected && "bg-indigo-500/40 text-indigo-100"
+              onWordClick && "hover:bg-accent/30 hover:text-accent-foreground",
+              isSelected && "bg-accent/40 text-accent-foreground"
             )}
           >
             {word}
@@ -92,11 +92,11 @@ export function TextReader({
     <div className={cn("rounded-xl bg-muted/30 overflow-hidden", className)}>
       {/* Header */}
       <div className="flex items-center gap-3 p-4 border-b border-border/40">
-        <div className="p-2 rounded-lg bg-blue-500/20">
-          <BookOpen className="h-5 w-5 text-blue-400" />
+        <div className="p-2 rounded-lg bg-accent/20">
+          <BookOpen className="h-5 w-5 text-accent" />
         </div>
         <div>
-          <h3 className="font-medium text-blue-300">{title}</h3>
+          <h3 className="font-medium text-accent">{title}</h3>
           <p className="text-xs text-muted-foreground">Article / Text</p>
         </div>
       </div>
@@ -111,8 +111,8 @@ export function TextReader({
       {/* Instruction hint */}
       {onWordClick && (
         <div className="px-6 pb-4">
-          <div className="rounded-lg bg-indigo-400/20 border border-border p-3">
-            <p className="text-sm text-indigo-400">
+          <div className="rounded-lg bg-accent/20 border border-border p-3">
+            <p className="text-sm text-accent">
               Click on any word to add it to your Mystery Shelf
             </p>
           </div>

@@ -117,9 +117,9 @@ export function PronunciationPractice({ targetText, onComplete }: PronunciationP
   }
 
   const getScoreColor = (score: number) => {
-    if (score >= 0.85) return 'text-green-400'
-    if (score >= 0.70) return 'text-yellow-400'
-    return 'text-red-400'
+    if (score >= 0.85) return 'text-chart-4'
+    if (score >= 0.70) return 'text-chart-3'
+    return 'text-destructive'
   }
 
   const getScoreLabel = (score: number) => {
@@ -129,11 +129,11 @@ export function PronunciationPractice({ targetText, onComplete }: PronunciationP
   }
 
   return (
-    <Card className="rounded-xl border-blue-500/20 bg-gradient-to-r from-blue-500/10 to-cyan-500/5">
+    <Card className="rounded-xl border-accent/20 bg-accent/10">
       <CardContent className="p-5">
         <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 rounded-lg bg-blue-500/20">
-            <Volume2 className="h-5 w-5 text-blue-400" />
+          <div className="p-2 rounded-lg bg-accent/20">
+            <Volume2 className="h-5 w-5 text-accent" />
           </div>
           <div className="flex-1">
             <h4 className="font-medium">Pronunciation Practice</h4>
@@ -154,7 +154,7 @@ export function PronunciationPractice({ targetText, onComplete }: PronunciationP
               {!isRecording ? (
                 <Button
                   onClick={startRecording}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 rounded-xl"
+                  className="flex-1 bg-accent hover:bg-accent/80 rounded-xl"
                 >
                   <Mic className="mr-2 h-4 w-4" />
                   Start Recording
@@ -162,7 +162,7 @@ export function PronunciationPractice({ targetText, onComplete }: PronunciationP
               ) : (
                 <Button
                   onClick={stopRecording}
-                  className="flex-1 bg-red-600 hover:bg-red-700 rounded-xl animate-pulse"
+                  className="flex-1 bg-destructive hover:bg-destructive/80 rounded-xl animate-pulse"
                 >
                   <Square className="mr-2 h-4 w-4" />
                   Stop Recording
@@ -176,7 +176,7 @@ export function PronunciationPractice({ targetText, onComplete }: PronunciationP
                 <Button
                   onClick={playRecording}
                   variant="outline"
-                  className="border-blue-500/30"
+                  className="border-accent/30"
                 >
                   <Play className="mr-2 h-4 w-4" />
                   Play
@@ -184,7 +184,7 @@ export function PronunciationPractice({ targetText, onComplete }: PronunciationP
                 <Button
                   onClick={analyzePronunciation}
                   disabled={isAnalyzing}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 rounded-xl"
+                  className="flex-1 bg-accent hover:bg-accent/80 rounded-xl"
                 >
                   {isAnalyzing ? (
                     <>
@@ -201,7 +201,7 @@ export function PronunciationPractice({ targetText, onComplete }: PronunciationP
                 <Button
                   onClick={reset}
                   variant="outline"
-                  className="border-orange-500/30"
+                  className="border-destructive/30"
                 >
                   <RotateCcw className="h-4 w-4" />
                 </Button>
@@ -209,7 +209,7 @@ export function PronunciationPractice({ targetText, onComplete }: PronunciationP
 
               {/* Results */}
               {result && (
-                <div className="p-4 rounded-lg bg-background/50 border border-blue-500/20 space-y-3">
+                <div className="p-4 rounded-lg bg-muted/50 border border-accent/20 space-y-3">
                   <div>
                     <p className="text-xs text-muted-foreground mb-1">You said:</p>
                     <p className="text-base font-medium italic">{result.transcribedText || "Unable to transcribe"}</p>
@@ -235,10 +235,10 @@ export function PronunciationPractice({ targetText, onComplete }: PronunciationP
                         <div
                           className={`h-full transition-all duration-500 ${
                             result.pronunciationScore >= 0.85
-                              ? 'bg-green-500'
+                              ? 'bg-chart-4'
                               : result.pronunciationScore >= 0.70
-                              ? 'bg-yellow-500'
-                              : 'bg-red-500'
+                              ? 'bg-chart-3'
+                              : 'bg-destructive'
                           }`}
                           style={{ width: `${result.pronunciationScore * 100}%` }}
                         />
@@ -253,7 +253,7 @@ export function PronunciationPractice({ targetText, onComplete }: PronunciationP
                   )}
 
                   {result.fallbackUsed && (
-                    <p className="text-xs text-yellow-400">
+                    <p className="text-xs text-chart-3">
                       ⚠️ Analysis service unavailable. Using fallback.
                     </p>
                   )}
@@ -264,8 +264,8 @@ export function PronunciationPractice({ targetText, onComplete }: PronunciationP
 
           {/* Error Display */}
           {error && (
-            <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20">
-              <p className="text-sm text-red-400">{error}</p>
+            <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+              <p className="text-sm text-destructive">{error}</p>
             </div>
           )}
         </div>

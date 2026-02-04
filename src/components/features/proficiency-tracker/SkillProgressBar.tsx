@@ -14,30 +14,30 @@ const skillConfig = {
     listening: {
         icon: Headphones,
         label: "Listening",
-        color: "from-cyan-500 to-blue-500",
-        bgColor: "bg-cyan-500/10",
-        textColor: "text-cyan-400",
+        color: "from-accent to-accent/70",
+        bgColor: "bg-accent/10",
+        textColor: "text-accent",
     },
     reading: {
         icon: BookOpen,
         label: "Reading",
-        color: "from-amber-500 to-orange-500",
-        bgColor: "bg-amber-500/10",
-        textColor: "text-amber-400",
+        color: "from-chart-3 to-chart-3/70",
+        bgColor: "bg-chart-3/10",
+        textColor: "text-chart-3",
     },
     speaking: {
         icon: Mic2,
         label: "Speaking",
-        color: "from-pink-500 to-rose-500",
-        bgColor: "bg-pink-500/10",
-        textColor: "text-pink-400",
+        color: "from-secondary to-secondary/70",
+        bgColor: "bg-secondary/10",
+        textColor: "text-secondary",
     },
     writing: {
         icon: PenTool,
         label: "Writing",
-        color: "from-emerald-500 to-teal-500",
-        bgColor: "bg-emerald-500/10",
-        textColor: "text-emerald-400",
+        color: "from-chart-4 to-chart-4/70",
+        bgColor: "bg-chart-4/10",
+        textColor: "text-chart-4",
     },
 }
 
@@ -46,26 +46,26 @@ export function SkillProgressBar({ skill, score, level }: SkillProgressBarProps)
     const Icon = config.icon
 
     return (
-        <div className="group p-4 rounded-xl bg-black/20 border border-white/5 hover:border-white/10 transition-all">
+        <div className="group p-4 rounded-xl bg-muted/30 border border-border hover:border-border/80 transition-all">
             <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
                     <div className={cn("p-2 rounded-lg", config.bgColor)}>
                         <Icon className={cn("h-5 w-5", config.textColor)} />
                     </div>
-                    <span className="font-medium text-slate-200">{config.label}</span>
+                    <span className="font-medium text-foreground">{config.label}</span>
                 </div>
                 <div className="flex items-center gap-2">
                     <span className={cn("text-xl font-bold", config.textColor)}>
                         {Math.round(score)}
                     </span>
-                    <span className="text-sm text-slate-400 font-medium px-2 py-0.5 bg-white/5 rounded">
+                    <span className="text-sm text-muted-foreground font-medium px-2 py-0.5 bg-muted/20 rounded">
                         {level}
                     </span>
                 </div>
             </div>
 
             {/* Progress bar */}
-            <div className="h-2 bg-black/40 rounded-full overflow-hidden">
+            <div className="h-2 bg-muted/50 rounded-full overflow-hidden">
                 <div
                     className={cn(
                         "h-full rounded-full bg-gradient-to-r transition-all duration-700",

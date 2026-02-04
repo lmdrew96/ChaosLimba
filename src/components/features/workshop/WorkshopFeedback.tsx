@@ -27,8 +27,8 @@ export function WorkshopFeedback({ evaluation, challenge, onNext }: WorkshopFeed
     <Card
       className={`rounded-2xl border-border/40 ${
         isCorrect
-          ? "bg-gradient-to-br from-emerald-500/5 via-background to-green-500/5"
-          : "bg-gradient-to-br from-amber-500/5 via-background to-orange-500/5"
+          ? "bg-gradient-to-br from-chart-4/5 via-background to-chart-4/5"
+          : "bg-gradient-to-br from-chart-3/5 via-background to-destructive/5"
       }`}
     >
       <CardContent className="p-6 space-y-5">
@@ -36,11 +36,11 @@ export function WorkshopFeedback({ evaluation, challenge, onNext }: WorkshopFeed
         <div className="flex items-center gap-3">
           {isCorrect ? (
             <>
-              <div className="p-2 rounded-full bg-emerald-500/20">
-                <CheckCircle2 className="h-6 w-6 text-emerald-400" />
+              <div className="p-2 rounded-full bg-chart-4/20">
+                <CheckCircle2 className="h-6 w-6 text-chart-4" />
               </div>
               <div>
-                <p className="font-semibold text-emerald-400">Nice work!</p>
+                <p className="font-semibold text-chart-4">Nice work!</p>
                 <p className="text-sm text-muted-foreground">
                   Score: {evaluation.score}/100
                 </p>
@@ -48,11 +48,11 @@ export function WorkshopFeedback({ evaluation, challenge, onNext }: WorkshopFeed
             </>
           ) : (
             <>
-              <div className="p-2 rounded-full bg-amber-500/20">
-                <AlertTriangle className="h-6 w-6 text-amber-400" />
+              <div className="p-2 rounded-full bg-chart-3/20">
+                <AlertTriangle className="h-6 w-6 text-chart-3" />
               </div>
               <div>
-                <p className="font-semibold text-amber-400">Almost there!</p>
+                <p className="font-semibold text-chart-3">Almost there!</p>
                 <p className="text-sm text-muted-foreground">
                   Errors are gold — this one goes to your Error Garden
                 </p>
@@ -61,7 +61,7 @@ export function WorkshopFeedback({ evaluation, challenge, onNext }: WorkshopFeed
           )}
 
           {evaluation.usedTargetStructure && (
-            <Badge className="ml-auto bg-indigo-500/20 text-indigo-400 border-indigo-500/30 gap-1">
+            <Badge className="ml-auto bg-accent/20 text-accent border-accent/30 gap-1">
               <Sparkles className="h-3 w-3" />
               Used target structure
             </Badge>
@@ -105,8 +105,8 @@ export function WorkshopFeedback({ evaluation, challenge, onNext }: WorkshopFeed
         )}
 
         {/* Rule explanation */}
-        <div className="rounded-xl bg-indigo-500/5 border border-indigo-500/20 px-4 py-3 space-y-1">
-          <div className="flex items-center gap-1.5 text-xs font-medium text-indigo-400 uppercase tracking-wider">
+        <div className="rounded-xl bg-accent/5 border border-accent/20 px-4 py-3 space-y-1">
+          <div className="flex items-center gap-1.5 text-xs font-medium text-accent uppercase tracking-wider">
             <BookOpen className="h-3.5 w-3.5" />
             Grammar Rule
           </div>
@@ -140,12 +140,12 @@ export function WorkshopFeedback({ evaluation, challenge, onNext }: WorkshopFeed
                 key={i}
                 className="text-sm flex items-start gap-2 text-muted-foreground"
               >
-                <span className="text-amber-400 mt-0.5">*</span>
+                <span className="text-chart-3 mt-0.5">*</span>
                 <span>
-                  <span className="line-through text-red-400/70">
+                  <span className="line-through text-destructive/70">
                     {err.learner_production}
                   </span>{" "}
-                  <span className="text-emerald-400">
+                  <span className="text-chart-4">
                     {err.correct_form}
                   </span>
                 </span>
@@ -157,7 +157,7 @@ export function WorkshopFeedback({ evaluation, challenge, onNext }: WorkshopFeed
         {/* Next button */}
         <Button
           onClick={onNext}
-          className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 rounded-xl shadow-lg shadow-indigo-500/20"
+          className="w-full bg-gradient-to-r from-accent to-accent/80 hover:from-accent/90 hover:to-accent/70 rounded-xl shadow-lg shadow-accent/20"
         >
           Next Challenge
           <ArrowRight className="ml-1.5 h-4 w-4" />

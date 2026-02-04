@@ -253,18 +253,18 @@ export default function WorkshopPage() {
   if (!isActive) {
     return (
       <div className="space-y-8 max-w-2xl mx-auto">
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-500/10 via-background to-blue-500/10 p-8 border border-border/40">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-blue-500/10 rounded-full blur-3xl" />
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-accent/10 via-background to-accent/10 p-8 border border-border/40">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-accent/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-accent/10 rounded-full blur-3xl" />
           <div className="relative space-y-4">
             <div className="flex items-center gap-3">
-              <div className="p-3 rounded-xl bg-indigo-500/20">
-                <Wrench className="h-7 w-7 text-indigo-400" />
+              <div className="p-3 rounded-xl bg-accent/20">
+                <Wrench className="h-7 w-7 text-accent" />
               </div>
               <div>
                 <h1 className="text-2xl font-bold">Workshop</h1>
                 {userLevel && (
-                  <Badge variant="outline" className="mt-1 text-indigo-400 border-indigo-500/30">
+                  <Badge variant="outline" className="mt-1 text-accent border-accent/30">
                     {userLevel}
                   </Badge>
                 )}
@@ -292,7 +292,7 @@ export default function WorkshopPage() {
             <div className="flex flex-wrap gap-3 pt-2">
               <Button
                 onClick={() => handleStartSession(null)}
-                className="bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 rounded-xl shadow-lg shadow-indigo-500/20"
+                className="bg-gradient-to-r from-accent to-accent/80 hover:from-accent/90 hover:to-accent/70 rounded-xl shadow-lg shadow-accent/20"
               >
                 <Play className="mr-2 h-4 w-4" />
                 Quick Practice
@@ -300,7 +300,7 @@ export default function WorkshopPage() {
               <Button
                 variant="outline"
                 onClick={() => handleStartSession(300)}
-                className="rounded-xl border-indigo-500/30 hover:bg-indigo-500/10"
+                className="rounded-xl border-accent/30 hover:bg-accent/10"
               >
                 <Timer className="mr-2 h-4 w-4" />
                 5 min
@@ -308,7 +308,7 @@ export default function WorkshopPage() {
               <Button
                 variant="outline"
                 onClick={() => handleStartSession(600)}
-                className="rounded-xl border-indigo-500/30 hover:bg-indigo-500/10"
+                className="rounded-xl border-accent/30 hover:bg-accent/10"
               >
                 <Timer className="mr-2 h-4 w-4" />
                 10 min
@@ -327,10 +327,10 @@ export default function WorkshopPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Wrench className="h-5 w-5 text-indigo-400" />
+          <Wrench className="h-5 w-5 text-accent" />
           <h2 className="font-semibold">Workshop</h2>
           {userLevel && (
-            <Badge variant="outline" className="text-indigo-400 border-indigo-500/30">
+            <Badge variant="outline" className="text-accent border-accent/30">
               {userLevel}
             </Badge>
           )}
@@ -362,7 +362,7 @@ export default function WorkshopPage() {
 
       {/* Error display */}
       {error && (
-        <div className="flex items-center gap-2 text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3">
+        <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-xl px-4 py-3">
           <AlertCircle className="h-4 w-4 shrink-0" />
           {error}
         </div>
@@ -372,7 +372,7 @@ export default function WorkshopPage() {
       {isLoadingChallenge ? (
         <Card className="rounded-2xl border-border/40 bg-card/50">
           <CardContent className="p-12 flex flex-col items-center gap-3">
-            <Loader2 className="h-8 w-8 animate-spin text-indigo-400" />
+            <Loader2 className="h-8 w-8 animate-spin text-accent" />
             <p className="text-sm text-muted-foreground">Generating challenge...</p>
           </CardContent>
         </Card>

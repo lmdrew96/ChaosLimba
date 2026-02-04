@@ -42,8 +42,8 @@ const quickActions = [
     description: "Grammar & vocab micro-challenges",
     href: "/workshop",
     icon: Wrench,
-    gradient: "from-indigo-500/20 to-blue-500/10",
-    iconColor: "text-indigo-400",
+    gradient: "from-accent/20 to-accent/10",
+    iconColor: "text-accent",
   },
   {
     name: "Ask Tutor",
@@ -107,36 +107,36 @@ export default function DashboardPage() {
       label: "Words Collected",
       value: stats ? String(stats.wordsCollected) : "—",
       icon: BookOpen,
-      color: "text-amber-400",
-      bgColor: "bg-amber-500/10",
+      color: "text-chart-3",
+      bgColor: "bg-chart-3/10",
     },
     {
       label: "Practice Streak",
       value: stats ? `${stats.practiceStreak} day${stats.practiceStreak !== 1 ? "s" : ""}` : "—",
       icon: Zap,
-      color: "text-orange-400",
-      bgColor: "bg-orange-500/10",
+      color: "text-destructive",
+      bgColor: "bg-destructive/10",
     },
     {
       label: "Error Patterns",
       value: stats ? String(stats.errorPatterns) : "—",
       icon: Flower2,
-      color: "text-green-400",
-      bgColor: "bg-green-500/10",
+      color: "text-chart-4",
+      bgColor: "bg-chart-4/10",
     },
     {
       label: "Time Today",
       value: stats ? `${stats.timeTodayMinutes} min` : "—",
       icon: Clock,
-      color: "text-purple-400",
-      bgColor: "bg-purple-500/10",
+      color: "text-primary",
+      bgColor: "bg-primary/10",
     },
     {
       label: "Features Discovered",
       value: stats ? String(stats.featuresDiscovered) : "—",
       icon: Sparkles,
-      color: "text-cyan-400",
-      bgColor: "bg-cyan-500/10",
+      color: "text-accent",
+      bgColor: "bg-accent/10",
     },
   ]
 
@@ -215,7 +215,7 @@ export default function DashboardPage() {
               <Link
                 key={action.name}
                 href={action.href}
-                className={`group flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r ${action.gradient} border border-transparent hover:border-purple-500/30 transition-all duration-200 hover:scale-[1.02]`}
+                className={`group flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r ${action.gradient} border border-transparent hover:border-primary/30 transition-all duration-200 hover:scale-[1.02]`}
               >
                 <div
                   className={`p-2 rounded-lg bg-background/50 ${action.iconColor}`}
@@ -239,7 +239,7 @@ export default function DashboardPage() {
         <Card className="rounded-2xl border-border/40 bg-card/50 backdrop-blur">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
-              <TrendingUp className="h-5 w-5 text-green-400" />
+              <TrendingUp className="h-5 w-5 text-chart-4" />
               Recent Activity
             </CardTitle>
           </CardHeader>

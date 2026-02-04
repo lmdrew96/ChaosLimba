@@ -20,7 +20,7 @@ type TrendChartProps = {
 export function TrendChart({
     data,
     labels,
-    color = "#10b981", // default emerald-500
+    color = "var(--color-chart-4)",
     height = 200,
 }: TrendChartProps) {
     // Convert data to chart format, treating null as missing data points

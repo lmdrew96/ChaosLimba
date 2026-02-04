@@ -136,11 +136,11 @@ export function ListeningTestStep({ data, onUpdate }: ListeningTestStepProps) {
     };
 
     return (
-        <Card className="border-purple-500/20 bg-card/50 backdrop-blur">
+        <Card className="border-primary/20 bg-card/50 backdrop-blur">
             <CardHeader>
                 <CardTitle className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-indigo-500/20">
-                        <Headphones className="h-5 w-5 text-indigo-400" />
+                    <div className="p-2 rounded-lg bg-accent/20">
+                        <Headphones className="h-5 w-5 text-accent" />
                     </div>
                     <div>
                         <span className="text-lg">Listening Comprehension</span>
@@ -149,7 +149,7 @@ export function ListeningTestStep({ data, onUpdate }: ListeningTestStepProps) {
                         </p>
                     </div>
                     <div className="ml-auto">
-                        <div className="px-3 py-1 rounded-full bg-indigo-500/10 text-sm text-indigo-300">
+                        <div className="px-3 py-1 rounded-full bg-accent/10 text-sm text-accent">
                             {question.level}
                         </div>
                     </div>
@@ -158,7 +158,7 @@ export function ListeningTestStep({ data, onUpdate }: ListeningTestStepProps) {
 
             <CardContent className="space-y-6">
                 {/* Audio Player */}
-                <div className="p-6 rounded-xl bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border border-indigo-500/20">
+                <div className="p-6 rounded-xl bg-accent/10 border border-accent/20">
                     <div className="flex items-center gap-4">
                         <Button
                             size="lg"
@@ -167,8 +167,8 @@ export function ListeningTestStep({ data, onUpdate }: ListeningTestStepProps) {
                             className={cn(
                                 "h-14 w-14 rounded-full p-0",
                                 isPlaying
-                                    ? "bg-indigo-600 animate-pulse"
-                                    : "bg-indigo-600 hover:bg-indigo-700"
+                                    ? "bg-accent animate-pulse"
+                                    : "bg-accent hover:bg-accent/80"
                             )}
                         >
                             {isPlaying ? (
@@ -178,7 +178,7 @@ export function ListeningTestStep({ data, onUpdate }: ListeningTestStepProps) {
                             )}
                         </Button>
                         <div className="flex-1">
-                            <p className="font-medium text-indigo-300">
+                            <p className="font-medium text-accent">
                                 {isPlaying ? "Playing..." : hasPlayed ? "Click to replay" : "Click to listen"}
                             </p>
                             <p className="text-sm text-muted-foreground">
@@ -186,7 +186,7 @@ export function ListeningTestStep({ data, onUpdate }: ListeningTestStepProps) {
                             </p>
                         </div>
                         {hasPlayed && (
-                            <div className="text-green-400 text-sm">✓ Heard</div>
+                            <div className="text-chart-4 text-sm">✓ Heard</div>
                         )}
                     </div>
                 </div>
@@ -211,9 +211,9 @@ export function ListeningTestStep({ data, onUpdate }: ListeningTestStepProps) {
                                     className={cn(
                                         "h-auto p-4 justify-start text-left transition-all",
                                         !hasPlayed && "opacity-50 cursor-not-allowed",
-                                        isSelected && !showFeedback && "border-indigo-500 bg-indigo-500/10",
-                                        showAsCorrect && "border-green-500 bg-green-500/10 text-green-300",
-                                        showAsWrong && "border-red-500 bg-red-500/10 text-red-300"
+                                        isSelected && !showFeedback && "border-accent bg-accent/10",
+                                        showAsCorrect && "border-chart-4 bg-chart-4/10 text-chart-4",
+                                        showAsWrong && "border-destructive bg-destructive/10 text-destructive"
                                     )}
                                 >
                                     <span className="w-8 h-8 rounded-full border-2 flex items-center justify-center mr-3 text-sm font-medium">
@@ -238,13 +238,13 @@ export function ListeningTestStep({ data, onUpdate }: ListeningTestStepProps) {
                         className={cn(
                             "p-4 rounded-xl",
                             selectedOption === question.correctIndex
-                                ? "bg-green-500/10 border border-green-500/20"
-                                : "bg-amber-500/10 border border-amber-500/20"
+                                ? "bg-chart-4/10 border border-chart-4/20"
+                                : "bg-chart-3/10 border border-chart-3/20"
                         )}
                     >
                         <p className={cn(
                             "font-medium",
-                            selectedOption === question.correctIndex ? "text-green-400" : "text-amber-400"
+                            selectedOption === question.correctIndex ? "text-chart-4" : "text-chart-3"
                         )}>
                             {selectedOption === question.correctIndex
                                 ? "🎉 Excellent listening! You got it!"
@@ -259,12 +259,12 @@ export function ListeningTestStep({ data, onUpdate }: ListeningTestStepProps) {
                         <Button
                             onClick={handleSubmitAnswer}
                             disabled={selectedOption === null || !hasPlayed}
-                            className="bg-indigo-600 hover:bg-indigo-700"
+                            className="bg-accent hover:bg-accent/80"
                         >
                             Check Answer
                         </Button>
                     ) : !isLastQuestion ? (
-                        <Button onClick={handleNext} className="gap-2 bg-indigo-600 hover:bg-indigo-700">
+                        <Button onClick={handleNext} className="gap-2 bg-accent hover:bg-accent/80">
                             Next Question
                             <ChevronRight className="h-4 w-4" />
                         </Button>
@@ -290,12 +290,12 @@ export function ListeningTestStep({ data, onUpdate }: ListeningTestStepProps) {
                                 key={index}
                                 className={cn(
                                     "w-3 h-3 rounded-full transition-all",
-                                    index === currentQuestion && "ring-2 ring-indigo-500 ring-offset-2 ring-offset-background",
+                                    index === currentQuestion && "ring-2 ring-accent ring-offset-2 ring-offset-background",
                                     answered
                                         ? isCorrect
-                                            ? "bg-green-500"
-                                            : "bg-amber-500"
-                                        : "bg-white/20"
+                                            ? "bg-chart-4"
+                                            : "bg-chart-3"
+                                        : "bg-muted/40"
                                 )}
                             />
                         );

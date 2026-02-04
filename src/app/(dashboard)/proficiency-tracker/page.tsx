@@ -90,15 +90,15 @@ export default function ProficiencyTrackerPage() {
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-[400px]">
-                <Loader2 className="h-8 w-8 animate-spin text-violet-400" />
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
         )
     }
 
     if (error || !proficiency) {
         return (
-            <Card className="rounded-xl border-red-500/30 bg-red-500/5 max-w-4xl mx-auto">
-                <CardContent className="p-8 text-center text-red-400">
+            <Card className="rounded-xl border-destructive/30 bg-destructive/5 max-w-4xl mx-auto">
+                <CardContent className="p-8 text-center text-destructive">
                     {error || 'Failed to load proficiency data'}
                 </CardContent>
             </Card>
@@ -112,51 +112,51 @@ export default function ProficiencyTrackerPage() {
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
                 <div>
-                    <h1 className="text-4xl font-bold flex items-center gap-3 bg-gradient-to-r from-violet-400 to-purple-300 bg-clip-text text-transparent">
-                        <TrendingUp className="h-10 w-10 text-violet-400" />
+                    <h1 className="text-4xl font-bold flex items-center gap-3 bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                        <TrendingUp className="h-10 w-10 text-primary" />
                         Proficiency Tracker
                     </h1>
-                    <p className="text-violet-200/80 mt-2 text-lg">
+                    <p className="text-muted-foreground mt-2 text-lg">
                         Your journey through the chaos
                     </p>
                 </div>
                 <div className="text-right hidden md:block">
-                    <div className="text-sm font-semibold text-violet-300">CEFR Framework</div>
-                    <div className="text-xs text-violet-400/60">Continuous Assessment</div>
+                    <div className="text-sm font-semibold text-primary">CEFR Framework</div>
+                    <div className="text-xs text-primary/60">Continuous Assessment</div>
                 </div>
             </div>
 
             {/* Overall Level Badge */}
-            <Card className="rounded-2xl border-violet-500/30 bg-gradient-to-br from-violet-900/40 via-purple-900/30 to-violet-800/40 overflow-hidden relative">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-violet-500/10 rounded-full blur-3xl" />
-                <div className="absolute bottom-0 left-0 w-48 h-48 bg-purple-500/10 rounded-full blur-3xl" />
+            <Card className="rounded-2xl border-primary/30 bg-gradient-to-br from-primary/10 via-primary/5 to-primary/10 overflow-hidden relative">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl" />
+                <div className="absolute bottom-0 left-0 w-48 h-48 bg-primary/10 rounded-full blur-3xl" />
 
                 <CardContent className="p-8 relative">
                     <div className="flex flex-col md:flex-row items-center justify-between gap-6">
                         <div className="text-center md:text-left">
-                            <div className="text-sm text-violet-300 mb-2">Overall Proficiency</div>
+                            <div className="text-sm text-primary mb-2">Overall Proficiency</div>
                             <div className="flex items-baseline gap-3">
-                                <span className="text-6xl font-bold text-white">{overall.level}</span>
-                                <span className="text-2xl text-violet-300">{CEFR_LABELS[overall.level]}</span>
+                                <span className="text-6xl font-bold text-foreground">{overall.level}</span>
+                                <span className="text-2xl text-primary">{CEFR_LABELS[overall.level]}</span>
                             </div>
-                            <div className="text-violet-400/80 mt-2">
+                            <div className="text-primary/80 mt-2">
                                 Score: {overall.score.toFixed(1)} / 10
                             </div>
                         </div>
 
                         {/* Progress to next level */}
-                        <div className="bg-black/30 rounded-xl p-5 border border-violet-500/20 min-w-[200px]">
-                            <div className="flex items-center gap-2 mb-3 text-violet-200">
+                        <div className="bg-muted/30 rounded-xl p-5 border border-primary/20 min-w-[200px]">
+                            <div className="flex items-center gap-2 mb-3 text-foreground/80">
                                 <Target className="h-4 w-4" />
                                 <span className="text-sm font-medium">Next: {nextMilestone.level}</span>
                             </div>
-                            <div className="h-3 bg-black/40 rounded-full overflow-hidden mb-2">
+                            <div className="h-3 bg-muted/30 rounded-full overflow-hidden mb-2">
                                 <div
-                                    className="h-full rounded-full bg-gradient-to-r from-violet-600 to-purple-400 transition-all duration-1000"
+                                    className="h-full rounded-full bg-gradient-to-r from-primary to-primary/60 transition-all duration-1000"
                                     style={{ width: `${nextMilestone.progress}%` }}
                                 />
                             </div>
-                            <div className="text-right text-xs text-violet-400">
+                            <div className="text-right text-xs text-primary/80">
                                 {nextMilestone.progress}% complete
                             </div>
                         </div>
@@ -166,8 +166,8 @@ export default function ProficiencyTrackerPage() {
 
             {/* Skill Breakdown */}
             <div>
-                <h2 className="text-xl font-semibold text-slate-200 mb-4 flex items-center gap-2">
-                    <Sparkles className="h-5 w-5 text-violet-400" />
+                <h2 className="text-xl font-semibold text-foreground/80 mb-4 flex items-center gap-2">
+                    <Sparkles className="h-5 w-5 text-primary" />
                     Skill Breakdown
                 </h2>
                 <div className="grid md:grid-cols-2 gap-4">
@@ -180,8 +180,8 @@ export default function ProficiencyTrackerPage() {
 
             {/* Timeline Chart */}
             <div>
-                <h2 className="text-xl font-semibold text-slate-200 mb-4 flex items-center gap-2">
-                    <TrendingUp className="h-5 w-5 text-violet-400" />
+                <h2 className="text-xl font-semibold text-foreground/80 mb-4 flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5 text-primary" />
                     Progress Timeline
                 </h2>
                 <ProficiencyTimelineChart
@@ -191,22 +191,22 @@ export default function ProficiencyTrackerPage() {
             </div>
 
             {/* Insights */}
-            <Card className="rounded-2xl border-violet-500/20 bg-gradient-to-br from-violet-900/40 to-purple-900/40 backdrop-blur-sm">
+            <Card className="rounded-2xl border-primary/20 bg-gradient-to-br from-primary/10 to-primary/10 backdrop-blur-sm">
                 <CardContent className="p-8">
-                    <div className="flex items-center gap-3 mb-4 text-violet-300">
+                    <div className="flex items-center gap-3 mb-4 text-primary">
                         <Lightbulb className="h-6 w-6" />
                         <h3 className="text-xl font-bold">Learning Insights</h3>
                     </div>
-                    <div className="grid md:grid-cols-2 gap-8 text-sm text-violet-100/80">
+                    <div className="grid md:grid-cols-2 gap-8 text-sm text-foreground/70">
                         <div>
-                            <strong className="block text-violet-200 mb-2">Continuous Assessment</strong>
+                            <strong className="block text-foreground/80 mb-2">Continuous Assessment</strong>
                             <p>
                                 Your proficiency updates with every Chaos Window session and practice activity.
                                 Embrace the productive confusion—each mistake is a data point!
                             </p>
                         </div>
                         <div>
-                            <strong className="block text-violet-200 mb-2">Zone of Proximal Development</strong>
+                            <strong className="block text-foreground/80 mb-2">Zone of Proximal Development</strong>
                             <p>
                                 The system keeps you in your ZPD (60-80% accuracy) where learning happens fastest.
                                 Content difficulty adapts automatically based on your progress.
@@ -215,7 +215,7 @@ export default function ProficiencyTrackerPage() {
                     </div>
 
                     <div className="mt-6 flex justify-center">
-                        <Button asChild className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 rounded-xl shadow-lg shadow-violet-500/20">
+                        <Button asChild className="bg-primary hover:bg-primary/80 rounded-xl shadow-lg shadow-primary/20">
                             <Link href="/chaos-window">
                                 Start Practicing
                                 <ArrowRight className="ml-2 h-4 w-4" />

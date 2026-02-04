@@ -13,11 +13,11 @@ export default async function OnboardingLayout({
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-background via-background to-purple-950/20">
+        <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/10">
             {/* Decorative elements */}
             <div className="fixed inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl" />
-                <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-violet-500/10 rounded-full blur-3xl" />
+                <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/10 rounded-full blur-3xl" />
+                <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-primary/10 rounded-full blur-3xl" />
             </div>
 
             {/* Main content */}

@@ -60,9 +60,9 @@ export function ReadingTestStep({ selfAssessment, data, onUpdate }: ReadingTestS
 
     if (isLoadingQuestions) {
         return (
-            <Card className="border-purple-500/20 bg-card/50 backdrop-blur">
+            <Card className="border-primary/20 bg-card/50 backdrop-blur">
                 <CardContent className="flex items-center justify-center py-16">
-                    <Loader2 className="h-8 w-8 animate-spin text-purple-400" />
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
                 </CardContent>
             </Card>
         );
@@ -70,7 +70,7 @@ export function ReadingTestStep({ selfAssessment, data, onUpdate }: ReadingTestS
 
     if (questions.length === 0) {
         return (
-            <Card className="border-purple-500/20 bg-card/50 backdrop-blur">
+            <Card className="border-primary/20 bg-card/50 backdrop-blur">
                 <CardContent className="text-center py-16 text-muted-foreground">
                     No reading questions available.
                 </CardContent>
@@ -114,11 +114,11 @@ export function ReadingTestStep({ selfAssessment, data, onUpdate }: ReadingTestS
     };
 
     return (
-        <Card className="border-purple-500/20 bg-card/50 backdrop-blur">
+        <Card className="border-primary/20 bg-card/50 backdrop-blur">
             <CardHeader>
                 <CardTitle className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-purple-500/20">
-                        <BookOpen className="h-5 w-5 text-purple-400" />
+                    <div className="p-2 rounded-lg bg-primary/20">
+                        <BookOpen className="h-5 w-5 text-primary" />
                     </div>
                     <div>
                         <span className="text-lg">Reading Comprehension</span>
@@ -126,7 +126,7 @@ export function ReadingTestStep({ selfAssessment, data, onUpdate }: ReadingTestS
                             Question {currentQuestion + 1} of {questions.length}
                         </p>
                     </div>
-                    <div className="ml-auto px-3 py-1 rounded-full bg-purple-500/10 text-sm text-purple-300">
+                    <div className="ml-auto px-3 py-1 rounded-full bg-primary/10 text-sm text-primary">
                         {question.level}
                     </div>
                 </CardTitle>
@@ -134,7 +134,7 @@ export function ReadingTestStep({ selfAssessment, data, onUpdate }: ReadingTestS
 
             <CardContent className="space-y-6">
                 {/* Passage */}
-                <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                <div className="p-4 rounded-xl bg-muted/20 border border-border">
                     <p className="text-lg leading-relaxed">{question.passage}</p>
                 </div>
 
@@ -157,9 +157,9 @@ export function ReadingTestStep({ selfAssessment, data, onUpdate }: ReadingTestS
                                     disabled={showFeedback}
                                     className={cn(
                                         "h-auto p-4 justify-start text-left transition-all",
-                                        isSelected && !showFeedback && "border-purple-500 bg-purple-500/10",
-                                        showAsCorrect && "border-green-500 bg-green-500/10 text-green-300",
-                                        showAsWrong && "border-red-500 bg-red-500/10 text-red-300"
+                                        isSelected && !showFeedback && "border-primary bg-primary/10",
+                                        showAsCorrect && "border-chart-4 bg-chart-4/10 text-chart-4",
+                                        showAsWrong && "border-destructive bg-destructive/10 text-destructive"
                                     )}
                                 >
                                     <span className="w-8 h-8 rounded-full border-2 flex items-center justify-center mr-3 text-sm font-medium">
@@ -178,13 +178,13 @@ export function ReadingTestStep({ selfAssessment, data, onUpdate }: ReadingTestS
                         className={cn(
                             "p-4 rounded-xl",
                             selectedOption === question.correctIndex
-                                ? "bg-green-500/10 border border-green-500/20"
-                                : "bg-amber-500/10 border border-amber-500/20"
+                                ? "bg-chart-4/10 border border-chart-4/20"
+                                : "bg-chart-3/10 border border-chart-3/20"
                         )}
                     >
                         <p className={cn(
                             "font-medium",
-                            selectedOption === question.correctIndex ? "text-green-400" : "text-amber-400"
+                            selectedOption === question.correctIndex ? "text-chart-4" : "text-chart-3"
                         )}>
                             {selectedOption === question.correctIndex
                                 ? "Corect! Great job!"
@@ -199,12 +199,12 @@ export function ReadingTestStep({ selfAssessment, data, onUpdate }: ReadingTestS
                         <Button
                             onClick={handleSubmitAnswer}
                             disabled={selectedOption === null}
-                            className="bg-purple-600 hover:bg-purple-700"
+                            className="bg-primary hover:bg-primary/80"
                         >
                             Check Answer
                         </Button>
                     ) : !isLastQuestion ? (
-                        <Button onClick={handleNext} className="gap-2 bg-purple-600 hover:bg-purple-700">
+                        <Button onClick={handleNext} className="gap-2 bg-primary hover:bg-primary/80">
                             Next Question
                             <ChevronRight className="h-4 w-4" />
                         </Button>
@@ -230,12 +230,12 @@ export function ReadingTestStep({ selfAssessment, data, onUpdate }: ReadingTestS
                                 key={index}
                                 className={cn(
                                     "w-3 h-3 rounded-full transition-all",
-                                    index === currentQuestion && "ring-2 ring-purple-500 ring-offset-2 ring-offset-background",
+                                    index === currentQuestion && "ring-2 ring-primary ring-offset-2 ring-offset-background",
                                     answered
                                         ? isCorrect
-                                            ? "bg-green-500"
-                                            : "bg-amber-500"
-                                        : "bg-white/20"
+                                            ? "bg-chart-4"
+                                            : "bg-chart-3"
+                                        : "bg-muted/40"
                                 )}
                             />
                         );

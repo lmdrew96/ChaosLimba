@@ -9,19 +9,14 @@ import {
   Pause,
   RotateCcw,
   Shuffle,
-  Send,
   Headphones,
-  MessageSquare,
-  Mic,
-  PenLine,
-  Square,
   Volume2,
   Loader2,
   FileText,
-  GraduationCap,
 } from "lucide-react"
-import { AIResponse } from "@/components/features/chaos-window/AIResponse"
-import { ConversationHistory, ConversationMessage } from "@/components/features/chaos-window/ConversationHistory"
+import { GradingReport } from "@/components/features/chaos-window/AIResponse"
+import { ConversationMessage } from "@/components/features/chaos-window/ConversationHistory"
+import { ChaosChat } from "@/components/features/chaos-window/ChaosChat"
 import { SessionSummaryModal } from "@/components/features/chaos-window/SessionSummaryModal"
 import { TutorResponse, InitialQuestion } from "@/lib/ai/tutor"
 import { ContentItem } from "@/lib/db/schema"
@@ -66,9 +61,8 @@ export default function ChaosWindowPage() {
   const audioChunksRef = useRef<Blob[]>([])
 
   // AI Response state
-  const [currentAIResponse, setCurrentAIResponse] = useState<TutorResponse | null>(null)
-  const [currentGradingReport, setCurrentGradingReport] = useState<any>(null)
   const [isLoadingAI, setIsLoadingAI] = useState(false)
+  const [gradingReports, setGradingReports] = useState<Map<string, GradingReport>>(new Map())
   const [conversationHistory, setConversationHistory] = useState<ConversationMessage[]>([])
   // AI context (internal - used by LLM for understanding content)
   const [currentContext, setCurrentContext] = useState("")
@@ -467,7 +461,7 @@ export default function ChaosWindowPage() {
     audioChunksRef.current = []
   }
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent) => {
     event.preventDefault()
 
     // Validate based on modality
@@ -548,11 +542,12 @@ export default function ChaosWindowPage() {
 
       const data = await res.json()
       const aiResponse: TutorResponse = data.response
-      const gradingReport = data.gradingReport
+      const gradingReport: GradingReport | null = data.gradingReport
 
       // Add AI message to conversation history
+      const aiMessageId = (Date.now() + 1).toString()
       const aiMessage: ConversationMessage = {
-        id: (Date.now() + 1).toString(),
+        id: aiMessageId,
         type: "ai",
         content: aiResponse.feedback.overall,
         timestamp: new Date(),
@@ -560,8 +555,11 @@ export default function ChaosWindowPage() {
       }
 
       setConversationHistory(prev => [...prev, aiMessage])
-      setCurrentAIResponse(aiResponse)
-      setCurrentGradingReport(gradingReport)
+
+      // Store grading report keyed by message ID
+      if (gradingReport) {
+        setGradingReports(prev => new Map(prev).set(aiMessageId, gradingReport))
+      }
 
       // Reset input based on modality
       if (modality === "text") {
@@ -632,20 +630,20 @@ export default function ChaosWindowPage() {
             </div>
           ) : (
             <div className="space-y-6">
-              <Card className="rounded-xl border-orange-500/20 bg-black/20">
+              <Card className="rounded-xl border-destructive/20 bg-muted/30">
                 <CardContent className="p-5">
                   {isLoadingContent ? (
                     <div className="flex items-center justify-center py-8">
-                      <Loader2 className="h-8 w-8 text-orange-400 animate-spin" />
+                      <Loader2 className="h-8 w-8 text-destructive animate-spin" />
                       <span className="ml-3 text-muted-foreground">Se încarcă conținutul...</span>
                     </div>
                   ) : contentError ? (
                     <div className="text-center py-8">
-                      <p className="text-orange-400 mb-4">{contentError}</p>
+                      <p className="text-destructive mb-4">{contentError}</p>
                       <Button
                         onClick={() => fetchRandomContent()}
                         variant="outline"
-                        className="border-orange-500/30"
+                        className="border-destructive/30"
                       >
                         <RotateCcw className="h-4 w-4 mr-2" />
                         Încearcă din nou
@@ -654,10 +652,10 @@ export default function ChaosWindowPage() {
                   ) : currentContent ? (
                     <>
                       <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2 rounded-lg bg-orange-500/20">
+                        <div className="p-2 rounded-lg bg-destructive/20">
                           {(() => {
                             const IconComponent = ContentTypeIcon[currentContent.type] || Headphones
-                            return <IconComponent className="h-5 w-5 text-orange-400" />
+                            return <IconComponent className="h-5 w-5 text-destructive" />
                           })()}
                         </div>
                         <div className="flex-1">
@@ -667,13 +665,13 @@ export default function ChaosWindowPage() {
                               {currentContent.topic} • {Math.floor((currentContent.durationSeconds || 0) / 60)} min
                             </p>
                             {discoveryToast && (
-                              <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 animate-pulse">
+                              <span className="text-xs px-2 py-0.5 rounded-full bg-chart-4/20 text-chart-4 animate-pulse">
                                 {discoveryToast}
                               </span>
                             )}
                           </div>
                         </div>
-                        <span className="px-2 py-1 text-xs rounded-full bg-green-500/20 text-green-400">
+                        <span className="px-2 py-1 text-xs rounded-full bg-chart-4/20 text-chart-4">
                           {userLevel} Level
                         </span>
                       </div>
@@ -685,13 +683,13 @@ export default function ChaosWindowPage() {
                             size="sm"
                             variant="ghost"
                             onClick={() => setShowTextTranscript(!showTextTranscript)}
-                            className={showTextTranscript ? "text-purple-300 bg-purple-500/10 hover:bg-purple-500/20 mb-2" : "text-muted-foreground hover:bg-purple-500/20 mb-2"}
+                            className={showTextTranscript ? "text-primary bg-primary/10 hover:bg-primary/20 mb-2" : "text-muted-foreground hover:bg-primary/10 mb-2"}
                           >
                             <FileText className="h-4 w-4 mr-1.5" />
                             {showTextTranscript ? "Hide transcript" : "Show transcript"}
                           </Button>
                           {showTextTranscript && (
-                            <div className="max-h-48 overflow-y-auto rounded-lg bg-white/5 border border-purple-500/10 p-4 leading-relaxed text-sm">
+                            <div className="max-h-48 overflow-y-auto rounded-lg bg-muted/40 border border-primary/10 p-4 leading-relaxed text-sm">
                               <p className="text-foreground/80 whitespace-pre-line">{currentContent.textContent}</p>
                             </div>
                           )}
@@ -710,9 +708,9 @@ export default function ChaosWindowPage() {
 
                       {/* Transcript Loading Indicator */}
                       {isLoadingTranscript && (
-                        <div className="flex items-center gap-3 p-3 rounded-lg bg-gradient-to-r from-orange-500/10 to-yellow-500/10 border border-border mb-4">
-                          <Loader2 className="h-4 w-4 text-orange-400 animate-spin flex-shrink-0" />
-                          <span className="text-sm text-orange-200">
+                        <div className="flex items-center gap-3 p-3 rounded-lg bg-destructive/10 border border-border mb-4">
+                          <Loader2 className="h-4 w-4 text-destructive animate-spin flex-shrink-0" />
+                          <span className="text-sm text-muted-foreground">
                             {getTranscriptLoadingMessage(currentContent?.type)}
                           </span>
                         </div>
@@ -731,14 +729,14 @@ export default function ChaosWindowPage() {
                         <Button
                           size="sm"
                           variant="outline"
-                          className="border-orange-500/30"
+                          className="border-destructive/30"
                           onClick={() => fetchRandomContent(currentContent.id)}
                         >
                           <Shuffle className="h-4 w-4 mr-1" />
                           Next
                         </Button>
                         {currentContent.culturalNotes && (
-                          <Button size="sm" variant="outline" className="border-orange-500/30">
+                          <Button size="sm" variant="outline" className="border-destructive/30">
                             📝 Cultural Notes
                           </Button>
                         )}
@@ -752,183 +750,13 @@ export default function ChaosWindowPage() {
                 </CardContent>
               </Card>
 
-              <Card className="rounded-xl border-border bg-gradient-to-r from-muted/25 to-accent/25">
-                <CardContent className="p-5">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="p-2 rounded-lg bg-accent/20">
-                      <GraduationCap className="h-5 w-5 text-foreground/50" />
-                    </div>
-                    <h4 className="font-medium">AI Tutor</h4>
-                  </div>
-
-                  {/* Show AI-generated question (not raw transcript!) */}
-                  {isLoadingQuestion ? (
-                    <div className="p-4 rounded-lg bg-muted/30 mb-4 flex items-center gap-3">
-                      <Loader2 className="h-5 w-5 text-muted-foreground animate-spin flex-shrink-0" />
-                      <span className="text-muted-foreground">Generating a question...</span>
-                    </div>
-                  ) : tutorPrompt ? (
-                    <div className="space-y-2 mb-4">
-                      <div className="p-4 rounded-lg bg-muted/30 text-foreground">
-                        {tutorPrompt}
-                      </div>
-                      {tutorHint && (
-                        <p className="text-xs text-muted-foreground px-1">
-                          💡 Hint: {tutorHint}
-                        </p>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="p-4 rounded-lg bg-muted/30 italic text-muted-foreground mb-4">
-                      Watch/listen to the content above, then answer the question that appears here.
-                    </div>
-                  )}
-
-                  {/* Modality Toggle */}
-                  <div className="flex gap-2 mb-4">
-                    <Button
-                      type="button"
-                      variant={modality === "text" ? "default" : "outline"}
-                      className={modality === "text"
-                        ? "flex-1 bg-muted-foreground hover:bg-primary/50"
-                        : "flex-1 border-border"
-                      }
-                      onClick={() => {
-                        setModality("text")
-                        resetRecording()
-                      }}
-                      disabled={isSubmitting}
-                    >
-                      <PenLine className="mr-2 h-4 w-4" />
-                      Text
-                    </Button>
-                    <Button
-                      type="button"
-                      variant={modality === "speech" ? "default" : "outline"}
-                      className={modality === "speech"
-                        ? "flex-1 bg-accent/70 hover:bg-accent/50"
-                        : "flex-1 border-border"
-                      }
-                      onClick={() => {
-                        setModality("speech")
-                        setResponse("")
-                      }}
-                      disabled={isSubmitting}
-                    >
-                      <Mic className="mr-2 h-4 w-4" />
-                      Speech
-                    </Button>
-                  </div>
-
-                  <form onSubmit={handleSubmit} className="space-y-3">
-                    {modality === "text" ? (
-                      <>
-                        {/* Text Input Mode */}
-                        <textarea
-                          value={response}
-                          onChange={(e) => setResponse(e.target.value)}
-                          className="w-full h-24 rounded-xl bg-background border border-border p-4 focus:ring-2 focus:ring-primary/70 focus:outline-none resize-none"
-                          placeholder="Răspunde aici..."
-                          disabled={isSubmitting}
-                          aria-invalid={!!error}
-                        />
-                        <div className="flex items-center justify-between text-xs text-muted-foreground">
-                          <span>Minim 5 caractere</span>
-                          {error && <span className="text-red-400">{error}</span>}
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        {/* Speech Input Mode */}
-                        <div className="space-y-3">
-                          {!audioBlob ? (
-                            <div className="flex gap-2">
-                              {!isRecording ? (
-                                <Button
-                                  type="button"
-                                  onClick={startRecording}
-                                  className="flex-1 bg-accent/70 hover:bg-accent-50 rounded-xl"
-                                  disabled={isSubmitting}
-                                >
-                                  <Mic className="mr-2 h-4 w-4" />
-                                  Start Recording
-                                </Button>
-                              ) : (
-                                <Button
-                                  type="button"
-                                  onClick={stopRecording}
-                                  className="flex-1 bg-red-600 hover:bg-red-700 rounded-xl animate-pulse"
-                                >
-                                  <Square className="mr-2 h-4 w-4" />
-                                  Stop Recording
-                                </Button>
-                              )}
-                            </div>
-                          ) : (
-                            <div className="p-3 rounded-lg bg-muted/30 border border-border flex items-center gap-3">
-                              <div className="flex-1 flex items-center gap-2">
-                                <Volume2 className="h-4 w-4 text-foreground/70" />
-                                <span className="text-sm">Audio recorded</span>
-                              </div>
-                              <Button
-                                type="button"
-                                onClick={playRecording}
-                                variant="outline"
-                                size="sm"
-                                className="border-border"
-                              >
-                                <Play className="h-3 w-3 mr-1" />
-                                Play
-                              </Button>
-                              <Button
-                                type="button"
-                                onClick={resetRecording}
-                                variant="outline"
-                                size="sm"
-                                className="border-border"
-                              >
-                                <RotateCcw className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          )}
-                          {error && (
-                            <div className="text-sm text-red-400">{error}</div>
-                          )}
-                        </div>
-                      </>
-                    )}
-
-                    <Button
-                      type="submit"
-                      className={modality === "text"
-                        ? "bg-primary/70 hover:bg-primary/50 rounded-xl w-full"
-                        : "bg-primary/70 hover:bg-primary/50 rounded-xl w-full"
-                      }
-                      disabled={isSubmitting || !sessionId || (modality === "text" ? response.trim().length < 5 : !audioBlob)}
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Se trimite...
-                        </>
-                      ) : (
-                        <>
-                          <Send className="mr-2 h-4 w-4" />
-                          Submit Response
-                        </>
-                      )}
-                    </Button>
-                  </form>
-                </CardContent>
-              </Card>
-              
               <Card>
                 <CardContent>
                   <div className="flex gap-3 justify-center">
                     <Button
                       variant="outline"
                       onClick={() => setIsActive(!isActive)}
-                      className="border-pink-500/30"
+                      className="border-secondary/30"
                     >
                       {isActive ? (
                         <>
@@ -942,7 +770,7 @@ export default function ChaosWindowPage() {
                     </Button>
                     <Button
                       variant="outline"
-                      className="border-orange-500/30"
+                      className="border-destructive/30"
                       onClick={() => fetchRandomContent(currentContent?.id)}
                       disabled={isLoadingContent}
                     >
@@ -979,7 +807,7 @@ export default function ChaosWindowPage() {
                         }
                       }}
                       disabled={isGeneratingPractice}
-                      className="border-purple-500/30 text-purple-400 hover:text-purple-300"
+                      className="border-primary/30 text-primary hover:text-primary/80"
                     >
                       {isGeneratingPractice ? (
                         <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Generating...</>
@@ -990,16 +818,16 @@ export default function ChaosWindowPage() {
                     <Button
                       variant="outline"
                       onClick={handleEndSession}
-                      className="border-red-500/30 text-red-400 hover:text-red-300"
+                      className="border-destructive/30 text-destructive hover:text-destructive/80"
                     >
                       End Session
                     </Button>
                   </div>
                   {practiceError && (
-                    <p className="text-sm text-red-400 mt-2">{practiceError}</p>
+                    <p className="text-sm text-destructive mt-2">{practiceError}</p>
                   )}
                   {practiceAudio && (
-                    <div className="mt-3 bg-black/20 rounded-lg p-3 border border-purple-500/20">
+                    <div className="mt-3 bg-muted/30 rounded-lg p-3 border border-primary/20">
                       <div className="flex items-center gap-2 mb-2">
                         <button
                           onClick={() => {
@@ -1013,19 +841,19 @@ export default function ChaosWindowPage() {
                               setIsPracticePlaying(true)
                             }
                           }}
-                          className="p-1.5 rounded-full bg-purple-500/20 hover:bg-purple-500/30 transition-colors"
+                          className="p-1.5 rounded-full bg-primary/20 hover:bg-primary/30 transition-colors"
                         >
                           {isPracticePlaying ? (
-                            <Pause className="h-4 w-4 text-purple-300" />
+                            <Pause className="h-4 w-4 text-primary" />
                           ) : (
-                            <Play className="h-4 w-4 text-purple-300" />
+                            <Play className="h-4 w-4 text-primary" />
                           )}
                         </button>
-                        <span className="text-sm text-purple-200 font-medium">Practice Sentences</span>
+                        <span className="text-sm text-primary font-medium">Practice Sentences</span>
                       </div>
-                      <p className="text-sm text-slate-300 whitespace-pre-line">{practiceAudio.romanianText}</p>
+                      <p className="text-sm text-foreground whitespace-pre-line">{practiceAudio.romanianText}</p>
                       {practiceAudio.englishText && (
-                        <p className="text-xs text-slate-400 mt-1 whitespace-pre-line">{practiceAudio.englishText}</p>
+                        <p className="text-xs text-muted-foreground mt-1 whitespace-pre-line">{practiceAudio.englishText}</p>
                       )}
                       <audio
                         ref={practiceAudioRef}
@@ -1036,32 +864,30 @@ export default function ChaosWindowPage() {
                 </CardContent>
               </Card>
 
-              {/* AI Response Display */}
-              {isLoadingAI && (
-                <AIResponse isLoading={true} />
-              )}
-
-              {currentAIResponse && !isLoadingAI && (
-                <AIResponse
-                  response={currentAIResponse}
-                  gradingReport={currentGradingReport}
-                />
-              )}
-
-              {/* Conversation History */}
-              {conversationHistory.length > 1 && (
-                <Card className="rounded-xl border-border/40">
-                  <CardHeader>
-                    <CardTitle className="text-base flex items-center gap-2">
-                      <MessageSquare className="h-4 w-4 text-foreground" />
-                      Conversation History
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ConversationHistory messages={conversationHistory.slice(-3)} />
-                  </CardContent>
-                </Card>
-              )}
+              {/* Chat Interface */}
+              <ChaosChat
+                messages={conversationHistory}
+                currentQuestion={tutorPrompt}
+                currentHint={tutorHint}
+                isLoadingQuestion={isLoadingQuestion}
+                isLoadingAI={isLoadingAI}
+                modality={modality}
+                onModalityChange={setModality}
+                textValue={response}
+                onTextChange={setResponse}
+                isRecording={isRecording}
+                audioBlob={audioBlob}
+                audioUrl={audioUrl}
+                onStartRecording={startRecording}
+                onStopRecording={stopRecording}
+                onPlayRecording={playRecording}
+                onResetRecording={resetRecording}
+                onSubmit={handleSubmit}
+                isSubmitting={isSubmitting}
+                sessionReady={!!sessionId}
+                error={error}
+                gradingReports={gradingReports}
+              />
             </div>
           )}
         </CardContent>
@@ -1076,8 +902,7 @@ export default function ChaosWindowPage() {
           // Reset for new session
           setResponse("")
           setConversationHistory([])
-          setCurrentAIResponse(null)
-          setCurrentGradingReport(null)
+          setGradingReports(new Map())
           setErrorPatterns([])
           fetchRandomContent()
         }}

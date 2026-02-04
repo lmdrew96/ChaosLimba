@@ -35,8 +35,8 @@ export function FeatureProgress({ featuresExplored, sessionChallengeCount }: Fea
             variant="outline"
             className={`whitespace-nowrap text-xs shrink-0 ${
               feature.correct
-                ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
-                : "bg-amber-500/10 text-amber-400 border-amber-500/30"
+                ? "bg-chart-4/10 text-chart-4 border-chart-4/30"
+                : "bg-chart-3/10 text-chart-3 border-chart-3/30"
             }`}
           >
             {feature.featureName}

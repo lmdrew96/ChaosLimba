@@ -9,7 +9,7 @@ import { RelevanceFeedback } from "@/components/features/feedback/RelevanceFeedb
 import { cn } from "@/lib/utils"
 import Link from "next/link"
 
-interface GradingReport {
+export interface GradingReport {
   overallScore: number
   componentStatus: {
     grammar: 'success' | 'error' | 'skipped'
@@ -31,18 +31,18 @@ interface AIResponseProps {
 export function AIResponse({ response, isLoading, gradingReport }: AIResponseProps) {
   if (isLoading) {
     return (
-      <Card className="rounded-xl border-purple-500/20 bg-gradient-to-r from-purple-500/10 to-violet-500/5">
+      <Card className="rounded-xl border-primary/20 bg-primary/5">
         <CardContent className="p-5">
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 rounded-lg bg-purple-500/20">
-              <MessageSquare className="h-5 w-5 text-purple-400 animate-pulse" />
+            <div className="p-2 rounded-lg bg-primary/20">
+              <MessageSquare className="h-5 w-5 text-primary animate-pulse" />
             </div>
             <h4 className="font-medium">AI Tutor is thinking...</h4>
           </div>
           <div className="space-y-2">
-            <div className="h-3 bg-purple-500/20 rounded-full animate-pulse" />
-            <div className="h-3 bg-purple-500/20 rounded-full animate-pulse w-4/5" />
-            <div className="h-3 bg-purple-500/20 rounded-full animate-pulse w-3/5" />
+            <div className="h-3 bg-primary/20 rounded-full animate-pulse" />
+            <div className="h-3 bg-primary/20 rounded-full animate-pulse w-4/5" />
+            <div className="h-3 bg-primary/20 rounded-full animate-pulse w-3/5" />
           </div>
         </CardContent>
       </Card>
@@ -57,36 +57,36 @@ export function AIResponse({ response, isLoading, gradingReport }: AIResponsePro
   const isCorrect = response.isCorrect
 
   return (
-    <Card className="rounded-xl border-purple-500/20 bg-gradient-to-r from-purple-500/10 to-violet-500/5">
+    <Card className="rounded-xl border-primary/20 bg-primary/5">
       <CardContent className="p-5 space-y-4">
         {/* Header */}
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-purple-500/20">
-            <MessageSquare className="h-5 w-5 text-purple-400" />
+          <div className="p-2 rounded-lg bg-primary/20">
+            <MessageSquare className="h-5 w-5 text-primary" />
           </div>
           <div className="flex-1">
             <h4 className="font-medium">AI Tutor</h4>
             <div className="flex items-center gap-2">
               {isCorrect ? (
-                <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
+                <Badge className="bg-chart-4/20 text-chart-4 border-chart-4/30">
                   <CheckCircle2 className="h-3 w-3 mr-1" />
                   Excelent!
                 </Badge>
               ) : hasErrors ? (
                 // Check if there are actual ERRORS vs just SUGGESTIONS
                 response.feedback.grammar.some(e => e.feedbackType === 'error' || !e.feedbackType) ? (
-                  <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30">
+                  <Badge className="bg-destructive/20 text-destructive border-destructive/30">
                     <AlertTriangle className="h-3 w-3 mr-1" />
                     Needs work
                   </Badge>
                 ) : (
-                  <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">
+                  <Badge className="bg-accent/20 text-accent border-accent/30">
                     <Sparkles className="h-3 w-3 mr-1" />
                     Consider improvements
                   </Badge>
                 )
               ) : (
-                <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
+                <Badge className="bg-chart-4/20 text-chart-4 border-chart-4/30">
                   <CheckCircle2 className="h-3 w-3 mr-1" />
                   No issues detected
                 </Badge>
@@ -96,23 +96,23 @@ export function AIResponse({ response, isLoading, gradingReport }: AIResponsePro
         </div>
 
         {/* Overall Feedback */}
-        <div className="p-3 rounded-lg bg-background/50">
+        <div className="p-3 rounded-lg bg-muted/50">
           <p className="text-sm">{response.feedback.overall}</p>
         </div>
 
         {/* Vocabulary Help */}
         {response.vocabHelp && (
-          <div className="p-4 rounded-xl bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-500/30">
+          <div className="p-4 rounded-xl bg-accent/10 border border-accent/30">
             <div className="flex items-center gap-2 mb-2">
-              <MessageSquare className="h-4 w-4 text-cyan-400" />
-              <h5 className="font-medium text-cyan-300">Vocabulary Help</h5>
+              <MessageSquare className="h-4 w-4 text-accent" />
+              <h5 className="font-medium text-accent">Vocabulary Help</h5>
             </div>
             <div className="space-y-2">
               <p className="text-sm text-muted-foreground italic">"{response.vocabHelp.question}"</p>
               <div className="flex items-baseline gap-2">
-                <span className="text-sm font-semibold text-cyan-300">{response.vocabHelp.word}</span>
+                <span className="text-sm font-semibold text-accent">{response.vocabHelp.word}</span>
                 <span className="text-sm text-muted-foreground">→</span>
-                <span className="text-sm font-semibold text-cyan-300">{response.vocabHelp.translation}</span>
+                <span className="text-sm font-semibold text-accent">{response.vocabHelp.translation}</span>
               </div>
               {response.vocabHelp.context && (
                 <p className="text-xs text-muted-foreground mt-2">
@@ -130,8 +130,8 @@ export function AIResponse({ response, isLoading, gradingReport }: AIResponsePro
             {response.feedback.grammar.filter(e => e.feedbackType === 'error' || !e.feedbackType).length > 0 && (
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4 text-orange-400" />
-                  <h5 className="text-sm font-medium text-orange-300">Needs work:</h5>
+                  <AlertTriangle className="h-4 w-4 text-destructive" />
+                  <h5 className="text-sm font-medium text-destructive">Needs work:</h5>
                 </div>
                 <div className="space-y-2">
                   {response.feedback.grammar
@@ -147,8 +147,8 @@ export function AIResponse({ response, isLoading, gradingReport }: AIResponsePro
             {response.feedback.grammar.filter(e => e.feedbackType === 'suggestion').length > 0 && (
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-blue-400" />
-                  <h5 className="text-sm font-medium text-blue-300">Consider:</h5>
+                  <Sparkles className="h-4 w-4 text-accent" />
+                  <h5 className="text-sm font-medium text-accent">Consider:</h5>
                 </div>
                 <div className="space-y-2">
                   {response.feedback.grammar
@@ -163,10 +163,10 @@ export function AIResponse({ response, isLoading, gradingReport }: AIResponsePro
         )}
 
         {/* Semantic Feedback */}
-        <div className="p-3 rounded-lg bg-background/50">
+        <div className="p-3 rounded-lg bg-muted/50">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-sm font-medium text-purple-300">Understanding:</span>
-            <span className="text-sm text-purple-400">
+            <span className="text-sm font-medium text-primary">Understanding:</span>
+            <span className="text-sm text-primary">
               {Math.round(response.feedback.semantic.score * 100)}% match
             </span>
           </div>
@@ -175,10 +175,10 @@ export function AIResponse({ response, isLoading, gradingReport }: AIResponsePro
 
         {/* Pronunciation Feedback (for speech responses) */}
         {gradingReport?.rawReport?.pronunciation && (
-          <div className="p-4 rounded-lg bg-blue-500/10 border border-blue-500/20">
+          <div className="p-4 rounded-lg bg-accent/10 border border-accent/20">
             <div className="flex items-center gap-2 mb-3">
-              <Volume2 className="h-4 w-4 text-blue-400" />
-              <h5 className="font-medium text-blue-300">Pronunciation</h5>
+              <Volume2 className="h-4 w-4 text-accent" />
+              <h5 className="font-medium text-accent">Pronunciation</h5>
             </div>
 
             {/* Transcription */}
@@ -197,25 +197,25 @@ export function AIResponse({ response, isLoading, gradingReport }: AIResponsePro
                   <span className={cn(
                     "text-sm font-semibold",
                     gradingReport.rawReport.pronunciation.pronunciationScore >= 0.85
-                      ? "text-green-400"
+                      ? "text-chart-4"
                       : gradingReport.rawReport.pronunciation.pronunciationScore >= 0.70
-                      ? "text-yellow-400"
-                      : "text-orange-400"
+                      ? "text-chart-3"
+                      : "text-destructive"
                   )}>
                     {(gradingReport.rawReport.pronunciation.pronunciationScore * 100).toFixed(0)}%
                   </span>
                 </div>
 
                 {/* Progress bar */}
-                <div className="w-full bg-muted/30 rounded-full h-2 overflow-hidden">
+                <div className="w-full bg-muted/50 rounded-full h-2 overflow-hidden">
                   <div
                     className={cn(
                       "h-full transition-all duration-500",
                       gradingReport.rawReport.pronunciation.pronunciationScore >= 0.85
-                        ? "bg-green-500"
+                        ? "bg-chart-4"
                         : gradingReport.rawReport.pronunciation.pronunciationScore >= 0.70
-                        ? "bg-yellow-500"
-                        : "bg-orange-500"
+                        ? "bg-chart-3"
+                        : "bg-destructive"
                     )}
                     style={{
                       width: `${gradingReport.rawReport.pronunciation.pronunciationScore * 100}%`
@@ -236,20 +236,20 @@ export function AIResponse({ response, isLoading, gradingReport }: AIResponsePro
         {/* Intonation Warnings */}
         {gradingReport?.rawReport?.intonation?.warnings &&
          gradingReport.rawReport.intonation.warnings.length > 0 && (
-          <div className="p-4 rounded-lg bg-orange-500/10 border border-orange-500/20">
+          <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20">
             <div className="flex items-center gap-2 mb-3">
-              <AlertTriangle className="h-4 w-4 text-orange-400" />
-              <h5 className="font-medium text-orange-300">Intonation Warning</h5>
+              <AlertTriangle className="h-4 w-4 text-destructive" />
+              <h5 className="font-medium text-destructive">Intonation Warning</h5>
             </div>
             {gradingReport.rawReport.intonation.warnings.map((warning: any, index: number) => (
               <div key={index} className="space-y-1 text-sm">
-                <p className="text-orange-200">
+                <p className="text-foreground">
                   Watch your stress on <strong>"{warning.word}"</strong>
                 </p>
                 <p className="text-xs text-muted-foreground">
                   You said: {warning.user_stress} → Expected: {warning.expected_stress}
                 </p>
-                <p className="text-xs text-orange-300/80">
+                <p className="text-xs text-destructive/80">
                   {warning.explanation}
                 </p>
               </div>
@@ -264,17 +264,17 @@ export function AIResponse({ response, isLoading, gradingReport }: AIResponsePro
 
         {/* Encouragement */}
         {response.feedback.encouragement && (
-          <div className="p-3 rounded-xl bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20">
-            <p className="text-sm italic text-purple-200">"{response.feedback.encouragement}"</p>
+          <div className="p-3 rounded-xl bg-secondary/20 border border-secondary/30">
+            <p className="text-sm italic text-foreground/80">"{response.feedback.encouragement}"</p>
           </div>
         )}
 
         {/* Next Question */}
         {response.nextQuestion && (
-          <div className="p-4 rounded-xl bg-gradient-to-r from-pink-500/10 to-orange-500/10 border border-pink-500/30">
+          <div className="p-4 rounded-xl bg-secondary/20 border border-secondary/30">
             <div className="flex items-center gap-2 mb-2">
-              <Sparkles className="h-4 w-4 text-pink-400" />
-              <h5 className="font-medium text-pink-300">Next question:</h5>
+              <Sparkles className="h-4 w-4 text-secondary" />
+              <h5 className="font-medium text-secondary-foreground">Next question:</h5>
             </div>
             <p className="text-sm">{response.nextQuestion}</p>
           </div>
@@ -282,13 +282,13 @@ export function AIResponse({ response, isLoading, gradingReport }: AIResponsePro
 
         {/* Grading Report */}
         {gradingReport && (
-          <div className="mt-4 p-4 rounded-xl bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border border-blue-500/30">
+          <div className="mt-4 p-4 rounded-xl bg-accent/10 border border-accent/30">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <Target className="h-4 w-4 text-blue-400" />
-                <h5 className="font-medium text-blue-300">Overall Score</h5>
+                <Target className="h-4 w-4 text-accent" />
+                <h5 className="font-medium text-accent">Overall Score</h5>
               </div>
-              <div className="text-2xl font-bold text-blue-400">
+              <div className="text-2xl font-bold text-accent">
                 {gradingReport.overallScore}/100
               </div>
             </div>
@@ -303,27 +303,27 @@ export function AIResponse({ response, isLoading, gradingReport }: AIResponsePro
             {/* Component Status */}
             <div className="flex flex-wrap gap-2 mb-3">
               {gradingReport.componentStatus.grammar === 'success' && (
-                <Badge variant="outline" className="bg-green-500/10 text-green-400 border-green-500/30">
+                <Badge variant="outline" className="bg-chart-4/10 text-chart-4 border-chart-4/30">
                   Grammar ✓
                 </Badge>
               )}
               {gradingReport.componentStatus.semantic === 'success' && (
-                <Badge variant="outline" className="bg-green-500/10 text-green-400 border-green-500/30">
+                <Badge variant="outline" className="bg-chart-4/10 text-chart-4 border-chart-4/30">
                   Meaning ✓
                 </Badge>
               )}
               {gradingReport.componentStatus.pronunciation === 'success' && (
-                <Badge variant="outline" className="bg-green-500/10 text-green-400 border-green-500/30">
+                <Badge variant="outline" className="bg-chart-4/10 text-chart-4 border-chart-4/30">
                   Pronunciation ✓
                 </Badge>
               )}
               {gradingReport.componentStatus.intonation === 'success' && (
-                <Badge variant="outline" className="bg-green-500/10 text-green-400 border-green-500/30">
+                <Badge variant="outline" className="bg-chart-4/10 text-chart-4 border-chart-4/30">
                   Intonation ✓
                 </Badge>
               )}
               {gradingReport.componentStatus.relevance === 'success' && (
-                <Badge variant="outline" className="bg-green-500/10 text-green-400 border-green-500/30">
+                <Badge variant="outline" className="bg-chart-4/10 text-chart-4 border-chart-4/30">
                   On-topic ✓
                 </Badge>
               )}
@@ -332,7 +332,7 @@ export function AIResponse({ response, isLoading, gradingReport }: AIResponsePro
             {/* Link to Error Garden */}
             <Link
               href="/error-garden"
-              className="inline-flex items-center gap-1 text-sm text-blue-400 hover:text-blue-300 transition-colors"
+              className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent/80 transition-colors"
             >
               View patterns in Error Garden
               <ExternalLink className="h-3 w-3" />
@@ -344,11 +344,11 @@ export function AIResponse({ response, isLoading, gradingReport }: AIResponsePro
   )
 }
 
-function GrammarErrorCard({ error }: { error: GrammarError }) {
+export function GrammarErrorCard({ error }: { error: GrammarError }) {
   const severityColors = {
-    minor: "bg-orange-500/10 text-orange-400 border-orange-500/20",
-    major: "bg-orange-500/15 text-orange-300 border-orange-500/30",
-    critical: "bg-red-500/10 text-red-400 border-red-500/20"
+    minor: "bg-destructive/10 text-destructive border-destructive/20",
+    major: "bg-destructive/15 text-destructive border-destructive/30",
+    critical: "bg-destructive/20 text-destructive border-destructive/40"
   }
 
   return (
@@ -357,7 +357,7 @@ function GrammarErrorCard({ error }: { error: GrammarError }) {
       severityColors[error.severity]
     )}>
       <div className="flex items-start gap-2 mb-2">
-        <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0 text-orange-400" />
+        <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0 text-destructive" />
         <div className="flex-1">
           <span className="font-medium">{error.type}</span>
           <div className="text-xs opacity-80 mt-1">
@@ -370,11 +370,11 @@ function GrammarErrorCard({ error }: { error: GrammarError }) {
   )
 }
 
-function GrammarSuggestionCard({ error }: { error: GrammarError }) {
+export function GrammarSuggestionCard({ error }: { error: GrammarError }) {
   const severityColors = {
-    minor: "bg-blue-500/10 text-blue-400 border-blue-500/20",
-    major: "bg-purple-500/10 text-purple-400 border-purple-500/20",
-    critical: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20"
+    minor: "bg-accent/10 text-accent border-accent/20",
+    major: "bg-primary/10 text-primary border-primary/20",
+    critical: "bg-primary/15 text-primary border-primary/30"
   }
 
   return (
@@ -383,7 +383,7 @@ function GrammarSuggestionCard({ error }: { error: GrammarError }) {
       severityColors[error.severity]
     )}>
       <div className="flex items-start gap-2 mb-2">
-        <Sparkles className="h-4 w-4 mt-0.5 flex-shrink-0 text-blue-400" />
+        <Sparkles className="h-4 w-4 mt-0.5 flex-shrink-0 text-accent" />
         <div className="flex-1">
           <span className="font-medium">{error.type}</span>
           <div className="text-xs opacity-80 mt-1">

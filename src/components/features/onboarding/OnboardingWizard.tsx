@@ -142,16 +142,16 @@ export function OnboardingWizard() {
                                 <div
                                     className={cn(
                                         "w-10 h-10 rounded-full flex items-center justify-center text-lg transition-all duration-300",
-                                        isComplete && "bg-green-500/20 border-2 border-green-500",
-                                        isActive && "bg-purple-500/20 border-2 border-purple-500",
-                                        !isActive && !isComplete && "bg-white/5 border-2 border-white/20"
+                                        isComplete && "bg-chart-4/20 border-2 border-chart-4",
+                                        isActive && "bg-primary/20 border-2 border-primary",
+                                        !isActive && !isComplete && "bg-muted/20 border-2 border-muted/40"
                                     )}
                                 >
                                     {isComplete ? "✓" : step.icon}
                                 </div>
                                 <span className={cn(
                                     "text-xs font-medium hidden sm:block",
-                                    isActive ? "text-purple-300" : "text-muted-foreground"
+                                    isActive ? "text-primary" : "text-muted-foreground"
                                 )}>
                                     {step.label}
                                 </span>
@@ -161,9 +161,9 @@ export function OnboardingWizard() {
                 </div>
 
                 {/* Progress line */}
-                <div className="h-1 bg-white/10 rounded-full overflow-hidden">
+                <div className="h-1 bg-muted/30 rounded-full overflow-hidden">
                     <motion.div
-                        className="h-full bg-gradient-to-r from-purple-500 to-violet-500"
+                        className="h-full bg-gradient-to-r from-primary to-primary/80"
                         initial={{ width: 0 }}
                         animate={{ width: `${((currentIndex + 1) / STEPS.length) * 100}%` }}
                         transition={{ duration: 0.3, ease: "easeOut" }}
@@ -173,7 +173,7 @@ export function OnboardingWizard() {
 
             {/* Error Display */}
             {error && (
-                <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-center">
+                <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-center">
                     {error}
                 </div>
             )}
@@ -225,7 +225,7 @@ export function OnboardingWizard() {
                     <Button
                         onClick={goToNext}
                         disabled={!canProceed() || isSubmitting}
-                        className="gap-2 bg-purple-600 hover:bg-purple-700"
+                        className="gap-2 bg-primary hover:bg-primary/80"
                     >
                         {isSubmitting ? (
                             <>
