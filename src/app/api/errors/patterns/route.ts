@@ -3,6 +3,9 @@ import { auth } from '@clerk/nextjs/server';
 import { db } from '@/lib/db';
 import { errorLogs, ErrorLog } from '@/lib/db/schema';
 import { eq, sql, desc, and, gte } from 'drizzle-orm';
+import { getAdaptationProfile, type AdaptationPriority } from '@/lib/ai/adaptation';
+
+export type TrendDirection = 'improving' | 'stable' | 'worsening';
 
 export type ErrorExample = {
   id: string;
@@ -21,6 +24,10 @@ export type ErrorPattern = {
   recentContext: string | null;
   lastOccurred: Date;
   isFossilizing: boolean; // frequency >= 70%
+  // Adaptation Engine data
+  tier: 0 | 1 | 2 | 3; // 0 = not tracked, 1 = nudge, 2 = push, 3 = destabilize
+  trendDirection: TrendDirection;
+  interventionCount: number;
   // Detailed fields
   trend: (number | null)[]; // last 5 weeks frequency (0-1), null = no data
   trendLabels: string[];
@@ -34,111 +41,400 @@ export type ErrorPattern = {
 };
 
 /**
- * Normalize context string for similarity clustering.
- * This creates a "fingerprint" that groups similar errors together.
- * 
- * Future upgrade: Replace with embedding model + cosine similarity for ML clustering.
+ * Normalize category string to snake_case for lookup.
+ * Handles variations like "verb conjugation", "Verb Conjugation", "verbConjugation"
  */
-function normalizeContext(context: string): string {
-  if (!context) return '';
-
-  // Normalize: lowercase, remove punctuation, take first 40 chars
-  return context
+function normalizeCategory(category: string): string {
+  return category
     .toLowerCase()
-    .replace(/[^\w\s]/g, '')
-    .trim()
-    .slice(0, 40);
+    .replace(/[^a-z0-9]+/g, '_') // Replace non-alphanumeric with underscore
+    .replace(/^_|_$/g, '')       // Trim leading/trailing underscores
+    .replace(/_+/g, '_');        // Collapse multiple underscores
 }
 
 /**
- * Calculate Levenshtein distance between two strings.
- * Used for fuzzy matching similar error contexts.
+ * Get specific interlanguage analysis for an error pattern.
+ * Returns pedagogically-grounded descriptions based on SLA theory.
  */
-function levenshteinDistance(a: string, b: string): number {
-  if (a.length === 0) return b.length;
-  if (b.length === 0) return a.length;
+function getInterlanguageAnalysis(errorType: string, category: string): {
+  interlanguageRule: string;
+  transferSource: string;
+  intervention: string;
+  theoreticalBasis: string;
+} {
+  const categoryNorm = normalizeCategory(category);
 
-  const matrix: number[][] = [];
+  // Grammar-specific rules (with aliases for common variations)
+  const grammarRules: Record<string, { rule: string; transfer: string; intervention: string }> = {
+    // Verb conjugation (+ aliases)
+    'verb_conjugation': {
+      rule: 'Applying infinitive or base form where conjugated form required',
+      transfer: 'L1 verb paradigm (English lacks person/number marking)',
+      intervention: 'Conjugation drills with high-frequency verbs',
+    },
+    'conjugation': {
+      rule: 'Applying infinitive or base form where conjugated form required',
+      transfer: 'L1 verb paradigm (English lacks person/number marking)',
+      intervention: 'Conjugation drills with high-frequency verbs',
+    },
+    'verb': {
+      rule: 'Applying infinitive or base form where conjugated form required',
+      transfer: 'L1 verb paradigm (English lacks person/number marking)',
+      intervention: 'Conjugation drills with high-frequency verbs',
+    },
+    // Noun declension
+    'noun_declension': {
+      rule: 'Using nominative form in oblique case positions',
+      transfer: 'L1 lacks grammatical case (English)',
+      intervention: 'Case-function mapping exercises',
+    },
+    'declension': {
+      rule: 'Using nominative form in oblique case positions',
+      transfer: 'L1 lacks grammatical case (English)',
+      intervention: 'Case-function mapping exercises',
+    },
+    'case': {
+      rule: 'Using nominative form in oblique case positions',
+      transfer: 'L1 lacks grammatical case (English)',
+      intervention: 'Case-function mapping exercises',
+    },
+    // Gender agreement
+    'gender_agreement': {
+      rule: 'Default masculine assignment or adjective-noun mismatch',
+      transfer: 'L1 lacks grammatical gender (English)',
+      intervention: 'Noun-adjective pairing with gender cues',
+    },
+    'gender': {
+      rule: 'Default masculine assignment or adjective-noun mismatch',
+      transfer: 'L1 lacks grammatical gender (English)',
+      intervention: 'Noun-adjective pairing with gender cues',
+    },
+    'agreement': {
+      rule: 'Default masculine assignment or adjective-noun mismatch',
+      transfer: 'L1 lacks grammatical gender (English)',
+      intervention: 'Noun-adjective pairing with gender cues',
+    },
+    // Article usage
+    'article_usage': {
+      rule: 'Omitting definite article or incorrect enclitic placement',
+      transfer: 'L1 proclitic article position (English "the")',
+      intervention: 'Article attachment pattern practice',
+    },
+    'article': {
+      rule: 'Omitting definite article or incorrect enclitic placement',
+      transfer: 'L1 proclitic article position (English "the")',
+      intervention: 'Article attachment pattern practice',
+    },
+    'definite_article': {
+      rule: 'Omitting definite article or incorrect enclitic placement',
+      transfer: 'L1 proclitic article position (English "the")',
+      intervention: 'Article attachment pattern practice',
+    },
+    // Tense/aspect
+    'tense_aspect': {
+      rule: 'Confusing perfective/imperfective or compound past forms',
+      transfer: 'L1 aspect marking differs (English progressive)',
+      intervention: 'Aspectual contrast in context',
+    },
+    'tense': {
+      rule: 'Confusing perfective/imperfective or compound past forms',
+      transfer: 'L1 aspect marking differs (English progressive)',
+      intervention: 'Aspectual contrast in context',
+    },
+    'aspect': {
+      rule: 'Confusing perfective/imperfective or compound past forms',
+      transfer: 'L1 aspect marking differs (English progressive)',
+      intervention: 'Aspectual contrast in context',
+    },
+    // Preposition
+    'preposition': {
+      rule: 'Direct translation of L1 preposition without case governance',
+      transfer: 'L1 preposition-noun collocations',
+      intervention: 'Preposition + case combination drills',
+    },
+    'preposition_error': {
+      rule: 'Direct translation of L1 preposition without case governance',
+      transfer: 'L1 preposition-noun collocations',
+      intervention: 'Preposition + case combination drills',
+    },
+    // Word formation
+    'word_formation': {
+      rule: 'Incorrect derivational suffix or prefix application',
+      transfer: 'L1 word formation patterns',
+      intervention: 'Morphological family exploration',
+    },
+    'morphology': {
+      rule: 'Incorrect derivational suffix or prefix application',
+      transfer: 'L1 word formation patterns',
+      intervention: 'Morphological family exploration',
+    },
+    // Negation
+    'negation': {
+      rule: 'Single negation where double negation required',
+      transfer: 'L1 single negation rule (English)',
+      intervention: 'Negative concord pattern practice',
+    },
+    'double_negation': {
+      rule: 'Single negation where double negation required',
+      transfer: 'L1 single negation rule (English)',
+      intervention: 'Negative concord pattern practice',
+    },
+    // Clitic placement
+    'clitic_placement': {
+      rule: 'Incorrect position of object pronouns in verb complex',
+      transfer: 'L1 fixed word order (English SVO)',
+      intervention: 'Clitic climbing and placement rules',
+    },
+    'clitic': {
+      rule: 'Incorrect position of object pronouns in verb complex',
+      transfer: 'L1 fixed word order (English SVO)',
+      intervention: 'Clitic climbing and placement rules',
+    },
+    'pronoun': {
+      rule: 'Incorrect position of object pronouns in verb complex',
+      transfer: 'L1 fixed word order (English SVO)',
+      intervention: 'Clitic climbing and placement rules',
+    },
+    // Subjunctive
+    'subjunctive': {
+      rule: 'Using indicative where subjunctive mood required',
+      transfer: 'L1 lacks productive subjunctive (English)',
+      intervention: 'Subjunctive trigger recognition',
+    },
+    'mood': {
+      rule: 'Using indicative where subjunctive mood required',
+      transfer: 'L1 lacks productive subjunctive (English)',
+      intervention: 'Subjunctive trigger recognition',
+    },
+    // Diacritics / spelling
+    'diacritics': {
+      rule: 'Missing or incorrect Romanian diacritical marks (ă, â, î, ș, ț)',
+      transfer: 'L1 lacks diacritics (English ASCII)',
+      intervention: 'Diacritic awareness and typing practice',
+    },
+    'spelling': {
+      rule: 'Orthographic error in Romanian word',
+      transfer: 'L1 spelling conventions',
+      intervention: 'Spelling pattern recognition',
+    },
+    // General
+    'general': {
+      rule: 'Systematic deviation in grammatical structure',
+      transfer: 'L1 grammatical transfer',
+      intervention: 'Targeted grammar practice',
+    },
+    'grammar_correction': {
+      rule: 'Systematic deviation in grammatical structure',
+      transfer: 'L1 grammatical transfer',
+      intervention: 'Targeted grammar practice',
+    },
+  };
 
-  for (let i = 0; i <= b.length; i++) {
-    matrix[i] = [i];
-  }
+  // Pronunciation-specific rules
+  const pronunciationRules: Record<string, { rule: string; transfer: string; intervention: string }> = {
+    'vowel': {
+      rule: 'Substituting L1 vowel quality for Romanian vowels',
+      transfer: 'L1 vowel inventory (English has different set)',
+      intervention: 'Minimal pair discrimination (ă/a, î/i)',
+    },
+    'consonant': {
+      rule: 'Devoicing final consonants or incorrect palatalization',
+      transfer: 'L1 phonotactic constraints',
+      intervention: 'Consonant contrast drills',
+    },
+    'stress': {
+      rule: 'Applying L1 stress patterns to Romanian words',
+      transfer: 'L1 stress rules (English stress timing)',
+      intervention: 'Stress pattern listening and repetition',
+    },
+    'intonation': {
+      rule: 'Using L1 intonation contours in Romanian sentences',
+      transfer: 'L1 prosodic patterns',
+      intervention: 'Intonation shadowing exercises',
+    },
+    'diphthong': {
+      rule: 'Monophthongizing Romanian diphthongs',
+      transfer: 'L1 diphthong inventory differs',
+      intervention: 'Diphthong glide practice',
+    },
+  };
 
-  for (let j = 0; j <= a.length; j++) {
-    matrix[0][j] = j;
-  }
+  // Vocabulary-specific rules
+  const vocabularyRules: Record<string, { rule: string; transfer: string; intervention: string }> = {
+    'false_friend': {
+      rule: 'Assuming cognate has same meaning as L1 equivalent',
+      transfer: 'L1 lexical form similarity',
+      intervention: 'False friend contrast pairs',
+    },
+    'collocation': {
+      rule: 'Direct translation of L1 word combinations',
+      transfer: 'L1 collocational patterns',
+      intervention: 'Romanian collocation exposure',
+    },
+    'register': {
+      rule: 'Using informal vocabulary in formal contexts or vice versa',
+      transfer: 'L1 register boundaries differ',
+      intervention: 'Register-appropriate vocabulary sorting',
+    },
+    'semantic_range': {
+      rule: 'Over-extending word meaning beyond Romanian usage',
+      transfer: 'L1 semantic boundaries',
+      intervention: 'Semantic field mapping',
+    },
+  };
 
-  for (let i = 1; i <= b.length; i++) {
-    for (let j = 1; j <= a.length; j++) {
-      if (b.charAt(i - 1) === a.charAt(j - 1)) {
-        matrix[i][j] = matrix[i - 1][j - 1];
-      } else {
-        matrix[i][j] = Math.min(
-          matrix[i - 1][j - 1] + 1,
-          matrix[i][j - 1] + 1,
-          matrix[i - 1][j] + 1
-        );
+  // Word order specific rules
+  const wordOrderRules: Record<string, { rule: string; transfer: string; intervention: string }> = {
+    'adjective_position': {
+      rule: 'Placing adjective before noun (L1 pattern)',
+      transfer: 'L1 prenominal adjective rule (English)',
+      intervention: 'Adjective-noun order practice',
+    },
+    'clitic_order': {
+      rule: 'Incorrect sequencing of pronominal clitics',
+      transfer: 'L1 lacks clitic clusters',
+      intervention: 'Clitic ordering drills',
+    },
+    'topic_focus': {
+      rule: 'Using rigid SVO where topic-fronting expected',
+      transfer: 'L1 fixed word order',
+      intervention: 'Information structure exercises',
+    },
+  };
+
+  // Helper: fuzzy match - find a key that's contained in the category
+  function fuzzyMatch(rules: Record<string, any>, cat: string): string | null {
+    // Priority keywords to check (longer/more specific first)
+    const priorityKeys = [
+      'verb_conjugation', 'conjugation', 'verb',
+      'noun_declension', 'declension', 'case',
+      'gender_agreement', 'gender', 'agreement',
+      'article_usage', 'article', 'definite',
+      'tense_aspect', 'tense', 'aspect',
+      'preposition',
+      'diacritics', 'spelling',
+      'subjunctive', 'mood',
+      'clitic', 'pronoun',
+      'negation',
+    ];
+
+    for (const key of priorityKeys) {
+      if (cat.includes(key) && rules[key]) {
+        return key;
       }
     }
+    return null;
   }
 
-  return matrix[b.length][a.length];
+  // Look up specific rule or return default for error type
+  if (errorType === 'grammar') {
+    // Try direct lookup first
+    let specific = grammarRules[categoryNorm];
+
+    // Try fuzzy match if direct lookup fails
+    if (!specific) {
+      const fuzzyKey = fuzzyMatch(grammarRules, categoryNorm);
+      if (fuzzyKey) specific = grammarRules[fuzzyKey];
+    }
+
+    if (specific) {
+      return {
+        interlanguageRule: specific.rule,
+        transferSource: specific.transfer,
+        intervention: specific.intervention,
+        theoreticalBasis: 'Interlanguage Theory (Selinker, 1972)',
+      };
+    }
+    return {
+      interlanguageRule: 'Systematic deviation in grammatical structure',
+      transferSource: 'L1 grammatical transfer',
+      intervention: 'Targeted grammar practice',
+      theoreticalBasis: 'Interlanguage Theory (Selinker, 1972)',
+    };
+  }
+
+  if (errorType === 'pronunciation') {
+    const specific = pronunciationRules[categoryNorm];
+    if (specific) {
+      return {
+        interlanguageRule: specific.rule,
+        transferSource: specific.transfer,
+        intervention: specific.intervention,
+        theoreticalBasis: 'Contrastive Analysis (Lado, 1957)',
+      };
+    }
+    return {
+      interlanguageRule: 'L1 phonological pattern applied to Romanian',
+      transferSource: 'L1 sound system',
+      intervention: 'Pronunciation focused practice',
+      theoreticalBasis: 'Contrastive Analysis (Lado, 1957)',
+    };
+  }
+
+  if (errorType === 'vocabulary') {
+    const specific = vocabularyRules[categoryNorm];
+    if (specific) {
+      return {
+        interlanguageRule: specific.rule,
+        transferSource: specific.transfer,
+        intervention: specific.intervention,
+        theoreticalBasis: 'Lexical Transfer Theory',
+      };
+    }
+    return {
+      interlanguageRule: 'L1 lexical concept mapped to Romanian',
+      transferSource: 'L1 semantic system',
+      intervention: 'Contextual vocabulary practice',
+      theoreticalBasis: 'Lexical Transfer Theory',
+    };
+  }
+
+  if (errorType === 'word_order') {
+    const specific = wordOrderRules[categoryNorm];
+    if (specific) {
+      return {
+        interlanguageRule: specific.rule,
+        transferSource: specific.transfer,
+        intervention: specific.intervention,
+        theoreticalBasis: 'Processability Theory (Pienemann, 1998)',
+      };
+    }
+    return {
+      interlanguageRule: 'L1 word order applied to Romanian syntax',
+      transferSource: 'L1 syntactic structure',
+      intervention: 'Word order manipulation exercises',
+      theoreticalBasis: 'Processability Theory (Pienemann, 1998)',
+    };
+  }
+
+  // Default fallback
+  return {
+    interlanguageRule: 'Systematic deviation from target language norm',
+    transferSource: 'L1 interference',
+    intervention: 'Focused practice with feedback',
+    theoreticalBasis: 'Interlanguage Theory (Selinker, 1972)',
+  };
 }
 
 /**
- * Find a similar existing cluster key or return null.
- * Uses Levenshtein distance with a similarity threshold.
- * 
- * Future upgrade: Replace with cosine similarity on embeddings.
- */
-function findSimilarCluster(
-  clusters: Record<string, any[]>,
-  newKey: string,
-  threshold: number = 0.3 // 30% character difference allowed
-): string | null {
-  const [newType, newCategory, newFingerprint] = newKey.split('|');
-
-  for (const existingKey of Object.keys(clusters)) {
-    const [existingType, existingCategory, existingFingerprint] = existingKey.split('|');
-
-    // Must match on type and category
-    if (newType !== existingType || newCategory !== existingCategory) {
-      continue;
-    }
-
-    // Check fingerprint similarity
-    if (!existingFingerprint || !newFingerprint) continue;
-
-    const maxLen = Math.max(existingFingerprint.length, newFingerprint.length);
-    if (maxLen === 0) continue;
-
-    const distance = levenshteinDistance(existingFingerprint, newFingerprint);
-    const similarity = 1 - (distance / maxLen);
-
-    if (similarity >= (1 - threshold)) {
-      return existingKey;
-    }
-  }
-
-  return null;
-}
-
-/**
- * Cluster errors by type + category + context similarity.
- * This groups similar errors together for pattern detection.
+ * Cluster errors by errorType + category.
+ * All errors with the same type and category form one pattern.
+ *
+ * This creates meaningful patterns like "grammar|verb_conjugation" that
+ * group all verb conjugation errors together, with individual contexts
+ * preserved as examples within the pattern.
+ *
+ * Future upgrade: Add sub-clustering by context similarity for granular analysis.
  */
 function clusterErrors(errors: typeof errorLogs.$inferSelect[]): Record<string, typeof errors> {
   const clusters: Record<string, typeof errors> = {};
 
   errors.forEach(error => {
-    const contextFingerprint = normalizeContext(error.context || '');
-    const key = `${error.errorType}|${error.category || 'general'}|${contextFingerprint}`;
+    // Simple key: errorType + category
+    const key = `${error.errorType}|${error.category || 'general'}`;
 
-    // Check if a similar cluster already exists
-    const existingKey = findSimilarCluster(clusters, key);
-
-    if (existingKey) {
-      clusters[existingKey].push(error);
+    if (clusters[key]) {
+      clusters[key].push(error);
     } else {
       clusters[key] = [error];
     }
@@ -212,6 +508,31 @@ function calculateWeeklyTrend(
   return { trend, labels };
 }
 
+/**
+ * Compute trending direction locally (fallback when not in adaptation engine).
+ * Compares current week errors to previous week.
+ */
+function computeLocalTrending(
+  logs: typeof errorLogs.$inferSelect[]
+): TrendDirection {
+  const now = new Date();
+  const oneWeekAgo = new Date(now);
+  oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+  const twoWeeksAgo = new Date(now);
+  twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+
+  const currentWeek = logs.filter(l => l.createdAt >= oneWeekAgo).length;
+  const previousWeek = logs.filter(l => l.createdAt >= twoWeeksAgo && l.createdAt < oneWeekAgo).length;
+
+  // Need some data in the previous window to compare
+  if (previousWeek === 0) return 'stable';
+
+  const ratio = currentWeek / previousWeek;
+  if (ratio < 0.7) return 'improving';
+  if (ratio > 1.3) return 'worsening';
+  return 'stable';
+}
+
 // GET /api/errors/patterns - Get aggregated error patterns for Error Garden
 export async function GET(req: NextRequest) {
   try {
@@ -220,14 +541,15 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get all error logs for this user
-    // Note: For MVP with limited data, fetching all logs is acceptable.
-    // For scale, we would move this to a dedicated aggregation table or materialized view.
-    const allLogs = await db
-      .select()
-      .from(errorLogs)
-      .where(eq(errorLogs.userId, userId))
-      .orderBy(desc(errorLogs.createdAt));
+    // Parallel: fetch error logs + adaptation profile
+    const [allLogs, adaptProfile] = await Promise.all([
+      db
+        .select()
+        .from(errorLogs)
+        .where(eq(errorLogs.userId, userId))
+        .orderBy(desc(errorLogs.createdAt)),
+      getAdaptationProfile(userId),
+    ]);
 
     const totalErrors = allLogs.length;
 
@@ -238,8 +560,15 @@ export async function GET(req: NextRequest) {
           totalErrors: 0,
           patternCount: 0,
           fossilizingCount: 0,
+          tier2PlusCount: 0,
         },
       });
+    }
+
+    // Build lookup map from adaptation priorities for quick matching
+    const adaptationLookup = new Map<string, AdaptationPriority>();
+    for (const priority of adaptProfile.priorities) {
+      adaptationLookup.set(priority.patternKey, priority);
     }
 
     // Cluster errors using text similarity (upgradeable to ML clustering)
@@ -255,6 +584,15 @@ export async function GET(req: NextRequest) {
       const errorType = latestLog.errorType;
       const category = latestLog.category || 'General';
 
+      // Match with adaptation engine data
+      const adaptationKey = `${errorType}|${category.toLowerCase()}`;
+      const adaptPriority = adaptationLookup.get(adaptationKey);
+
+      // Get tier and trending from adaptation engine (or compute fallback)
+      const tier: 0 | 1 | 2 | 3 = adaptPriority?.tier || 0;
+      const trendDirection: TrendDirection = adaptPriority?.trending || computeLocalTrending(logs);
+      const interventionCount = adaptPriority?.interventionCount || 0;
+
       // Calculate real weekly trend
       const { trend, labels: trendLabels } = calculateWeeklyTrend(logs, allLogs);
 
@@ -267,29 +605,9 @@ export async function GET(req: NextRequest) {
         timestamp: log.createdAt.toISOString().split('T')[0],
       }));
 
-      // Generate theoretical content based on error type
-      // In full version, this would come from AI analysis
-      let interlanguageRule = 'Systematic deviation in target structure';
-      let transferSource = 'L1 Interference';
-      let intervention = 'Focused practice recommended';
-      let theoreticalBasis = 'Interlanguage Theory (Selinker, 1972)';
-
-      if (errorType === 'grammar') {
-        interlanguageRule = 'Overgeneralization of morphological rules';
-        intervention = 'Input flood with correct forms';
-      } else if (errorType === 'pronunciation') {
-        interlanguageRule = 'Phonemic substitution';
-        transferSource = 'L1 Phonology';
-        intervention = 'Minimal pair discrimination';
-      } else if (errorType === 'vocabulary') {
-        interlanguageRule = 'Semantic overgeneralization';
-        transferSource = 'L1 Lexical Transfer';
-        intervention = 'Contextual vocabulary practice';
-      } else if (errorType === 'word_order') {
-        interlanguageRule = 'Syntax mapping from L1';
-        theoreticalBasis = 'Processability Theory (Pienemann)';
-        intervention = 'Scrambled sentence reconstruction';
-      }
+      // Get specific interlanguage analysis based on error type + category
+      const analysis = getInterlanguageAnalysis(errorType, category);
+      const { interlanguageRule, transferSource, intervention, theoreticalBasis } = analysis;
 
       return {
         id: `pattern-${index}`,
@@ -300,6 +618,9 @@ export async function GET(req: NextRequest) {
         recentContext: latestLog.context,
         lastOccurred: latestLog.createdAt,
         isFossilizing,
+        tier,
+        trendDirection,
+        interventionCount,
         trend,
         trendLabels,
         examples,
@@ -314,6 +635,7 @@ export async function GET(req: NextRequest) {
     });
 
     const fossilizingCount = patterns.filter((p) => p.isFossilizing).length;
+    const tier2PlusCount = patterns.filter((p) => p.tier >= 2).length;
 
     // Sort by frequency by default
     patterns.sort((a, b) => b.frequency - a.frequency);
@@ -324,6 +646,7 @@ export async function GET(req: NextRequest) {
         totalErrors,
         patternCount: patterns.length,
         fossilizingCount,
+        tier2PlusCount,
       },
     });
   } catch (error) {

@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useMemo } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Flower2, AlertTriangle, TrendingUp, Lightbulb, Sparkles, Loader2, LayoutGrid, List as ListIcon, Info, Filter, X } from "lucide-react"
+import { Flower2, AlertTriangle, TrendingUp, TrendingDown, Minus, Lightbulb, Sparkles, Loader2, LayoutGrid, List as ListIcon, Info, Filter, X, Zap } from "lucide-react"
 import type { ErrorPattern } from "@/app/api/errors/patterns/route"
 import { PatternModal } from "@/components/features/error-garden/PatternModal"
 import { cn } from "@/lib/utils"
@@ -14,8 +14,11 @@ type PatternData = {
     totalErrors: number
     patternCount: number
     fossilizingCount: number
+    tier2PlusCount: number
   }
 }
+
+type TierFilter = "all" | "tier1plus" | "tier2plus"
 
 type SortOption = "frequency" | "risk" | "count"
 type ViewMode = "grid" | "list"
@@ -53,6 +56,7 @@ export default function ErrorGardenPage() {
   const [sortBy, setSortBy] = useState<SortOption>("frequency")
   const [viewMode, setViewMode] = useState<ViewMode>("grid")
   const [activeFilters, setActiveFilters] = useState<Set<string>>(new Set())
+  const [tierFilter, setTierFilter] = useState<TierFilter>("all")
 
   const toggleFilter = (type: string) => {
     setActiveFilters(prev => {
@@ -96,9 +100,16 @@ export default function ErrorGardenPage() {
     if (!data?.patterns) return []
     let patterns = [...data.patterns]
 
-    // Apply filters first
+    // Apply error type filters
     if (activeFilters.size > 0) {
       patterns = patterns.filter(p => activeFilters.has(p.errorType))
+    }
+
+    // Apply tier filter
+    if (tierFilter === "tier1plus") {
+      patterns = patterns.filter(p => p.tier >= 1)
+    } else if (tierFilter === "tier2plus") {
+      patterns = patterns.filter(p => p.tier >= 2)
     }
 
     // Then sort
@@ -108,16 +119,15 @@ export default function ErrorGardenPage() {
       case "count":
         return patterns.sort((a, b) => b.count - a.count)
       case "risk":
-        // Critical (fossilizing) first, then by frequency
+        // Highest tier first, then by frequency
         return patterns.sort((a, b) => {
-          if (a.isFossilizing && !b.isFossilizing) return -1
-          if (!a.isFossilizing && b.isFossilizing) return 1
+          if (b.tier !== a.tier) return b.tier - a.tier
           return b.frequency - a.frequency
         })
       default:
         return patterns
     }
-  }, [data?.patterns, sortBy, activeFilters])
+  }, [data?.patterns, sortBy, activeFilters, tierFilter])
 
   const fossilizingPatterns = data?.patterns.filter((p) => p.isFossilizing) || []
   const avgFrequency = data?.patterns.length
@@ -211,37 +221,84 @@ export default function ErrorGardenPage() {
       </div>
 
       {/* Filter Chips */}
-      <div className="flex flex-wrap gap-2 items-center">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Filter className="h-4 w-4" />
-          <span>Filter by type:</span>
+      <div className="flex flex-col sm:flex-row gap-4">
+        {/* Error Type Filter */}
+        <div className="flex flex-wrap gap-2 items-center">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Filter className="h-4 w-4" />
+            <span>Type:</span>
+          </div>
+          {ALL_ERROR_TYPES.map(type => (
+            <button
+              key={type}
+              onClick={() => toggleFilter(type)}
+              className={cn(
+                "px-3 py-1.5 rounded-full text-sm font-medium transition-all border",
+                activeFilters.has(type)
+                  ? "bg-foreground/20 border-foreground/40 text-foreground shadow-sm"
+                  : cn(errorFilterColors[type], "hover:bg-foreground/5")
+              )}
+            >
+              {errorTypeLabels[type]}
+              {activeFilters.has(type) && (
+                <span className="ml-1.5 opacity-70">✓</span>
+              )}
+            </button>
+          ))}
+          {activeFilters.size > 0 && (
+            <button
+              onClick={clearFilters}
+              className="px-2 py-1 text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+            >
+              <X className="h-3 w-3" />
+              Clear
+            </button>
+          )}
         </div>
-        {ALL_ERROR_TYPES.map(type => (
+
+        {/* Tier Filter */}
+        <div className="flex flex-wrap gap-2 items-center">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Zap className="h-4 w-4" />
+            <span>Tier:</span>
+          </div>
           <button
-            key={type}
-            onClick={() => toggleFilter(type)}
+            onClick={() => setTierFilter("all")}
             className={cn(
               "px-3 py-1.5 rounded-full text-sm font-medium transition-all border",
-              activeFilters.has(type)
-                ? "bg-foreground/20 border-foreground/40 text-foreground shadow-sm"
-                : cn(errorFilterColors[type], "hover:bg-foreground/5")
+              tierFilter === "all"
+                ? "bg-chart-4/20 border-chart-4/40 text-chart-4"
+                : "border-border text-muted-foreground hover:bg-foreground/5"
             )}
           >
-            {errorTypeLabels[type]}
-            {activeFilters.has(type) && (
-              <span className="ml-1.5 opacity-70">✓</span>
-            )}
+            All
           </button>
-        ))}
-        {activeFilters.size > 0 && (
           <button
-            onClick={clearFilters}
-            className="px-2 py-1 text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+            onClick={() => setTierFilter("tier1plus")}
+            className={cn(
+              "px-3 py-1.5 rounded-full text-sm font-medium transition-all border",
+              tierFilter === "tier1plus"
+                ? "bg-amber-500/20 border-amber-500/40 text-amber-500"
+                : "border-border text-muted-foreground hover:bg-foreground/5"
+            )}
           >
-            <X className="h-3 w-3" />
-            Clear
+            At Risk (1+)
           </button>
-        )}
+          <button
+            onClick={() => setTierFilter("tier2plus")}
+            className={cn(
+              "px-3 py-1.5 rounded-full text-sm font-medium transition-all border flex items-center gap-1",
+              tierFilter === "tier2plus"
+                ? "bg-destructive/20 border-destructive/40 text-destructive"
+                : "border-border text-muted-foreground hover:bg-foreground/5"
+            )}
+          >
+            Critical (2+)
+            {data?.stats.tier2PlusCount ? (
+              <span className="text-xs opacity-70">({data.stats.tier2PlusCount})</span>
+            ) : null}
+          </button>
+        </div>
       </div>
 
 
@@ -344,6 +401,24 @@ function SortButton({ children, active, onClick }: { children: React.ReactNode, 
 }
 
 function PatternCard({ pattern, onClick }: { pattern: ErrorPattern, onClick: () => void }) {
+  // Trending indicator config
+  const trendingConfig = {
+    improving: { icon: TrendingDown, color: "text-chart-4", label: "Improving" },
+    stable: { icon: Minus, color: "text-amber-500", label: "Stable" },
+    worsening: { icon: TrendingUp, color: "text-destructive", label: "Worsening" },
+  }
+  const trending = trendingConfig[pattern.trendDirection] || trendingConfig.stable
+  const TrendIcon = trending.icon
+
+  // Tier badge config
+  const tierConfig: Record<number, { label: string; color: string } | null> = {
+    0: null,
+    1: { label: "Tier 1", color: "border-amber-500/50 bg-amber-500/10 text-amber-500" },
+    2: { label: "Tier 2", color: "border-orange-500/50 bg-orange-500/10 text-orange-500" },
+    3: { label: "Tier 3", color: "border-destructive/50 bg-destructive/10 text-destructive animate-pulse" },
+  }
+  const tierBadge = tierConfig[pattern.tier]
+
   return (
     <div
       onClick={onClick}
@@ -357,12 +432,17 @@ function PatternCard({ pattern, onClick }: { pattern: ErrorPattern, onClick: () 
           <h3 className="text-xl font-bold text-foreground group-hover:text-chart-4 transition-colors">
             {pattern.errorType}
           </h3>
-          <div className="flex gap-2 mt-2">
+          <div className="flex flex-wrap gap-2 mt-2">
             <span className={cn("text-xs px-2 py-1 rounded border", errorFilterColors[pattern.errorType] || "border-border text-muted-foreground")}>
               {pattern.category || "General"}
             </span>
-            {pattern.isFossilizing && (
-              <span className="text-xs px-2 py-1 rounded border border-destructive/50 bg-destructive/10 text-destructive font-semibold animate-pulse">
+            {tierBadge && (
+              <span className={cn("text-xs px-2 py-1 rounded border font-semibold", tierBadge.color)}>
+                {tierBadge.label}
+              </span>
+            )}
+            {pattern.isFossilizing && !tierBadge && (
+              <span className="text-xs px-2 py-1 rounded border border-destructive/50 bg-destructive/10 text-destructive font-semibold">
                 HIGH RISK
               </span>
             )}
@@ -370,7 +450,10 @@ function PatternCard({ pattern, onClick }: { pattern: ErrorPattern, onClick: () 
         </div>
         <div className="text-right">
           <div className="text-3xl font-bold text-chart-4">{pattern.frequency}%</div>
-          <div className="text-xs text-muted-foreground">frequency</div>
+          <div className="text-xs text-muted-foreground flex items-center justify-end gap-1">
+            <TrendIcon className={cn("h-3 w-3", trending.color)} />
+            <span className={trending.color}>{trending.label}</span>
+          </div>
         </div>
       </div>
 
@@ -384,6 +467,8 @@ function PatternCard({ pattern, onClick }: { pattern: ErrorPattern, onClick: () 
           <div
             className={cn(
               "h-full rounded-full bg-gradient-to-r transition-all duration-1000",
+              pattern.tier >= 2 ? "from-destructive to-destructive/70" :
+              pattern.tier === 1 ? "from-amber-500 to-amber-500/70" :
               pattern.isFossilizing ? "from-destructive to-destructive/70" : "from-chart-4 to-chart-4/70"
             )}
             style={{ width: `${pattern.frequency}%` }}
