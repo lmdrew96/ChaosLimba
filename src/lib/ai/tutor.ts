@@ -62,11 +62,23 @@ ABSOLUTE CONSTRAINT: The learner is CEFR A2 (elementary). This overrides all oth
     return BASE_SYSTEM_PROMPT;
 }
 
+export type MysteryGrammarInfo = {
+    partOfSpeech: string;
+    gender?: string;
+    conjugation?: string;
+    declension?: string;
+    notes?: string;
+};
+
 export type MysteryAnalysis = {
     definition: string;
     context: string;
     examples: string[];
     etymology?: string;
+    grammarInfo?: MysteryGrammarInfo;
+    relatedWords?: string[];
+    practicePrompt?: string;
+    pronunciation?: string;
 };
 
 export type VocabHelp = {
@@ -105,26 +117,47 @@ export type SemanticMatch = {
 };
 
 /**
- * Analyzes a mystery item using DeepSeek-R1 (via Groq)
+ * Analyzes a mystery item using Llama 3.3 70B (via Groq) - Deep Exploration mode
+ * Returns comprehensive linguistic analysis including grammar, examples, and practice prompts
  */
 export async function analyzeMysteryItem(
     word: string,
-    userContext: string | null
+    userContext: string | null,
+    userLevel: string = 'B1'
 ): Promise<MysteryAnalysis> {
 
-    // Prompt engineered to ensure JSON despite "Model Thinking"
     const prompt = `
-  Analyze the Romanian word/phrase: "${word}".
-  ${userContext ? `The user encountered it in this context: "${userContext}"` : ""}
+Analyze the Romanian word/phrase: "${word}"
+${userContext ? `Context where user encountered it: "${userContext}"` : "No context provided."}
+User's CEFR level: ${userLevel}
 
-  Return a JSON object with these fields:
-  {
-    "definition": "Comprehensive English definition",
-    "context": "Corrected/improved Romanian context sentence",
-    "examples": ["Romanian example 1", "Romanian example 2", "Romanian example 3"],
-    "etymology": "Brief origin note"
-  }
-  `;
+Provide a COMPREHENSIVE analysis for a language learner. Return JSON:
+{
+  "definition": "Clear English definition (2-3 sentences max)",
+  "pronunciation": "Syllable breakdown with stress marked in CAPS, e.g. 'în-DO-iel-nic'",
+  "grammarInfo": {
+    "partOfSpeech": "noun/verb/adjective/adverb/etc",
+    "gender": "masculine/feminine/neuter (if applicable, else null)",
+    "conjugation": "For verbs: conjugation group and key forms (eu/tu/el forms). Null if not a verb.",
+    "declension": "For nouns/adjectives: how it changes with articles/cases. Null if not applicable.",
+    "notes": "Any important grammar notes (e.g. 'takes dative', 'irregular plural')"
+  },
+  "context": "A natural Romanian sentence using this word (corrected version if user provided context, or new example)",
+  "examples": [
+    "Romanian example sentence 1 (simple, ${userLevel} appropriate)",
+    "Romanian example sentence 2 (different context)",
+    "Romanian example sentence 3 (slightly more complex)"
+  ],
+  "relatedWords": ["synonym1", "antonym1", "word_family_member"],
+  "practicePrompt": "A short, engaging prompt asking the user to write a sentence using this word. Make it specific and fun, e.g. 'Use îndoielnic to describe something you're not sure about today.'",
+  "etymology": "Brief origin (Latin root, Slavic borrowing, etc.) - 1 sentence max"
+}
+
+IMPORTANT:
+- Keep examples appropriate for ${userLevel} level
+- practicePrompt should be in English but ask for Romanian output
+- All Romanian text must have correct diacritics (ă, â, î, ș, ț)
+`;
 
     try {
         const output = await callGroq([
@@ -132,32 +165,29 @@ export async function analyzeMysteryItem(
             { role: "user", content: prompt }
         ]);
 
-        // DeepSeek R1 via Groq usually puts the <think> trace inside the content
-        // But since we asked for JSON object format, Groq should enforce it.
-        // However, R1 might still chatter.
-
-        // Clean any markdown formatting if present
+        // Clean markdown and thinking tags
         const cleanJson = output.replace(/```json/g, "").replace(/```/g, "").trim();
-
-        // If there is <think>...</think>, remove it (simple regex or parsing)
-        // Note: Groq's r1 integration might separate reasoning, but let's be safe.
         const effectiveJson = cleanJson.replace(/<think>[\s\S]*?<\/think>/g, "").trim();
 
         const parsed = JSON.parse(effectiveJson);
 
         return {
             definition: parsed.definition,
+            pronunciation: parsed.pronunciation,
+            grammarInfo: parsed.grammarInfo,
             context: parsed.context,
-            examples: parsed.examples,
+            examples: parsed.examples || [],
+            relatedWords: parsed.relatedWords || [],
+            practicePrompt: parsed.practicePrompt,
             etymology: parsed.etymology,
         };
 
     } catch (error) {
-        console.error("[Tutor] Analysis failed:", error);
+        console.error("[Tutor] Mystery analysis failed:", error);
         return {
-            definition: "The Oracle is meditating (Groq Error).",
+            definition: "The Oracle is meditating... (Try again)",
             context: userContext || "",
-            examples: ["Try again later."],
+            examples: [],
         };
     }
 }

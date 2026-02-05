@@ -110,6 +110,15 @@ export type NewErrorLog = typeof errorLogs.$inferInsert;
 export type Session = typeof sessions.$inferSelect;
 export type NewSession = typeof sessions.$inferInsert;
 
+// Mystery item grammar info type
+export type MysteryGrammarInfo = {
+  partOfSpeech: string; // noun, verb, adjective, etc.
+  gender?: string; // masculine, feminine, neuter (for nouns/adjectives)
+  conjugation?: string; // verb conjugation pattern
+  declension?: string; // noun/adjective case forms
+  notes?: string; // additional grammar notes
+};
+
 // Mystery Shelf Items table
 export const mysteryItems = pgTable('mystery_items', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -118,6 +127,11 @@ export const mysteryItems = pgTable('mystery_items', {
   context: text('context'),
   definition: text('definition'),
   examples: jsonb('examples').$type<string[]>(),
+  grammarInfo: jsonb('grammar_info').$type<MysteryGrammarInfo>(),
+  relatedWords: jsonb('related_words').$type<string[]>(),
+  practicePrompt: text('practice_prompt'),
+  pronunciation: text('pronunciation'), // syllable stress guide e.g. "în-DO-iel-nic"
+  etymology: text('etymology'),
   isExplored: pgBoolean('is_explored').default(false).notNull(),
   source: text('source').default('manual').notNull(), // 'manual', 'deep_fog'
   createdAt: timestamp('created_at').defaultNow().notNull(),

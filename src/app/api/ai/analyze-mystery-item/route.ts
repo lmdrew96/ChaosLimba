@@ -1,6 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
-import { mysteryItems } from "@/lib/db/schema";
+import { mysteryItems, userPreferences } from "@/lib/db/schema";
 import { AIConductor } from "@/lib/ai/conductor";
 import { and, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
@@ -32,24 +32,30 @@ export async function POST(req: Request) {
 
         const item = items[0];
 
-        // 2. Call AI Conductor
+        // 2. Get user's CEFR level for appropriate examples
+        const prefs = await db.select()
+            .from(userPreferences)
+            .where(eq(userPreferences.userId, userId));
+        const userLevel = prefs[0]?.languageLevel || 'B1';
+
+        // 3. Call AI Conductor with user level
         const analysis = await AIConductor.process("analyze_mystery_item", {
             word: item.word,
-            context: item.context
+            context: item.context,
+            userLevel
         });
 
-        // 3. Update DB
+        // 4. Update DB with all new fields
         const updated = await db.update(mysteryItems)
             .set({
                 definition: analysis.definition,
                 examples: analysis.examples,
-                // If the AI found a better context or we didn't have one, update it.
-                // But respect user's original context if it exists and is good? 
-                // For now, let's append the AI context if user's context is significantly different 
-                // or just overwrite if it was empty.
-                // Actually, let's keep user context as primary source of truth for *where* they found it,
-                // but maybe add a "notes" field later.
-                // For now: Only update context if it was empty.
+                grammarInfo: analysis.grammarInfo,
+                relatedWords: analysis.relatedWords,
+                practicePrompt: analysis.practicePrompt,
+                pronunciation: analysis.pronunciation,
+                etymology: analysis.etymology,
+                // Only update context if it was empty
                 ...(item.context ? {} : { context: analysis.context }),
             })
             .where(eq(mysteryItems.id, itemId))

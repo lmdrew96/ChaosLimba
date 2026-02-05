@@ -55,10 +55,10 @@ export class AIConductor {
     }
 
     private static async handleMysteryAnalysis(payload: AIPayload): Promise<MysteryAnalysis> {
-        const { word, context } = payload;
+        const { word, context, userLevel } = payload;
         if (!word) throw new Error("Word is required for mystery analysis");
 
-        return analyzeMysteryItem(word, context || null);
+        return analyzeMysteryItem(word, context || null, userLevel || 'B1');
     }
 
     private static async handleSemanticSimilarity(payload: AIPayload): Promise<SpamAResult> {
