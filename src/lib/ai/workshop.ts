@@ -3,7 +3,7 @@
 
 import { callGroq, type ChatMessage } from './groq';
 import { analyzeGrammar, type GrammarResult, type GrammarError } from './grammar';
-import type { GrammarFeature, CEFRLevelEnum } from '@/lib/db/schema';
+import type { GrammarFeature, CEFRLevelEnum, AdaptationTier } from '@/lib/db/schema';
 
 // ─── Types ───
 
@@ -124,13 +124,30 @@ Respond with this exact JSON structure:
 export async function generateWorkshopChallenge(
   feature: GrammarFeature,
   userLevel: CEFRLevelEnum,
-  challengeType?: WorkshopChallengeType
+  challengeType?: WorkshopChallengeType,
+  destabilizationTier?: AdaptationTier
 ): Promise<WorkshopChallenge> {
-  const type = challengeType || pickRandomChallengeType(feature);
+  // At tier 2+: force production/correction challenge types
+  let type: WorkshopChallengeType;
+  if (destabilizationTier && destabilizationTier >= 2 && feature.category !== 'vocabulary_domain') {
+    const productionTypes: GrammarChallengeType[] = ['transform', 'fix'];
+    type = productionTypes[Math.floor(Math.random() * productionTypes.length)];
+  } else {
+    type = challengeType || pickRandomChallengeType(feature);
+  }
+
+  let userPrompt = buildChallengePrompt(feature, userLevel, type);
+
+  // Add destabilization instruction at tier 3
+  if (destabilizationTier === 3) {
+    userPrompt += `\n\nDESTABILIZATION MODE: This learner is fossilizing on "${feature.featureName}".
+Create a challenge where their typical error would produce a CLEARLY wrong meaning, making the correct form feel necessary rather than arbitrary.
+The goal is cognitive disequilibrium — make the learner FEEL why the correct form matters.`;
+  }
 
   const messages: ChatMessage[] = [
     { role: 'system', content: CHALLENGE_SYSTEM_PROMPT },
-    { role: 'user', content: buildChallengePrompt(feature, userLevel, type) },
+    { role: 'user', content: userPrompt },
   ];
 
   const output = await callGroq(messages, 0.8);

@@ -6,7 +6,7 @@ export async function POST(request: NextRequest) {
         const body = await request.json();
         const {
             contentTitle, contentTranscript, contentType, errorPatterns, userLevel,
-            targetFeatures, isFirstSession
+            targetFeatures, isFirstSession, fossilizationAlerts
         } = body;
 
         if (!contentTitle) {
@@ -40,7 +40,8 @@ export async function POST(request: NextRequest) {
             errorPatterns || [],
             userLevel || 'B1',
             targetFeatures || [],
-            isFirstSession || false
+            isFirstSession || false,
+            fossilizationAlerts || []
         );
 
         console.log(`[Initial Question API] Generated: "${question.question}" (${question.questionType})`);

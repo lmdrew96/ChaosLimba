@@ -328,3 +328,30 @@ export const userFeatureExposure = pgTable('user_feature_exposure', {
 export type UserFeatureExposureRecord = typeof userFeatureExposure.$inferSelect;
 export type NewUserFeatureExposure = typeof userFeatureExposure.$inferInsert;
 
+// Adaptation tier enum
+export const adaptationTierEnum = [1, 2, 3] as const;
+export type AdaptationTier = (typeof adaptationTierEnum)[number];
+
+// Adaptation intervention source enum
+export const adaptationSourceEnum = ['content_selection', 'workshop_drill', 'tutor_prompt'] as const;
+export type AdaptationSource = (typeof adaptationSourceEnum)[number];
+
+// Adaptation Interventions table - append-only log of fossilization targeting
+export const adaptationInterventions = pgTable('adaptation_interventions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: text('user_id').notNull(),
+  patternKey: text('pattern_key').notNull(), // e.g. "grammar|verb_conjugation"
+  errorType: text('error_type').$type<ErrorType>().notNull(),
+  category: text('category'), // error subcategory
+  tier: integer('tier').$type<AdaptationTier>().notNull(),
+  source: text('source').$type<AdaptationSource>().notNull(),
+  frequencyAtIntervention: integer('frequency_at_intervention').notNull(), // 0-100
+  frequencyAfterWindow: integer('frequency_after_window'), // measured lazily, nullable
+  measuredAt: timestamp('measured_at'), // when frequencyAfterWindow was measured
+  isResolved: pgBoolean('is_resolved').default(false).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export type AdaptationIntervention = typeof adaptationInterventions.$inferSelect;
+export type NewAdaptationIntervention = typeof adaptationInterventions.$inferInsert;
+

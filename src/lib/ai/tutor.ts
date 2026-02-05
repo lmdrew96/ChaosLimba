@@ -1,4 +1,5 @@
 import { callGroq, ChatMessage } from "./groq";
+import type { FossilizationAlert } from './adaptation';
 
 const BASE_SYSTEM_PROMPT = `You are the ChaosLimbă Tutor, a brilliant but slightly chaotic Romanian language expert.
 Your goal is to help learners master Romanian through "productive confusion".
@@ -251,6 +252,32 @@ function getFallbackQuestion(contentType: 'audio' | 'text', userLevel: string): 
  * Generates an initial question for the AI tutor based on content
  * This is called when new content loads, NOT when user submits a response
  */
+/**
+ * Builds LLM prompt section for fossilization alerts.
+ * Tier 2: require the correct form. Tier 3: create cognitive disequilibrium.
+ */
+function buildFossilizationPromptSection(alerts: FossilizationAlert[]): string {
+    const sections: string[] = [];
+
+    for (const alert of alerts) {
+        const exampleText = alert.examples
+            .map(e => `"${e.incorrect}" → "${e.correct}"`)
+            .join(', ');
+
+        if (alert.tier >= 3) {
+            sections.push(
+                `DESTABILIZATION TARGET (${alert.pattern}): Create cognitive disequilibrium — show a case where their wrong form creates confusion or changes meaning entirely. Examples: ${exampleText}`
+            );
+        } else {
+            sections.push(
+                `FOSSILIZATION ALERT (${alert.pattern}): The learner consistently produces the wrong form here. Design your question to require the correct form. Examples: ${exampleText}`
+            );
+        }
+    }
+
+    return '\n' + sections.join('\n');
+}
+
 export type TargetFeature = {
     featureKey: string;
     featureName: string;
@@ -264,7 +291,8 @@ export async function generateInitialQuestion(
     errorPatterns: string[] = [],
     userLevel: string = 'B1',
     targetFeatures: TargetFeature[] = [],
-    isFirstSession: boolean = false
+    isFirstSession: boolean = false,
+    fossilizationAlerts: FossilizationAlert[] = []
 ): Promise<InitialQuestion> {
     const hasTranscript = contentTranscript && contentTranscript.length > 50;
 
@@ -304,6 +332,7 @@ ${transcriptContext ? `Content transcript/text: "${transcriptContext}"` : 'No tr
 ${errorPatterns.length > 0 ? `The learner has these known weak areas: ${errorPatterns.join(', ')}` : ''}
 ${featurePrompt}
 ${firstSessionPrompt}
+${fossilizationAlerts.length > 0 ? buildFossilizationPromptSection(fossilizationAlerts) : ''}
 
 Generate an engaging OPENING QUESTION to ask the learner after they consume this content.
 
@@ -437,7 +466,8 @@ export async function generateTutorResponse(
     errorPatterns: string[] = [],
     userLevel: string = 'B1',
     targetFeatures: TargetFeature[] = [],
-    newlyDiscoveredFeatures: string[] = []
+    newlyDiscoveredFeatures: string[] = [],
+    fossilizationAlerts: FossilizationAlert[] = []
 ): Promise<TutorResponse> {
 
     // Step 1: Extract vocabulary questions from parentheses
@@ -479,6 +509,7 @@ ${newlyDiscoveredFeatures.length > 0 ? `
 DISCOVERY MOMENT: The learner just encountered these structures for the FIRST TIME: ${newlyDiscoveredFeatures.join(', ')}.
 If they used any of these correctly, briefly celebrate it in your encouragement (e.g., "Nice use of the past tense!") — but don't lecture about the rule.
 If they didn't notice a new structure in the content, gently draw attention in your nextQuestion (e.g., "Did you notice how 'X' works in that sentence?"). Plant a seed, don't lecture.` : ''}
+${fossilizationAlerts.length > 0 ? buildFossilizationPromptSection(fossilizationAlerts) : ''}
 
 Analyze the response and provide feedback in this JSON format:
 {

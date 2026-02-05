@@ -16,9 +16,16 @@ import {
   type CEFRLevelEnum,
   type ContentItem,
   type GrammarFeature,
+  type AdaptationTier,
 } from './schema';
 import { ExtractedErrorPattern } from '@/types/aggregator';
 import { eq, and, asc, desc, gte, lte, sql, count as drizzleCount, inArray } from 'drizzle-orm';
+import {
+  getAdaptationProfile,
+  recordIntervention,
+  type AdaptationProfile,
+  type AdaptationPriority,
+} from '@/lib/ai/adaptation';
 
 /**
  * Saves error patterns from the Feedback Aggregator to the Error Garden database
@@ -598,13 +605,14 @@ const cefrToDifficulty: Record<string, { min: number; max: number }> = {
   'C2': { min: 8.0, max: 10.0 },
 };
 
-export type SelectionReason = 'unseen_feature' | 'weak_feature' | 'random';
+export type SelectionReason = 'unseen_feature' | 'weak_feature' | 'fossilizing_pattern' | 'random';
 
 export interface SmartContentResult {
   content: ContentItem;
   selectionReason: SelectionReason;
   targetFeatures: GrammarFeature[];
   isFirstSession: boolean;
+  adaptationProfile?: AdaptationProfile;
 }
 
 /**
@@ -623,11 +631,12 @@ export async function getSmartContentForUser(
 ): Promise<SmartContentResult | null> {
   const difficulty = cefrToDifficulty[userLevel] || cefrToDifficulty['B1'];
 
-  // Parallel: get exposure summary, level features, and error patterns
-  const [exposure, levelFeatures, errorPatterns] = await Promise.all([
+  // Parallel: get exposure summary, level features, error patterns, and adaptation profile
+  const [exposure, levelFeatures, errorPatterns, adaptProfile] = await Promise.all([
     getUserFeatureExposureSummary(userId),
     getFeaturesForLevel(userLevel),
     getUserErrorPatternsForContent(userId, 5),
+    getAdaptationProfile(userId),
   ]);
 
   const isFirstSession = exposure.totalExposures === 0;
@@ -646,38 +655,61 @@ export async function getSmartContentForUser(
   }
   const weakFeatures = levelFeatures.filter(f => weakFeatureKeys.has(f.featureKey));
 
-  // Weighted random roll: 50% unseen, 30% weak, 20% pure random
+  // Identify fossilizing features (from adaptation profile, tier 2+)
+  const fossilizingFeatureKeys = new Set<string>();
+  for (const priority of adaptProfile.fossilizingPatterns) {
+    const featureKey = mapErrorCategoryToFeatureKey(priority.errorType, priority.category);
+    if (featureKey) fossilizingFeatureKeys.add(featureKey);
+  }
+  const fossilizingFeatures = levelFeatures.filter(f => fossilizingFeatureKeys.has(f.featureKey));
+
+  // Use dynamic weights from adaptation profile
+  const weights = adaptProfile.contentWeights;
   const roll = Math.random();
   let targetFeatures: GrammarFeature[] = [];
   let selectionReason: SelectionReason = 'random';
 
-  if (roll < 0.5 && unseenFeatures.length > 0) {
+  const unseenThreshold = weights.unseen;
+  const weakThreshold = unseenThreshold + weights.weak;
+  const fossilizingThreshold = weakThreshold + weights.fossilizing;
+
+  if (roll < unseenThreshold && unseenFeatures.length > 0) {
     // Target unseen features
     selectionReason = 'unseen_feature';
-    // For first session A1: prioritize foundational features
     if (isFirstSession && userLevel === 'A1') {
       const foundational = unseenFeatures.filter(f =>
         ['present_tense_a_fi', 'basic_questions', 'vocab_greetings'].includes(f.featureKey)
       );
       targetFeatures = foundational.length > 0 ? foundational : unseenFeatures.slice(0, 3);
     } else {
-      // Pick 1-3 random unseen features, respecting rough sort order
       const shuffled = [...unseenFeatures].sort(() => Math.random() - 0.5);
       targetFeatures = shuffled.slice(0, Math.min(3, shuffled.length));
     }
-  } else if (roll < 0.8 && weakFeatures.length > 0) {
+  } else if (roll < weakThreshold && weakFeatures.length > 0) {
     // Target weak features from Error Garden
     selectionReason = 'weak_feature';
     targetFeatures = weakFeatures.slice(0, 3);
+  } else if (roll < fossilizingThreshold && fossilizingFeatures.length > 0) {
+    // Target fossilizing features (tier 2+)
+    selectionReason = 'fossilizing_pattern';
+    targetFeatures = fossilizingFeatures.slice(0, 3);
+
+    // Record that we intervened on the highest-tier fossilizing pattern
+    const topPriority = adaptProfile.fossilizingPatterns[0];
+    if (topPriority) {
+      recordIntervention(userId, topPriority, 'content_selection').catch(err =>
+        console.error('[SmartContent] Failed to record intervention:', err)
+      );
+    }
   }
-  // else: pure random (20% or fallback when no unseen/weak features)
+  // else: pure random
 
   // Try to find content matching target features
   if (targetFeatures.length > 0) {
     const targetKeys = targetFeatures.map(f => f.featureKey);
     const content = await findContentByFeatures(targetKeys, difficulty, excludeId);
     if (content) {
-      return { content, selectionReason, targetFeatures, isFirstSession };
+      return { content, selectionReason, targetFeatures, isFirstSession, adaptationProfile: adaptProfile };
     }
     // Fall through to random if no tagged content matches
   }
@@ -695,6 +727,7 @@ export async function getSmartContentForUser(
     selectionReason: 'random',
     targetFeatures: contentFeatures,
     isFirstSession,
+    adaptationProfile: adaptProfile,
   };
 }
 
@@ -789,11 +822,13 @@ export async function getFeaturesDiscoveredCount(userId: string): Promise<number
 
 // ─── Workshop: Feature Target Selection ───
 
-export type WorkshopSelectionReason = 'noticing_gap' | 'error_reinforcement' | 'level_random';
+export type WorkshopSelectionReason = 'noticing_gap' | 'error_reinforcement' | 'fossilization_drill' | 'level_random';
 
 export interface WorkshopFeatureTarget {
   feature: GrammarFeature;
   selectionReason: WorkshopSelectionReason;
+  destabilizationTier?: AdaptationTier;
+  adaptationProfile?: AdaptationProfile;
 }
 
 /**
@@ -808,10 +843,11 @@ export async function getWorkshopFeatureTarget(
   userId: string,
   userLevel: CEFRLevelEnum
 ): Promise<WorkshopFeatureTarget | null> {
-  const [exposure, levelFeatures, errorPatterns] = await Promise.all([
+  const [exposure, levelFeatures, errorPatterns, adaptProfile] = await Promise.all([
     getUserFeatureExposureSummary(userId),
     getFeaturesForLevel(userLevel),
     getUserErrorPatternsForContent(userId, 10),
+    getAdaptationProfile(userId),
   ]);
 
   if (levelFeatures.length === 0) return null;
@@ -835,21 +871,45 @@ export async function getWorkshopFeatureTarget(
   }
   const errorFeatures = levelFeatures.filter(f => errorFeatureKeys.has(f.featureKey));
 
-  // Weighted random roll
+  // Fossilizing features from adaptation profile
+  const fossilizingFeatureMap = new Map<string, AdaptationPriority>();
+  for (const priority of adaptProfile.fossilizingPatterns) {
+    const featureKey = mapErrorCategoryToFeatureKey(priority.errorType, priority.category);
+    if (featureKey) fossilizingFeatureMap.set(featureKey, priority);
+  }
+  const fossilizingFeatures = levelFeatures.filter(f => fossilizingFeatureMap.has(f.featureKey));
+
+  // Use dynamic weights from adaptation profile
+  const weights = adaptProfile.workshopWeights;
   const roll = Math.random();
   let selected: GrammarFeature | null = null;
   let reason: WorkshopSelectionReason = 'level_random';
+  let destabilizationTier: AdaptationTier | undefined;
 
-  if (roll < 0.5 && noticingGapFeatures.length > 0) {
-    // 50%: noticing gap
+  const noticingThreshold = weights.unseen; // "unseen" slot maps to noticing gap in workshop
+  const errorThreshold = noticingThreshold + weights.weak;
+  const fossilizingThreshold = errorThreshold + weights.fossilizing;
+
+  if (roll < noticingThreshold && noticingGapFeatures.length > 0) {
     selected = noticingGapFeatures[Math.floor(Math.random() * noticingGapFeatures.length)];
     reason = 'noticing_gap';
-  } else if (roll < 0.8 && errorFeatures.length > 0) {
-    // 30%: error reinforcement
+  } else if (roll < errorThreshold && errorFeatures.length > 0) {
     selected = errorFeatures[Math.floor(Math.random() * errorFeatures.length)];
     reason = 'error_reinforcement';
+  } else if (roll < fossilizingThreshold && fossilizingFeatures.length > 0) {
+    // Fossilization drill: pick highest-tier fossilizing pattern's mapped feature
+    selected = fossilizingFeatures[0]; // already sorted by tier desc in profile
+    reason = 'fossilization_drill';
+
+    const matchedPriority = fossilizingFeatureMap.get(selected.featureKey);
+    if (matchedPriority) {
+      destabilizationTier = matchedPriority.tier as AdaptationTier;
+      // Record intervention
+      recordIntervention(userId, matchedPriority, 'workshop_drill').catch(err =>
+        console.error('[Workshop] Failed to record intervention:', err)
+      );
+    }
   } else {
-    // 20%: random from level (or fallback)
     const pool = levelFeatures.length > 0 ? levelFeatures : [];
     if (pool.length > 0) {
       selected = pool[Math.floor(Math.random() * pool.length)];
@@ -863,5 +923,10 @@ export async function getWorkshopFeatureTarget(
     reason = 'level_random';
   }
 
-  return { feature: selected, selectionReason: reason };
+  return {
+    feature: selected,
+    selectionReason: reason,
+    destabilizationTier,
+    adaptationProfile: adaptProfile,
+  };
 }
