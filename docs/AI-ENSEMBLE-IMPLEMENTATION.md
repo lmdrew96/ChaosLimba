@@ -1,14 +1,14 @@
 # AI Ensemble Implementation Guide
 
-**Version:** 1.0  
-**Last Updated:** January 24, 2026  
+**Version:** 2.0
+**Last Updated:** February 4, 2026
 **Purpose:** Single source of truth for AI ensemble technical details
 
 ---
 
 ## Overview
 
-ChaosLimbă's AI ensemble consists of 9 core components plus a conversational AI tutor, orchestrated by the Conductor system. All MVP components are implemented and running on **FREE APIs**, resulting in massive cost savings from the original $10-18/month budget to $0-5/month.
+ChaosLimbă's AI ensemble consists of 10 core components plus a Workshop challenge generator, orchestrated by the Conductor system and driven by a 3-tier Adaptation Engine. All MVP components are implemented and running on **FREE APIs**, resulting in massive cost savings from the original $10-18/month budget to $0-5/month.
 
 ## Architecture Summary
 
@@ -164,11 +164,28 @@ const report = await FeedbackAggregator.aggregateFeedback({
 });
 ```
 
-### 8. Llama 3.3 70B AI Tutor
+### 8. SPAM-B: Relevance Scorer
+- **File:** `/src/lib/ai/spamB.ts`
+- **Model:** Reuses SPAM-A embeddings (sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2)
+- **Hosting:** HuggingFace Inference API
+- **Cost:** FREE
+- **Performance:** Semantic embedding-based relevance detection, 0.2-0.4s response
+- **Thresholds:** on_topic (≥0.45), partially_relevant (0.25-0.45), off_topic (<0.25)
+
+```typescript
+// Usage example
+import { checkRelevance } from '@/lib/ai/spamB';
+
+const result = await checkRelevance(userText, contentContext);
+console.log('Relevance:', result.relevanceScore, result.category);
+```
+
+### 9. Llama 3.3 70B AI Tutor
 - **File:** `/src/lib/ai/tutor.ts`
 - **Model:** `llama-3.3-70b-versatile` via Groq API
 - **Cost:** FREE (Groq tier)
-- **Function:** Formats feedback, generates questions, enables productive confusion
+- **Function:** Generates questions, grades responses, enables productive confusion
+- **Features:** Accepts `fossilizationAlerts` param from Adaptation Engine, CEFR-level-appropriate prompts, bilingual for A1-A2
 
 ```typescript
 // Usage example
@@ -177,8 +194,39 @@ import { generateTutorResponse } from '@/lib/ai/tutor';
 const response = await generateTutorResponse(
   userResponse,
   context,
-  errorPatterns
+  errorPatterns,
+  fossilizationAlerts  // from buildFossilizationAlerts()
 );
+```
+
+### 10. Adaptation Engine
+- **File:** `/src/lib/ai/adaptation.ts`
+- **Type:** In-app logic (3-tier fossilization escalation)
+- **Cost:** FREE
+- **Function:** Detects fossilization, escalates interventions, adjusts content/workshop weights
+
+```typescript
+// Usage example
+import { getAdaptationProfile, buildFossilizationAlerts } from '@/lib/ai/adaptation';
+
+const profile = await getAdaptationProfile(userId);
+const alerts = buildFossilizationAlerts(profile);
+// Pass alerts to tutor or use profile.dynamicWeights for content selection
+```
+
+### 11. Workshop Challenge Generator
+- **File:** `/src/lib/ai/workshop.ts`
+- **Model:** `llama-3.3-70b-versatile` via Groq API
+- **Cost:** FREE (Groq tier)
+- **Function:** Generates grammar/vocab micro-challenges, evaluates responses
+- **Features:** 7 challenge types, destabilization-tier support, bilingual for A1-A2
+
+```typescript
+// Usage example
+import { generateWorkshopChallenge, evaluateWorkshopResponse } from '@/lib/ai/workshop';
+
+const challenge = await generateWorkshopChallenge(feature, cefrLevel, destabilizationTier);
+const evaluation = await evaluateWorkshopResponse(userAnswer, challenge);
 ```
 
 ## API Endpoints Reference
@@ -328,11 +376,14 @@ catch (error) {
 |-----------|----------|------------|
 | Speech Recognition | Groq API | $0 |
 | Pronunciation | HuggingFace | $0 |
-| Grammar | Local (@xenova/transformers) | $0 |
-| Semantic | HuggingFace | $0 |
-| Intonation | Rule-based | $0 |
+| Grammar | Claude Haiku 4.5 (Anthropic API) | ~$2 (with caching) |
+| Semantic (SPAM-A) | HuggingFace | $0 |
+| Relevance (SPAM-B) | HuggingFace (reuses SPAM-A) | $0 |
+| Intonation (SPAM-D) | Rule-based | $0 |
 | Tutor | Groq API | $0 |
-| **Total** | | **$0** |
+| Workshop | Groq API | $0 |
+| Adaptation Engine | In-app logic | $0 |
+| **Total** | | **$0-5** |
 
 ### Post-MVP Phase 3 (if needed)
 
@@ -381,12 +432,15 @@ src/lib/ai/
 ├── conductor.ts           # Main orchestration logic
 ├── aggregator.ts          # Feedback combination
 ├── formatter.ts           # Response formatting
-├── groq.ts               # Speech recognition + Tutor
-├── grammar.ts            # Local grammar correction
-├── pronunciation.ts      # Pronunciation analysis
-├── spamA.ts              # Semantic similarity
-├── spamD.ts              # Intonation mapping
-├── tutor.ts              # AI tutor responses
+├── groq.ts               # Speech recognition + Groq client
+├── grammar.ts            # Grammar analysis (Claude Haiku 4.5)
+├── pronunciation.ts      # Pronunciation analysis (HF Inference)
+├── spamA.ts              # Semantic similarity (HF Inference)
+├── spamB.ts              # Relevance scoring (reuses SPAM-A)
+├── spamD.ts              # Intonation mapping (rule-based)
+├── tutor.ts              # AI tutor responses (Groq)
+├── adaptation.ts         # 3-tier fossilization engine
+├── workshop.ts           # Challenge generation + evaluation (Groq)
 └── __tests__/            # Test files
     ├── aggregator.test.ts
     ├── integration-test.js
@@ -399,11 +453,20 @@ src/app/api/
 │   └── route.ts          # Pronunciation endpoint
 ├── spam-a/
 │   └── route.ts          # Semantic similarity endpoint
+├── spam-b/
+│   └── route.ts          # Relevance scoring endpoint
 ├── aggregate-feedback/
 │   └── route.ts          # Aggregator endpoint
-└── chaos-window/
-    └── submit/
-        └── route.ts      # Full analysis endpoint
+├── chaos-window/
+│   └── submit/
+│       └── route.ts      # Full analysis endpoint
+└── workshop/
+    ├── challenge/
+    │   └── route.ts      # GET next challenge
+    ├── evaluate/
+    │   └── route.ts      # POST grade response
+    └── skip/
+        └── route.ts      # POST skip challenge
 ```
 
 ## Environment Variables Required
@@ -437,17 +500,13 @@ SENTRY_DSN=your_sentry_dsn
 
 ## Future Enhancements (Post-MVP)
 
-### SPAM-B: Relevance Scorer
-- **Purpose:** Detect off-topic responses
-- **Model:** `readerbench/ro-text-summarization`
-- **Implementation:** +3 days
-- **Cost:** FREE (HF tier)
-
 ### SPAM-C: Dialectal/Pragmatic
 - **Purpose:** Regional variants + formality detection
-- **Model:** Fine-tuned Romanian BERT
-- **Implementation:** +7 days
-- **Cost:** $2-3/month (RunPod)
+- **Model:** Fine-tuned Romanian BERT (`dumitrescustefan/bert-base-romanian-cased-v1`)
+- **Datasets:** `fmi-unibuc/RoAcReL` (1.9K rows), `codrut2/RoDia` (dialect corpus)
+- **Implementation:** ~7 days
+- **Cost:** $2-3/month (RunPod or HF Inference)
+- **When:** When user base expands to multiple Romanian regions
 
 ### Performance Optimizations
 - Implement Redis for distributed caching
@@ -456,6 +515,6 @@ SENTRY_DSN=your_sentry_dsn
 
 ---
 
-**Document Status:** Complete  
-**Next Review:** After SPAM-B implementation (if needed)  
+**Document Status:** Complete
+**Next Review:** After SPAM-C implementation (when user base grows)
 **Contact:** lmdrew96@gmail.com

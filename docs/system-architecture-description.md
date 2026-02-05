@@ -1,7 +1,7 @@
 # ChaosLimbă Complete Ensemble Architecture: System Overview
-**Document Version:** 4.0 - MVP COMPLETE + COST OPTIMIZATION
-**Last Updated:** January 30, 2026
-**Architecture Type:** 9-Component Ensemble with Dual-Path Routing (ALL FREE APIS)
+**Document Version:** 5.0 - MVP COMPLETE + ADAPTATION ENGINE + WORKSHOP
+**Last Updated:** February 4, 2026
+**Architecture Type:** 10-Component Ensemble with Dual-Path Routing + 3-Tier Adaptation Engine (ALL FREE APIS)
 
 ## System Overview
 
@@ -236,13 +236,13 @@ This system represents the "Structured Application" component, providing organiz
 **Core Components:**
 - **Adaptation Engine**: Rules-based logic system that processes user weaknesses and error clusters
 - **Knowledge Base**: Contains Second Language Acquisition (SLA) frameworks and CEFR (Common European Framework of Reference for Languages) standards
-- **Conversational Core**: DeepSeek-R1 reasoning engine for generating contextual responses
+- **Conversational Core**: Llama 3.3 70B (Groq) reasoning engine for generating contextual responses
 
 **Adaptation Process:**
 1. User profile data feeds into the Adaptation Engine
 2. Knowledge Base provides pedagogical scaffolding
 3. Adaptation Engine generates dynamic prompts for the reasoning core
-4. DeepSeek-R1 produces "Productive Confusion Responses" designed to challenge and engage learners
+4. Llama 3.3 70B (Groq) produces "Productive Confusion Responses" designed to challenge and engage learners
 5. System delivers personalized tutoring output
 
 ### 5. Feedback Loops & System Integration
@@ -273,17 +273,20 @@ This system represents the "Structured Application" component, providing organiz
 - **Modality-Aware Analysis**: Separate tracking for speech vs text errors enables targeted feedback
 
 ### Multi-Model Integration & Cost Optimization
-- **Pre-Trained Models**: 4 of 5 ML models use pre-trained weights (only grammar required fine-tuning)
+- **Pre-Trained Models**: All ML models use pre-trained weights (no fine-tuning required)
 - **Specialized AI Models**: Each language component uses optimized models:
-  - Speech: gigant/whisper-medium-romanian (Groq)
-  - Pronunciation: gigant/romanian-wav2vec2 (RunPod)
-  - Grammar: Fine-tuned mt5-small (RunPod)
-  - Semantic: dumitrescustefan/bert-base-romanian-cased-v1 (HF Inference)
+  - Speech: whisper-large-v3 (Groq API - FREE)
+  - Pronunciation: gigant/romanian-wav2vec2 (HuggingFace Inference - FREE)
+  - Grammar: Claude Haiku 4.5 (Anthropic API - ~$0.001/check)
+  - Semantic: sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2 (HF Inference - FREE)
+  - Relevance: Reuses SPAM-A embeddings (FREE)
 - **Rule-Based Efficiency**: SPAM-D uses in-app lookup table for zero-cost intonation analysis
-- **Central Reasoning**: DeepSeek-R1 provides unified conversational intelligence
+- **Central Reasoning**: Llama 3.3 70B via Groq provides unified conversational intelligence (FREE)
+- **Adaptation Engine**: 3-tier fossilization system with dynamic content weight adjustment (FREE in-app logic)
+- **Workshop System**: Grammar/vocab micro-challenges via Groq (FREE)
 - **Knowledge Synthesis**: Multiple data streams combine for comprehensive assessment
-- **Monthly Hosting Costs**: $10-18/month (down from $20-35 in previous architecture)
-- **Per-Request Costs**: $0.001-0.005 depending on input type
+- **Monthly Hosting Costs**: $0-5/month (72-100% under original budget)
+- **Per-Request Costs**: ~$0.001 (primarily Claude Haiku grammar checks)
 
 ## Pedagogical Framework
 
@@ -362,7 +365,7 @@ The architecture demonstrates sophisticated AI integration with:
 - Grammar: Fine-tuned mt5-small on RunPod ($3-5/month) ❌
 - SPAM-A/B: HF Inference (FREE) ✅
 - SPAM-D: In-app (FREE) ✅
-- AI Tutor: DeepSeek-R1 ($5-10/month) ❌
+- AI Tutor: Llama 3.3 70B (Groq) ($5-10/month) ❌
 - **Total: $10-18/month**
 
 **Actual Implementation (v4.0):**
@@ -377,7 +380,7 @@ The architecture demonstrates sophisticated AI integration with:
 **Key Optimizations:**
 1. Migrated pronunciation from RunPod → HF Inference (saved $2-3/month)
 2. Switched grammar from fine-tuned model → LLM API (saved $3-5/month, gained flexibility)
-3. Switched AI tutor from DeepSeek-R1 → Groq Llama 3.3 70B (saved $5-10/month)
+3. Switched AI tutor from Llama 3.3 70B (Groq) → Groq Llama 3.3 70B (saved $5-10/month)
 4. SPAM-B reuses SPAM-A infrastructure (saved development time + costs)
 
 ## Performance Metrics
@@ -549,10 +552,18 @@ CREATE TABLE grading_reports (
 
 **Learning Modes:**
 - **Chaos Window** - Interactive learning sessions with AI tutor
-  - Random content delivery
-  - AI tutor conversation with Llama 3.3 70B
+  - Chat-based UI with conversation history
+  - Smart content selection (fossilization-aware weighted random)
+  - AI tutor conversation with Llama 3.3 70B + fossilization alerts
   - Session tracking
   - Pronunciation practice integration
+- **Workshop** - Grammar and vocabulary micro-challenges
+  - 4 grammar challenge types: transform, complete, fix, rewrite
+  - 3 vocab challenge types: use_it, which_one, spot_the_trap
+  - Non-linear flow with surprise intervals
+  - Destabilization-tier-aware challenge generation
+  - Multiple choice UI support
+  - Timer modes (5 min, 10 min, freeplay)
 - **Deep Fog Mode** - Passive immersion with above-level content
   - Content player for video/audio/text
   - Basic unknown word collection
@@ -587,9 +598,10 @@ CREATE TABLE grading_reports (
 **Error Garden:**
 - ✅ Error collection and storage
 - ✅ Pattern display dashboard
-- ❌ ML-based clustering (using simple frequency counts)
-- ❌ Fossilization detection algorithm
-- ❌ Automated intervention protocols
+- ✅ Fossilization detection (via 3-tier Adaptation Engine)
+- ✅ Automated intervention protocols (nudge/push/destabilize)
+- ✅ Lazy intervention outcome measurement
+- ❌ ML-based clustering (using frequency counts + adaptation tiers)
 
 **Mystery Shelf:**
 - ✅ Unknown word collection
@@ -600,16 +612,16 @@ CREATE TABLE grading_reports (
 
 **Adaptive Tutoring System:**
 - ✅ AI tutor conversations (Llama 3.3 70B)
-- ✅ Basic question generation
-- ✅ Content recommendations
-- ❌ Complex adaptation engine logic
-- ❌ Chaos injection protocols
-- ❌ Full ZPD maintenance system
+- ✅ Fossilization-aware question generation (fossilizationAlerts param)
+- ✅ Smart content selection (weighted random with dynamic weights)
+- ✅ 3-tier Adaptation Engine (nudge → push → destabilize)
+- ✅ Workshop feature targeting with destabilization tiers
+- ✅ Intervention recording and outcome measurement
+- 🔧 ZPD maintenance (basic thresholds in place)
 
 ### 🟡 NOT YET IMPLEMENTED
 
 **Deep Fog Mode (Full Feature Set):**
-- Advanced content selection algorithms
 - Level targeting (1-3 CEFR levels above learner)
 - Batch unknown collection
 - Context preservation for unknowns

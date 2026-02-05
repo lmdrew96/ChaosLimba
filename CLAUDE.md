@@ -267,10 +267,11 @@ async function callRunPodModel(
 ## Budget Consciousness
 
 **Current Monthly Budget: $0-5 for AI (MVP Phase 1) - UNDER BUDGET! 🎉**
-- Groq API: FREE (speech recognition + Llama 3.3 70B tutor)
-- HuggingFace: FREE (SPAM-A + pronunciation analysis)
-- @xenova/transformers: FREE (local grammar inference)
-- **Total AI Cost: $0/month** (massive cost optimization success!)
+- Groq API: FREE (speech recognition + Llama 3.3 70B tutor + Workshop challenges)
+- HuggingFace: FREE (SPAM-A + SPAM-B + pronunciation analysis)
+- Claude Haiku 4.5: ~$0.001/check (grammar correction with caching)
+- Adaptation Engine: FREE (in-app logic)
+- **Total AI Cost: $0-5/month** (massive cost optimization success!)
 
 ### Cost Optimization Rules:
 1. **Cache everything** - 40%+ hit rate target
@@ -431,12 +432,14 @@ Since you're new to TypeScript, let me explain what async/await does. Async func
 Your north star when Nae asks "what should I build next?"
 
 1. ✅ **Users Can Sign Up & Browse Content**
-2. ✅ **Grammar Model Grades Written Production** (BLEU 68.92)
-3. ⏳ **Error Garden Displays Patterns** ← CRITICAL PATH
+2. ✅ **Grammar Model Grades Written Production** (Claude Haiku 4.5)
+3. 🔧 **Error Garden Displays Patterns** (80% - tracking + fossilization detection via Adaptation Engine)
 4. ✅ **Speech Recognition Transcribes Audio** (Groq API, FREE!)
-5. ✅ **AI Ensemble Works + AI Tutor Asks Questions** (All 7 components complete!)
-6. ⏳ **Mystery Shelf Stores & Displays Unknowns**
+5. ✅ **AI Ensemble Works + AI Tutor Asks Questions** (10 components + Adaptation Engine + Workshop!)
+6. ⏳ **Mystery Shelf Stores & Displays Unknowns** (storage done, deep exploration pending)
 7. ⏳ **50+ Hours of Content Curated**
+
+**Bonus systems built:** 3-tier Adaptation Engine, Workshop (7 challenge types), Smart Content Selection
 
 **When all 7 are checked:** 🎉 **MVP LAUNCH** 🎉
 
@@ -508,8 +511,8 @@ Now go make something amazing. 🔥
 
 ---
 
-**Document Version:** 1.0
-**Last Updated:** January 22, 2026
+**Document Version:** 2.0
+**Last Updated:** February 4, 2026
 **For:** Claude Code working with Nae Drew on ChaosLimbă
 
-**Next Review:** After Milestone 3 completion (Error Garden)
+**Next Review:** After Milestone 6 completion (Mystery Shelf deep exploration)

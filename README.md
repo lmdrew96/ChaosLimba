@@ -1,24 +1,26 @@
 # ChaosLimbă - Adaptive Romanian Language Learning Platform
 
-**Version:** 2.0
-**Architecture:** 7-Component Ensemble with Dual-Path Routing
-**Status:** MVP Development
+**Version:** 3.0
+**Architecture:** 10-Component AI Ensemble with Dual-Path Routing + Adaptation Engine
+**Status:** MVP Development (90% Complete)
 
 ## Overview
 
-ChaosLimbă is a sophisticated adaptive language learning platform designed specifically for Romanian language instruction. The system employs a 7-component ensemble architecture with intelligent dual-path routing that optimizes processing based on input type (speech vs. text).
+ChaosLimbă is a sophisticated adaptive language learning platform designed specifically for Romanian language instruction. The system employs a 10-component AI ensemble with intelligent dual-path routing, a 3-tier fossilization adaptation engine, and grammar workshop system — all grounded in SLA theory.
 
 ### Key Features
 
 - **Multimodal Input**: Accept both speech and text inputs from learners
 - **Intelligent Routing**: Automatically detects input type and activates appropriate analysis components
 - **Comprehensive Assessment**: Grammar, pronunciation, semantic similarity, and intonation analysis
-- **Adaptive Learning**: Personalized instruction based on individual error patterns
-- **Cost Optimized**: $10-18/month hosting costs with per-request costs of $0.001-0.005
+- **3-Tier Adaptation Engine**: Fossilization detection with escalating intervention (nudge → push → destabilize)
+- **Grammar Workshop**: Targeted micro-challenges (transform, complete, fix, rewrite) with vocab exercises
+- **Smart Content Selection**: Weighted random content targeting based on error patterns and adaptation profile
+- **Cost Optimized**: $0-5/month (72-100% under original budget — nearly all FREE APIs)
 
 ## Architecture Overview
 
-### 7-Component Ensemble
+### 10-Component AI Ensemble
 
 | # | Component | Model/Technology | Active For | Status |
 |---|-----------|------------------|------------|--------|
@@ -26,11 +28,14 @@ ChaosLimbă is a sophisticated adaptive language learning platform designed spec
 | 2 | Pronunciation Analysis | romanian-wav2vec2 (HF Inference) | Speech only | ✅ **COMPLETE** |
 | 3 | Grammar Correction | Claude Haiku 4.5 (Anthropic API) | Both | ✅ **COMPLETE** |
 | 4 | SPAM-A: Semantic Similarity | multilingual-MiniLM-L12-v2 (HF) | Both | ✅ **COMPLETE** |
-| 5 | SPAM-D: Intonation Mapper | Rule-based lookup (50-100 pairs) | Speech only | ✅ **COMPLETE** |
-| 6 | Conductor | Conditional logic | Both | ✅ **COMPLETE** |
-| 7 | Feedback Aggregator | Integration logic | Both | ✅ **COMPLETE** |
+| 5 | SPAM-B: Relevance Scorer | Reuses SPAM-A embeddings (HF) | Both | ✅ **COMPLETE** |
+| 6 | SPAM-D: Intonation Mapper | Rule-based lookup (50-100 pairs) | Speech only | ✅ **COMPLETE** |
+| 7 | Conductor | Conditional logic | Both | ✅ **COMPLETE** |
+| 8 | Feedback Aggregator | Integration logic | Both | ✅ **COMPLETE** |
+| 9 | AI Tutor | Llama 3.3 70B (Groq API) | Both | ✅ **COMPLETE** |
+| 10 | Adaptation Engine | 3-tier fossilization system | Both | ✅ **COMPLETE** |
 
-**Plus:** Llama 3.3 70B (Groq API) - AI Tutor for feedback formatting ✅ **COMPLETE**
+**Plus:** Workshop Challenge Generator (Groq API) — grammar/vocab micro-challenges ✅ **COMPLETE**
 
 ### Dual-Path Processing
 
@@ -59,9 +64,12 @@ The text path skips pronunciation and intonation analysis, reducing processing t
 - **Speech Recognition**: Groq API (whisper-large-v3) - **FREE**
 - **Pronunciation**: HuggingFace Inference API (romanian-wav2vec2) - **FREE**
 - **Grammar**: Anthropic API (Claude Haiku 4.5) - **~$0.001 per check**
-- **Semantic**: HuggingFace Inference API (multilingual-MiniLM) - **FREE**
+- **Semantic (SPAM-A)**: HuggingFace Inference API (multilingual-MiniLM) - **FREE**
+- **Relevance (SPAM-B)**: Reuses SPAM-A embeddings - **FREE**
 - **AI Tutor**: Llama 3.3 70B (Groq API) - **FREE**
-- **Database**: PostgreSQL (user profiles, grading reports)
+- **Workshop Challenges**: Llama 3.3 70B (Groq API) - **FREE**
+- **Adaptation Engine**: In-app logic (3-tier fossilization) - **FREE**
+- **Database**: Neon PostgreSQL + Drizzle ORM
 
 ### API Endpoints
 
@@ -226,24 +234,44 @@ npm run db:seed
 
 ```
 chaoslimba/
-├── app/                    # Next.js app router pages
-├── components/             # React components
-│   ├── ui/                 # shadcn/ui components
-│   └── features/           # Feature-specific components
-├── lib/                    # Core logic
-│   ├── router.ts           # Input routing logic
-│   ├── feedback-aggregator.ts  # Score aggregation
-│   ├── spam-d-minimal-pairs.ts # Intonation rules
-│   └── components/         # ML component wrappers
-│       ├── speech.ts
-│       ├── pronunciation.ts
-│       ├── grammar.ts
-│       ├── spam-a.ts
-│       └── spam-d.ts
-├── api/
-│   └── routes/
-│       └── analyze.ts      # Main analysis endpoint
-└── public/                 # Static assets
+├── src/
+│   ├── app/                     # Next.js app router
+│   │   ├── (dashboard)/         # Dashboard layout group
+│   │   │   ├── chaos-window/    # Interactive AI tutor sessions
+│   │   │   ├── deep-fog/        # Passive immersion mode
+│   │   │   ├── error-garden/    # Error pattern visualization
+│   │   │   ├── mystery-shelf/   # Unknown word collection
+│   │   │   ├── workshop/        # Grammar/vocab micro-challenges
+│   │   │   └── proficiency-tracker/
+│   │   └── api/                 # API routes
+│   │       ├── speech-to-text/
+│   │       ├── analyze-pronunciation/
+│   │       ├── spam-a/
+│   │       ├── aggregate-feedback/
+│   │       ├── chaos-window/
+│   │       └── workshop/        # Challenge + evaluation endpoints
+│   ├── components/              # React components
+│   │   ├── ui/                  # shadcn/ui components
+│   │   └── features/            # Feature-specific components
+│   └── lib/
+│       ├── ai/                  # AI component wrappers
+│       │   ├── conductor.ts     # Orchestration logic
+│       │   ├── aggregator.ts    # Feedback combination
+│       │   ├── tutor.ts         # AI tutor (Llama 3.3 70B)
+│       │   ├── adaptation.ts    # 3-tier fossilization engine
+│       │   ├── workshop.ts      # Challenge generation + evaluation
+│       │   ├── grammar.ts       # Grammar analysis (Claude Haiku)
+│       │   ├── groq.ts          # Speech recognition + Groq client
+│       │   ├── pronunciation.ts # Wav2Vec2 pronunciation
+│       │   ├── spamA.ts         # Semantic similarity
+│       │   ├── spamB.ts         # Relevance scoring
+│       │   └── spamD.ts         # Intonation mapping
+│       └── db/
+│           ├── schema.ts        # Drizzle ORM schema
+│           └── queries.ts       # Smart content selection + queries
+├── content/                     # Curated learning content
+├── scripts/                     # Audio processing + content tools
+└── public/                      # Static assets
 ```
 
 ## Core Features
@@ -258,10 +286,16 @@ Interactive practice environment with real-time feedback on grammar, pronunciati
 Collection system for unknown words/phrases encountered during Deep Fog sessions, with contextual preservation.
 
 ### Error Garden
-Pattern clustering and interlanguage analysis system that tracks errors by input type (speech vs. text) and updates user profiles.
+Pattern clustering and interlanguage analysis system that tracks errors by input type (speech vs. text) and updates user profiles. Powers the Adaptation Engine's fossilization detection.
+
+### Workshop
+Grammar and vocabulary micro-challenge system with 4 grammar types (transform, complete, fix, rewrite) and 3 vocab types (use_it, which_one, spot_the_trap). Features non-linear flow, multiple choice UI, and destabilization-tier-aware challenge generation.
+
+### Adaptation Engine
+3-tier fossilization escalation system: Tier 1 (nudge, 40-69% error frequency), Tier 2 (push, ≥70% + 2 failed interventions), Tier 3 (destabilize, ≥70% + 4 failed interventions). Drives smart content selection and workshop feature targeting with dynamic weight adjustment.
 
 ### Adaptive Tutoring
-DeepSeek-R1-powered conversational system that generates "productive confusion" responses tailored to individual learner patterns.
+Llama 3.3 70B-powered conversational system (via Groq, FREE) that generates "productive confusion" responses tailored to individual learner patterns. Receives fossilization alerts from the Adaptation Engine to target weak structures.
 
 ## Performance Metrics
 
@@ -277,15 +311,17 @@ DeepSeek-R1-powered conversational system that generates "productive confusion" 
 - **Intonation**: >90% minimal pair detection
 
 ### Cost
-- **Monthly Hosting**: **$2-5** (mostly FREE APIs + Claude Haiku)
+- **Monthly Hosting**: **$0-5** (nearly all FREE APIs + minimal Claude Haiku usage)
 - **Per Request**: **~$0.001** (Claude Haiku grammar checking with caching)
 
 > **Cost Breakdown:**
 > - Speech Recognition (Groq): FREE
 > - Pronunciation (HuggingFace): FREE
 > - Grammar (Claude Haiku): ~$0.001 per check (~$2/mo with caching)
-> - Semantic (HuggingFace): FREE
-> - AI Tutor (Groq): FREE
+> - Semantic / Relevance (HuggingFace): FREE
+> - AI Tutor + Workshop (Groq): FREE
+> - Adaptation Engine: FREE (in-app logic)
+> - **72-100% under original $10-18/month budget**
 
 ## Development Timeline
 
@@ -312,22 +348,29 @@ DeepSeek-R1-powered conversational system that generates "productive confusion" 
 
 ## Documentation
 
-- **System Architecture**: `/ML Resources/system-architecture-description.md`
-- **Feature Specifications**: `/Guiding Documentation/feature-specifications.md`
-- **Curriculum Framework**: `/Guiding Documentation/chaoslimbă-curriculum-framework.md`
-- **Dataset Documentation**: `/ML Resources/datasets/datasets-list.md`
-- **Complete Technical Spec**: See `chaoslimba-ensemble-complete-spec.md` for detailed component specifications
+- **System Architecture**: `/docs/system-architecture-description.md`
+- **Feature Specifications**: `/docs/feature-specifications.md`
+- **AI Ensemble Implementation**: `/docs/AI-ENSEMBLE-IMPLEMENTATION.md`
+- **Curriculum Framework**: `/docs/chaoslimbă-curriculum-framework.md`
+- **Dataset Documentation**: `/docs/datasets/datasets-list.md`
+- **Development Timeline**: `/docs/Development Guides/ChaosLimba-Development-Documentation-Timeline.md`
+- **Development Guide**: `/docs/Development Guides/Naes-Structured-Chaos-Development-Guide.md`
 
 ## Model URLs & Resources
 
-- [gigant/whisper-medium-romanian](https://huggingface.co/gigant/whisper-medium-romanian)
-- [gigant/romanian-wav2vec2](https://huggingface.co/gigant/romanian-wav2vec2)
-- [dumitrescustefan/bert-base-romanian-cased-v1](https://huggingface.co/dumitrescustefan/bert-base-romanian-cased-v1)
-- [google/mt5-small](https://huggingface.co/google/mt5-small)
+**Deployed Models:**
+- [whisper-large-v3](https://console.groq.com/) (via Groq API - Speech Recognition)
+- [gigant/romanian-wav2vec2](https://huggingface.co/gigant/romanian-wav2vec2) (Pronunciation)
+- [Claude Haiku 4.5](https://www.anthropic.com/api) (Grammar Correction)
+- [sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2](https://huggingface.co/sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2) (SPAM-A/B)
+- [Llama 3.3 70B](https://console.groq.com/) (via Groq API - AI Tutor + Workshop)
+
+**Planned Models (Post-MVP):**
+- [dumitrescustefan/bert-base-romanian-cased-v1](https://huggingface.co/dumitrescustefan/bert-base-romanian-cased-v1) (for SPAM-C Dialectal)
 
 ## Contributing
 
-This is a research and development project. Contributions are welcome! Please see the development guides in `/Guiding Documentation/Development Guides/` for coding standards and workflow.
+This is a research and development project. Contributions are welcome! Please see the development guides in `/docs/Development Guides/` for coding standards and workflow.
 
 ## License
 

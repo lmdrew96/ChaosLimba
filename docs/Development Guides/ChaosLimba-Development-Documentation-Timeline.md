@@ -1,10 +1,10 @@
 # ChaosLimbă: Development Documentation
 ## From Inception to MVP and Beyond
 
-**Document Version:** 3.0 - MVP 85% COMPLETE UPDATE
-**Last Updated:** January 30, 2026
+**Document Version:** 4.0 - MVP 90% COMPLETE (Adaptation Engine + Workshop)
+**Last Updated:** February 4, 2026
 **Author:** Nae Drew
-**Status:** Living Document - MVP 85% Complete!
+**Status:** Living Document - MVP 90% Complete!
 
 ---
 
@@ -32,7 +32,7 @@
 
 - **Developer:** Nae Drew (solo)
 - **Timeline:** 7-month MVP (Jan 2026 → Aug 2026) - **AHEAD OF SCHEDULE!**
-- **Current Status:** **MVP 85% Complete (January 30, 2026)** 🎉
+- **Current Status:** **MVP 90% Complete (February 4, 2026)** 🎉
 - **Purpose:** Linguistics major capstone + personal use + commercial potential
 - **Target Users:** English-speaking Romanian learners (A1→C1)
 - **Budget:** $0-5/month (72-100% under original $10-18 estimate!)
@@ -44,7 +44,10 @@
   - ✅ Multi-modal content system (video/audio/text)
   - ✅ Speech recognition + pronunciation analysis
   - ✅ Grammar checking via Claude Haiku 4.5 + local models
-  - ✅ AI tutor (Llama 3.3 70B via Groq)
+  - ✅ AI tutor (Llama 3.3 70B via Groq) with fossilization alerts
+  - ✅ 3-tier Adaptation Engine (fossilization escalation)
+  - ✅ Workshop system (7 challenge types, non-linear flow)
+  - ✅ Smart content selection (fossilization-aware weighted random)
   - ✅ Proficiency tracking + onboarding
   - ✅ Theme system (3 variants + light/dark modes)
   - 🔧 20+ content items (scaling to 50+ hours)
@@ -59,17 +62,19 @@ Unlike traditional language apps that enforce linear progression and penalize er
 4. **Adapts in real-time** based on individual error patterns and proficiency
 5. **Employs 10-component AI ensemble** with intelligent routing for comprehensive language analysis
 
-### 🎉 Implementation Status (January 30, 2026)
+### 🎉 Implementation Status (February 4, 2026)
 
-**MVP Progress: 85% COMPLETE**
+**MVP Progress: 90% COMPLETE**
 
 | Component | Status | Notes |
 |-----------|--------|-------|
 | **Core Infrastructure** | ✅ 100% | Auth, DB, themes, settings complete |
-| **AI Ensemble (10 components)** | ✅ 90% | All deployed, ALL FREE APIS! |
+| **AI Ensemble (10 components)** | ✅ 95% | All deployed, ALL FREE APIS! |
+| **Adaptation Engine** | ✅ 95% | 3-tier fossilization escalation, lazy measurement |
+| **Workshop** | ✅ 95% | 7 challenge types, non-linear flow, tier-aware |
 | **Content System** | ✅ 90% | Multi-modal player working, scaling library |
-| **Error Garden** | 🔧 70% | Tracking works, ML clustering pending |
-| **Chaos Window** | ✅ 85% | Interactive learning functional |
+| **Error Garden** | 🔧 80% | Tracking + fossilization detection via Adaptation Engine |
+| **Chaos Window** | ✅ 90% | Chat UI, smart content selection, fossilization-aware tutor |
 | **Deep Fog Mode** | 🔧 60% | Basic player working, advanced features pending |
 | **Mystery Shelf** | 🔧 50% | Storage complete, exploration pending |
 | **Proficiency Tracker** | ✅ 80% | Tracking + visualization working |

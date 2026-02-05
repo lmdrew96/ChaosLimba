@@ -1,8 +1,8 @@
 # ChaosLimbă Feature Specifications
 
-**Document Version:** 2.0 - Implementation Status Update
-**Last Updated:** January 30, 2026
-**Status:** MVP COMPLETE - Ready for Beta Testing
+**Document Version:** 3.0 - Implementation Status Update (Adaptation Engine + Workshop)
+**Last Updated:** February 4, 2026
+**Status:** MVP 90% Complete - Approaching Beta
 
 ## Document Purpose
 This document provides detailed specifications for each major feature and section of the ChaosLimbă platform, including their purpose, functionality, user interactions, and how they integrate with the broader system architecture.
@@ -19,10 +19,12 @@ This document provides detailed specifications for each major feature and sectio
 | Feature | Status | Completion | Notes |
 |---------|--------|------------|-------|
 | **Deep Fog Mode** | 🔧 Partial | 60% | Basic content player working, advanced features pending |
-| **Chaos Window** | ✅ Implemented | 85% | Core interactive learning complete, some AI features pending |
+| **Chaos Window** | ✅ Implemented | 90% | Chat UI, smart content selection, fossilization-aware tutor |
+| **Workshop** | ✅ Implemented | 95% | Non-linear flow, 7 challenge types, adaptation-tier-aware |
 | **Mystery Shelf** | 🔧 Partial | 50% | Collection works, deep exploration pending |
-| **Error Garden** | 🔧 Partial | 70% | Error logging complete, ML clustering pending |
-| **Adaptive Tutoring System** | 🔧 Partial | 60% | AI tutor working, full adaptation engine pending |
+| **Error Garden** | 🔧 Partial | 80% | Tracking + fossilization detection via Adaptation Engine |
+| **Adaptation Engine** | ✅ Implemented | 95% | 3-tier fossilization escalation, lazy measurement, dynamic weights |
+| **Adaptive Tutoring System** | ✅ Implemented | 80% | AI tutor + adaptation engine + smart content selection |
 | **Grading & Harvesting Engine** | ✅ Implemented | 90% | All core components deployed and working |
 | **Proficiency Tracker** | ✅ Implemented | 80% | Tracking and display working, advanced predictions pending |
 | **Onboarding System** | ✅ Implemented | 100% | Complete proficiency assessment workflow |
@@ -33,11 +35,13 @@ This document provides detailed specifications for each major feature and sectio
 ## Table of Contents
 1. [Deep Fog Mode](#deep-fog-mode) 🔧
 2. [Chaos Window](#chaos-window) ✅
-3. [Mystery Shelf](#mystery-shelf) 🔧
-4. [Error Garden](#error-garden) 🔧
-5. [Adaptive Tutoring System](#adaptive-tutoring-system) 🔧
-6. [Grading & Harvesting Engine](#grading--harvesting-engine) ✅
-7. [Proficiency Tracker](#proficiency-tracker) ✅
+3. [Workshop](#workshop) ✅
+4. [Mystery Shelf](#mystery-shelf) 🔧
+5. [Error Garden](#error-garden) 🔧
+6. [Adaptation Engine](#adaptation-engine) ✅
+7. [Adaptive Tutoring System](#adaptive-tutoring-system) ✅
+8. [Grading & Harvesting Engine](#grading--harvesting-engine) ✅
+9. [Proficiency Tracker](#proficiency-tracker) ✅
 
 ---
 
@@ -149,8 +153,8 @@ Based on **Interlanguage Theory** and **Chaos/Complexity Theory**:
 
 ## Chaos Window ✅ IMPLEMENTED
 
-**Implementation Status:** 85% Complete (Core functionality deployed, advanced AI features in progress)
-**Deployed:** January 27, 2026
+**Implementation Status:** 90% Complete (Chat UI, smart content selection, fossilization-aware tutor)
+**Deployed:** January 27, 2026 (Chat UI: January 31, 2026)
 **Route:** `/chaos-window`
 
 ### Purpose
@@ -159,28 +163,27 @@ Chaos Window is an **active, randomized learning experience** that combines at-l
 ### Implementation Status
 
 ✅ **Fully Implemented:**
-- Random content selection from curated pool
+- Smart content selection (fossilization-aware weighted random)
+- Chat-based UI with conversation history
 - Real-time AI tutor interaction (Llama 3.3 70B via Groq)
-- Conversation history display
+- Fossilization alerts passed to tutor for targeted questioning
 - Text and speech input support
 - Pronunciation practice integration
 - Session tracking and completion
 - Session summary with performance metrics
-- AI-generated questions based on content
+- AI-generated questions based on content + error patterns
 - User response submission (text/audio)
 - Vocabulary help system (removed timer for better UX)
 - Multi-modal content support (video/audio/text)
+- Error Garden integration (errors auto-logged from tutor feedback)
+- Follow-up question chains targeting weak structures
 
 🔧 **Partially Implemented:**
-- Error Garden integration (basic error logging works)
-- AI questions targeting specific weak structures
-- Follow-up question chains
+- ZPD-based difficulty adjustment (basic thresholds)
+- Comprehensive session analytics
 
 🟡 **Not Yet Implemented:**
-- Full Error Garden-informed question generation
-- Chaos injection protocols
-- ZPD-based difficulty adjustment
-- Comprehensive session analytics
+- Full session analytics dashboard
 
 ### Core Concept
 Unlike Deep Fog's passive immersion, Chaos Window is intensely interactive and strategically chaotic. The system:
@@ -211,7 +214,7 @@ Unlike Deep Fog's passive immersion, Chaos Window is intensely interactive and s
 - **Session Summary**: Performance feedback at session end
 
 #### AI Tutor Integration
-- **Real-Time Interaction**: AI (powered by DeepSeek-R1) responds immediately to learner input
+- **Real-Time Interaction**: AI (powered by Llama 3.3 70B (Groq)) responds immediately to learner input
 - **Error Garden Informed**: AI knows learner's weak structures and targets them
 - **Productive Confusion Questions**: AI asks questions specifically designed to force usage of avoided structures
 - **Scaffolding**: AI provides hints and prompts but doesn't give direct answers
@@ -282,6 +285,91 @@ Based on **Output Hypothesis** and **Cognitive Disequilibrium**:
 | **Primary Goal** | Exposure & tolerance for ambiguity | Production & structure practice |
 | **Error Expectation** | High (expected, welcomed) | Moderate (ZPD = 60-80% accuracy) |
 | **Unknown Collection** | Primary activity | Secondary activity |
+
+---
+
+## Workshop ✅ IMPLEMENTED
+
+**Implementation Status:** 95% Complete (Non-linear flow, 7 challenge types, adaptation-tier-aware)
+**Deployed:** February 3, 2026
+**Route:** `/workshop`
+
+### Purpose
+Workshop is a **grammar and vocabulary micro-challenge system** that provides targeted practice through short, focused exercises. It integrates with the Adaptation Engine to deliver challenges specifically targeting the learner's weakest structures, including fossilization-aware destabilization challenges.
+
+### Implementation Status
+
+✅ **Implemented:**
+- 4 grammar challenge types: transform, complete, fix, rewrite
+- 3 vocab challenge types: use_it, which_one, spot_the_trap
+- Non-linear challenge flow with type history tracking
+- Surprise intervals for cognitive variety
+- Multiple choice UI support
+- Timer modes (5 min, 10 min, freeplay)
+- Destabilization-tier-aware challenge generation
+- Bilingual prompts for A1-A2 beginners
+- Feature progress tracking within sessions
+- Prefetching for smooth UX
+- Error logging to Error Garden
+- Feature targeting via Adaptation Engine weights
+
+🟡 **Not Yet Implemented:**
+- Session history / past challenge review
+- Workshop-specific analytics dashboard
+- Spaced repetition scheduling for reviewed features
+
+### Core Concept
+Workshop complements Chaos Window's conversational practice with structured, bite-sized grammar and vocabulary exercises. While Chaos Window provides open-ended production practice, Workshop delivers focused drills targeting specific linguistic structures identified by the Adaptation Engine.
+
+### Key Features
+
+#### Challenge Types
+
+**Grammar Challenges:**
+1. **Transform**: Change a sentence's structure (e.g., active → passive, present → past)
+2. **Complete**: Fill in missing grammatical elements
+3. **Fix**: Identify and correct errors in a sentence
+4. **Rewrite**: Express the same meaning using a different structure
+
+**Vocabulary Challenges:**
+1. **Use It**: Use a given word correctly in a sentence
+2. **Which One**: Choose the correct word from options
+3. **Spot the Trap**: Identify the incorrect usage among options
+
+#### Adaptation Engine Integration
+- Workshop receives `destabilizationTier` from feature targeting
+- Tier 2+: Forces production/correction challenge types (transform, fix)
+- Tier 3: Adds cognitive disequilibrium prompts to challenge instructions
+- Feature selection weighted by: noticing gap (40%), error reinforcement (15-40%), fossilization drill (0-35%), random (20%)
+
+#### Non-Linear Flow
+- Challenge types rotate based on history (prevents consecutive repeats)
+- Surprise intervals inject unexpected challenge types
+- Session length configurable via timer modes
+- Progress tracked per grammatical feature within session
+
+### Integration with Other Systems
+
+#### Adaptation Engine
+- Receives feature targeting weights based on error patterns
+- Destabilization tiers escalate challenge difficulty and cognitive load
+- Records interventions for outcome measurement
+
+#### Error Garden
+- All incorrect responses logged as errors with category metadata
+- Intentionally wrong answers always recorded (no false positives filtering)
+- Error deduplication prevents duplicate logging within sessions
+
+#### Proficiency Tracker
+- Workshop performance contributes to proficiency calculations
+- Feature mastery tracked via `userFeatureExposure` table
+
+### Pedagogical Rationale
+Based on **Output Hypothesis** and **Focus on Form**:
+- Targeted production forces syntactic processing of specific structures
+- Multiple challenge types engage different cognitive processes
+- Destabilization at higher tiers creates productive confusion for fossilized patterns
+- Bilingual support scaffolds beginners without reducing cognitive challenge
 
 ---
 
@@ -482,14 +570,14 @@ Based on **Exploratory Agency** and **Interlanguage Theory**:
 
 ## Error Garden 🔧 PARTIALLY IMPLEMENTED
 
-**Implementation Status:** 70% Complete (Error tracking working, ML clustering pending)
-**Deployed:** January 23, 2026
+**Implementation Status:** 80% Complete (Tracking + fossilization detection via Adaptation Engine)
+**Deployed:** January 23, 2026 (Adaptation Engine: February 2, 2026)
 **Route:** `/error-garden`
 
 ### Implementation Status
 
 ✅ **Implemented:**
-- Automatic error collection from all production tasks
+- Automatic error collection from all production tasks (Chaos Window, Workshop, content)
 - Error categorization (grammar, pronunciation, vocabulary, word order)
 - Modality tracking (text vs speech)
 - Basic pattern visualization dashboard
@@ -498,18 +586,19 @@ Based on **Exploratory Agency** and **Interlanguage Theory**:
 - Trend charts and statistics
 - Error log modal with detailed information
 - Pattern modal for exploring specific error types
+- Fossilization detection (3-tier system via Adaptation Engine)
+- Automated intervention protocols (nudge/push/destabilize)
+- Intervention outcome measurement (lazy assessment 3+ days post-intervention)
+- Trending analysis (current week vs 2 weeks prior)
+- Error deduplication within sessions
 
 🔧 **In Progress:**
-- Error clustering using frequency-based grouping
-- Basic pattern identification
+- Error clustering using frequency-based grouping + adaptation tiers
 
 🟡 **Not Yet Implemented:**
-- ML-based error clustering
-- Fossilization detection (70%+ threshold monitoring)
-- Automated chaos injection protocols
+- ML-based error clustering (using frequency + adaptation tiers instead)
 - Context-dependent error analysis
 - L1 transfer likelihood detection
-- Intervention protocol automation
 - Population-level pattern insights
 
 ### Purpose
@@ -668,37 +757,111 @@ Based on **Interlanguage Theory** and **Error Harvesting**:
 
 ---
 
-## Adaptive Tutoring System 🔧 PARTIALLY IMPLEMENTED
+## Adaptation Engine ✅ IMPLEMENTED
 
-**Implementation Status:** 60% Complete (AI tutor working, full adaptation engine pending)
-**Deployed:** January 2026
+**Implementation Status:** 95% Complete
+**Deployed:** February 2, 2026
+**File:** `src/lib/ai/adaptation.ts`
+
+### Purpose
+The Adaptation Engine is the **core decision-making system** that detects fossilization patterns, escalates interventions through 3 tiers, and dynamically adjusts content/workshop selection weights to target a learner's weakest structures.
+
+### Implementation Status
+
+✅ **Implemented:**
+- 3-tier fossilization escalation system
+- Dynamic content selection weight adjustment
+- Dynamic workshop feature targeting weights
+- Intervention recording (`adaptation_interventions` table)
+- Lazy outcome measurement (3+ days post-intervention)
+- Trending analysis (current week vs 2 weeks prior)
+- `buildFossilizationAlerts()` for tutor prompt injection
+- Integration with Chaos Window, Workshop, and smart content selection
+
+### 3-Tier Escalation
+
+| Tier | Name | Trigger | Response |
+|------|------|---------|----------|
+| 1 | Nudge | 40-69% error frequency | Increase targeting weight for the feature |
+| 2 | Push | ≥70% frequency + 2 interventions with no improvement | Force production/correction challenge types in Workshop |
+| 3 | Destabilize | ≥70% frequency + 4 interventions with no improvement | Add cognitive disequilibrium prompts to challenges + tutor |
+
+### Dynamic Weight Adjustment
+
+The Adaptation Engine adjusts the weighted random selection for both content and workshop challenges:
+
+**Default weights (no fossilization):**
+- Unseen features: 40%
+- Weak features: 20%
+- Random: 20%
+- (Fossilizing: 0%)
+
+**Tier 2+ weights:**
+- Unseen features: 30%
+- Weak features: 15%
+- Fossilizing: 35%
+- Random: 20%
+
+### Outcome Measurement
+
+The engine uses "lazy measurement" — rather than measuring immediately after an intervention:
+1. Records when a feature was targeted (`adaptation_interventions` table)
+2. Waits 3+ days before assessing outcome
+3. Compares error frequency before vs. after intervention
+4. If no improvement after 2 interventions → escalate to Tier 2
+5. If no improvement after 4 interventions → escalate to Tier 3
+
+### Integration Points
+- **Chaos Window**: `buildFossilizationAlerts()` injects tier-specific prompts into tutor system prompt
+- **Workshop**: `getWorkshopFeatureTarget()` returns `destabilizationTier` to challenge generator
+- **Content Selection**: `getSmartContentForUser()` uses dynamic weights from adaptation profile
+- **Error Garden**: Sources all error frequency data for tier calculations
+
+### Pedagogical Rationale
+Based on **Interlanguage Theory** and **Chaos/Complexity Theory**:
+- Fossilization is the #1 enemy of language development at intermediate+ levels
+- Escalating interventions prevent the system from giving up on difficult patterns
+- Cognitive disequilibrium (Tier 3) forces restructuring of fossilized interlanguage rules
+- Lazy measurement respects the non-linear nature of language acquisition (improvement isn't instant)
+
+---
+
+## Adaptive Tutoring System ✅ IMPLEMENTED
+
+**Implementation Status:** 80% Complete (AI tutor + Adaptation Engine + smart content selection working)
+**Deployed:** January 2026 (Adaptation Engine: February 2, 2026)
 
 ### Implementation Status
 
 ✅ **Implemented:**
 - **Conversational Core** - Llama 3.3 70B via Groq (FREE)
-  - Real-time dialogue generation
+  - Real-time dialogue generation with chat UI
   - Context-aware responses
-  - Question generation based on content
+  - Fossilization-alert-aware question generation
   - Multi-turn conversation support
+  - CEFR-level-appropriate prompts (bilingual for A1-A2)
 - **Conductor/Router** - Orchestrates component routing
-- **Basic content recommendations** - Random content selection
+- **Smart Content Selection** - Fossilization-aware weighted random
+  - Dynamic weights from adaptation profile
+  - 40-50% unseen, 15-40% weak, 0-35% fossilizing, 20% random
+- **3-Tier Adaptation Engine** (`src/lib/ai/adaptation.ts`)
+  - Tier 1 (nudge): 40-69% error frequency
+  - Tier 2 (push): ≥70% + 2 failed interventions
+  - Tier 3 (destabilize): ≥70% + 4 failed interventions
+  - Lazy intervention outcome measurement (3+ days post-intervention)
+  - Trending analysis (current week vs 2 weeks prior)
+- **Workshop Feature Targeting** - Tier-aware challenge selection
+- **Fossilization intervention triggers** - Automatic via adaptation tiers
 - **Onboarding tutor interaction** - Introduction to AI tutor
 
 🔧 **Partially Implemented:**
-- Error Garden integration (basic error awareness)
-- Question targeting based on weaknesses
-- Adaptation Engine logic
+- ZPD maintenance system (basic thresholds in place)
+- Modality balancing (input/output ratios)
 
 🟡 **Not Yet Implemented:**
-- Full Adaptation Engine with complex rule-based logic
-- Knowledge Base integration (SLA frameworks, CEFR standards)
-- Chaos Injection Protocol (4-phase intervention)
-- ZPD maintenance system (60-80% accuracy targeting)
-- Dynamic content sequencing based on error patterns
-- Modality balancing (input/output ratios)
-- Fossilization intervention triggers
+- Knowledge Base integration (SLA frameworks, CEFR standards as structured data)
 - Pedagogical scaffolding adjustments
+- Advanced content sequencing beyond weighted random
 
 ### Purpose
 The Adaptive Tutoring System is the **"brain" of ChaosLimbă**, combining rule-based logic, AI-powered conversation, and pedagogical frameworks to provide personalized, dynamic instruction that evolves with each learner.
@@ -769,7 +932,7 @@ The Knowledge Base contains the "wisdom" that guides the system's decisions.
 - Updated quarterly with latest research findings
 - Population-level Error Garden insights feed back to improve remediation protocols
 
-#### 3. Conversational Core (DeepSeek-R1)
+#### 3. Conversational Core (Llama 3.3 70B via Groq)
 The Conversational Core is the AI-powered component that generates dynamic, context-aware responses and questions.
 
 **Capabilities:**
@@ -786,7 +949,7 @@ Adaptation Engine: Trigger chaos injection for subjunctive
 Conversational Core Prompt: "Generate a question about Romanian history that requires
 subjunctive mood in the response. Reference the user's interest in historical counterfactuals."
 
-DeepSeek-R1 Output: "Cum crezi că ar fi fost istoria României dacă Mihai Viteazul ar fi
+Llama 3.3 70B (Groq) Output: "Cum crezi că ar fi fost istoria României dacă Mihai Viteazul ar fi
 reușit să unifice cele trei țări în mod permanent? Să presupunem că..."
 
 (How do you think Romanian history would have been if Michael the Brave had succeeded
@@ -1281,6 +1444,7 @@ Based on **CEFR Standards** and **Continuous Assessment**:
 [Content Delivery]
    ├→ Deep Fog Mode
    ├→ Chaos Window
+   ├→ Workshop
    └→ Mystery Shelf
         ↓
 [Learner Interaction] (Cycle Continues)
@@ -1293,18 +1457,17 @@ Based on **CEFR Standards** and **Continuous Assessment**:
 This document provides detailed specifications for each major component of ChaosLimbă. Each feature is designed to operationalize the core philosophy of **Structured Chaos**: embracing productive confusion, harvesting errors, respecting learner agency, and adapting dynamically to individual needs.
 
 **Next Steps for Implementation:**
-1. Technical architecture design (database schemas, API endpoints)
-2. AI model fine-tuning (Whisper, T5/BART, Romanian BERT)
-3. UI/UX design for each feature
-4. Content curation and tagging
-5. Beta testing with pilot learners
-6. Iteration based on real-world usage data
+1. Content curation at scale (50+ hours target)
+2. Mystery Shelf deep exploration mode
+3. Deep Fog advanced content selection
+4. Beta testing with pilot learners
+5. Iteration based on real-world usage data
 
 ---
 
 **Document Metadata**
-- Version: 2.0 - Implementation Status Update
-- Last Updated: January 30, 2026
+- Version: 3.0 - Adaptation Engine + Workshop Update
+- Last Updated: February 4, 2026
 - Author: ChaosLimbă Development Team
 - Status: Living Document (will be updated as features evolve)
 
@@ -1312,20 +1475,24 @@ This document provides detailed specifications for each major component of Chaos
 
 ## Summary: MVP Status
 
-🎉 **MVP COMPLETE - Ready for Beta Testing**
+🎉 **MVP 90% Complete - Approaching Beta**
 
 **Key Achievements:**
-- ✅ All 7 core learning features implemented (to varying degrees)
-- ✅ Complete AI ensemble (10 of 11 components) deployed
+- ✅ All 9 core features implemented (including Workshop + Adaptation Engine)
+- ✅ Complete AI ensemble (10 components) deployed on FREE APIs
+- ✅ 3-tier fossilization Adaptation Engine with lazy measurement
+- ✅ Workshop with 7 challenge types and destabilization-tier awareness
+- ✅ Smart content selection with dynamic fossilization weights
+- ✅ Chat-based Chaos Window with fossilization-aware tutor
 - ✅ $0-5/month hosting cost (72-100% under budget!)
 - ✅ Onboarding system complete
 - ✅ Multi-modal content support (video, audio, text)
-- ✅ Error tracking and basic pattern analysis
+- ✅ Error tracking with fossilization detection + intervention protocols
 - ✅ Proficiency tracking and visualization
 
 **Focus Areas for Next Phase:**
-1. ML-based error clustering in Error Garden
+1. Content curation at scale (50+ hours)
 2. Deep exploration mode for Mystery Shelf
-3. Full Adaptation Engine logic
-4. Advanced content selection algorithms
+3. Deep Fog advanced content selection + level targeting
+4. ML-based error clustering (beyond frequency + adaptation tiers)
 5. SPAM-C dialectal/pragmatic analysis (when user base grows)

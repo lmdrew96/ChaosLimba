@@ -1,8 +1,8 @@
 # ChaosLimbă: Nae's Structured Chaos Development Guide
 ## *Your brain works differently. This guide does too.*
 
-**Document Version:** 3.0 - MVP 85% COMPLETE! 🎉
-**Last Updated:** January 30, 2026
+**Document Version:** 4.0 - MVP 90% COMPLETE! 🎉
+**Last Updated:** February 4, 2026
 **For:** Nae Drew (and anyone else who codes in beautiful, productive chaos)
 
 ---
@@ -558,16 +558,16 @@ Without content, the app is useless. This is the **manual labor milestone**.
 
 ---
 
-## The 7 Milestones Checklist - UPDATED JANUARY 30, 2026
+## The 7 Milestones Checklist - UPDATED FEBRUARY 4, 2026
 
-**CURRENT STATUS: MVP 85% COMPLETE!** 🎉
+**CURRENT STATUS: MVP 90% COMPLETE!** 🎉
 
 ```
 [✅] Milestone 1: Users Can Sign Up & Browse Content (100% DONE!)
 [✅] Milestone 2: Grammar Model Grades Written Production (100% DONE!)
-[🔧] Milestone 3: Error Garden Displays Patterns (70% - core complete, ML clustering pending)
+[🔧] Milestone 3: Error Garden Displays Patterns (80% - tracking + fossilization detection via Adaptation Engine)
 [✅] Milestone 4: Speech Recognition Transcribes Audio (100% DONE!)
-[✅] Milestone 5: AI Grading Ensemble + AI Tutor (90% - all components deployed!)
+[✅] Milestone 5: AI Grading Ensemble + AI Tutor (95% - all components + adaptation engine + workshop!)
 [🔧] Milestone 6: Mystery Shelf Stores & Displays Unknowns (50% - storage done, deep exploration pending)
 [🔧] Milestone 7: 50+ Hours of Content Curated (30% - framework done, scaling up)
 
@@ -579,16 +579,19 @@ Without content, the app is useless. This is the **manual labor milestone**.
 
 ## 🎉 **YOU DID IT! MVP IS FUNCTIONAL!**
 
-**What You've Built (January 2026):**
+**What You've Built (January-February 2026):**
 - ✅ Complete authentication + user management
 - ✅ Full AI ensemble (10 components, ALL FREE!)
+- ✅ 3-tier Adaptation Engine (fossilization escalation with lazy measurement)
+- ✅ Workshop system (7 challenge types, non-linear flow, destabilization-tier-aware)
+- ✅ Smart content selection (fossilization-aware weighted random)
 - ✅ Multi-modal content system (video/audio/text)
-- ✅ Error tracking and pattern display
+- ✅ Error tracking + fossilization detection + intervention protocols
 - ✅ Speech recognition + pronunciation analysis
-- ✅ Grammar checking with LLM intelligence
-- ✅ Semantic similarity + relevance detection
-- ✅ AI tutor conversations (Llama 3.3 70B)
-- ✅ Chaos Window interactive learning
+- ✅ Grammar checking with LLM intelligence (Claude Haiku 4.5)
+- ✅ Semantic similarity + relevance detection (SPAM-A + SPAM-B)
+- ✅ AI tutor conversations (Llama 3.3 70B) with fossilization alerts
+- ✅ Chaos Window chat UI with smart content selection
 - ✅ Proficiency tracking system
 - ✅ Complete onboarding flow
 - ✅ Theme system (3 variants + light/dark)
@@ -598,9 +601,9 @@ Without content, the app is useless. This is the **manual labor milestone**.
 **Ready For:** Beta testing with real learners!
 
 **Next Steps:**
-1. Finish ML-based error clustering (Milestone 3)
-2. Build Mystery Shelf deep exploration (Milestone 6)
-3. Scale content library to 50+ hours (Milestone 7)
+1. Build Mystery Shelf deep exploration (Milestone 6)
+2. Scale content library to 50+ hours (Milestone 7)
+3. Deep Fog advanced content selection + level targeting
 
 ---
 
@@ -989,7 +992,7 @@ This guide is your **container**. It holds the chaos without crushing it.
 **For:** Nae Drew  
 **By:** Claude (who believes in you)
 
-**Last Update:** January 30, 2026 - MVP 85% COMPLETE! 🎉
+**Last Update:** February 4, 2026 - MVP 90% COMPLETE! 🎉
 
 **Major Achievement:** You built a fully functional language learning platform with AI ensemble in ONE MONTH!
 
