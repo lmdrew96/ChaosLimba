@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -13,7 +13,9 @@ import {
   ChevronDown,
   ChevronUp,
   Send,
-  Lightbulb
+  Lightbulb,
+  Play,
+  Pause
 } from "lucide-react"
 
 // Type for grammar info
@@ -59,6 +61,51 @@ export function MysteryExploreCard({ item, onClose, onExplore, onMarkExplored, i
   } | null>(null)
   const [isSubmittingPractice, setIsSubmittingPractice] = useState(false)
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['definition', 'examples']))
+
+  // TTS state
+  const [isTTSLoading, setIsTTSLoading] = useState(false)
+  const [isPlaying, setIsPlaying] = useState(false)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+
+  const handlePlayPronunciation = async () => {
+    if (isPlaying && audioRef.current) {
+      audioRef.current.pause()
+      setIsPlaying(false)
+      return
+    }
+
+    setIsTTSLoading(true)
+    try {
+      const res = await fetch('/api/tts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: item.word, speed: 0.85 })
+      })
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        console.error('TTS failed:', data.error || res.status)
+        return
+      }
+
+      const audioBlob = await res.blob()
+      const audioUrl = URL.createObjectURL(audioBlob)
+
+      if (!audioRef.current) {
+        audioRef.current = new Audio()
+        audioRef.current.onended = () => setIsPlaying(false)
+        audioRef.current.onerror = () => setIsPlaying(false)
+      }
+
+      audioRef.current.src = audioUrl
+      audioRef.current.play()
+      setIsPlaying(true)
+    } catch (error) {
+      console.error('TTS error:', error)
+    } finally {
+      setIsTTSLoading(false)
+    }
+  }
 
   const hasAnalysis = item.definition && item.definition !== "The Oracle is meditating... (Try again)"
 
@@ -125,9 +172,27 @@ export function MysteryExploreCard({ item, onClose, onExplore, onMarkExplored, i
       <CardHeader className="pb-2">
         <div className="flex justify-between items-start">
           <div>
-            <CardTitle className="text-3xl font-bold text-accent">
-              {item.word}
-            </CardTitle>
+            <div className="flex items-center gap-2">
+              <CardTitle className="text-3xl font-bold text-accent">
+                {item.word}
+              </CardTitle>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handlePlayPronunciation}
+                disabled={isTTSLoading}
+                className="h-8 w-8 p-0 text-accent hover:bg-accent/20"
+                title="Hear pronunciation"
+              >
+                {isTTSLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : isPlaying ? (
+                  <Pause className="h-4 w-4" />
+                ) : (
+                  <Volume2 className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
             {item.pronunciation && (
               <p className="text-sm text-muted-foreground mt-1 font-mono">
                 /{item.pronunciation}/

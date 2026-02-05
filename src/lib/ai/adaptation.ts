@@ -26,6 +26,7 @@ export interface AdaptationPriority {
   tier: AdaptationTier;
   trending: 'improving' | 'stable' | 'worsening';
   interventionCount: number; // how many times we've targeted this
+  interventionSuccesses: number; // how many interventions showed improvement
   lastInterventionAt: Date | null;
   examples: Array<{ incorrect: string; correct: string | null }>;
 }
@@ -130,11 +131,13 @@ export async function getAdaptationProfile(userId: string): Promise<AdaptationPr
     const interventionCount = patternInterventions.length;
     const lastInterventionAt = patternInterventions[0]?.createdAt || null;
 
-    // Check if interventions are working
-    const hasImprovement = patternInterventions.some(i =>
+    // Count successful interventions (frequency decreased after intervention)
+    const successfulInterventions = patternInterventions.filter(i =>
       i.frequencyAfterWindow !== null &&
       i.frequencyAfterWindow < i.frequencyAtIntervention
     );
+    const interventionSuccesses = successfulInterventions.length;
+    const hasImprovement = interventionSuccesses > 0;
 
     // Determine tier
     let tier: AdaptationTier = 1;
@@ -162,6 +165,7 @@ export async function getAdaptationProfile(userId: string): Promise<AdaptationPr
       tier,
       trending,
       interventionCount,
+      interventionSuccesses,
       lastInterventionAt,
       examples,
     });

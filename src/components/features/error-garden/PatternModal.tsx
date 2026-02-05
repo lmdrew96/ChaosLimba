@@ -12,6 +12,20 @@ type PatternModalProps = {
     onClose: () => void
 }
 
+function formatTimeAgo(date: Date | string): string {
+    const d = typeof date === 'string' ? new Date(date) : date;
+    const now = new Date();
+    const diffMs = now.getTime() - d.getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return 'Yesterday';
+    if (diffDays < 7) return `${diffDays} days ago`;
+    if (diffDays < 14) return '1 week ago';
+    if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+    return `${Math.floor(diffDays / 30)} months ago`;
+}
+
 const getCategoryColor = (category: string) => {
     // Simple hashing for consistent colors if not matched
     if (category?.includes("Morph")) return "bg-primary/20 text-primary border-primary/30"
@@ -183,12 +197,30 @@ export function PatternModal({ pattern, isOpen, onClose }: PatternModalProps) {
                                     <h3 className="text-lg font-semibold text-primary mb-1">Adaptive Intervention</h3>
                                     <p className="text-primary/80 mb-3">{pattern.intervention}</p>
                                     <div className="flex flex-wrap gap-3 mb-4">
-                                        <span className="inline-flex items-center rounded-full border border-primary/40 px-2.5 py-0.5 text-xs font-semibold text-primary bg-primary/10">
-                                            Status: Active
-                                        </span>
-                                        <span className="inline-flex items-center rounded-full border border-accent/40 px-2.5 py-0.5 text-xs font-semibold text-accent bg-accent/10">
-                                            Chaos Injection: Enabled
-                                        </span>
+                                        {pattern.tier > 0 && (
+                                            <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${
+                                                pattern.tier === 3 ? 'border-destructive/40 text-destructive bg-destructive/10' :
+                                                pattern.tier === 2 ? 'border-orange-500/40 text-orange-500 bg-orange-500/10' :
+                                                'border-amber-500/40 text-amber-500 bg-amber-500/10'
+                                            }`}>
+                                                Tier {pattern.tier}: {pattern.tier === 3 ? 'Destabilize' : pattern.tier === 2 ? 'Push' : 'Nudge'}
+                                            </span>
+                                        )}
+                                        {pattern.interventionCount > 0 && (
+                                            <span className="inline-flex items-center rounded-full border border-primary/40 px-2.5 py-0.5 text-xs font-semibold text-primary bg-primary/10">
+                                                Targeted {pattern.interventionCount}× ({pattern.interventionSuccesses} helped)
+                                            </span>
+                                        )}
+                                        {pattern.lastInterventionAt && (
+                                            <span className="inline-flex items-center rounded-full border border-accent/40 px-2.5 py-0.5 text-xs font-semibold text-accent bg-accent/10">
+                                                Last: {formatTimeAgo(pattern.lastInterventionAt)}
+                                            </span>
+                                        )}
+                                        {pattern.interventionCount === 0 && (
+                                            <span className="inline-flex items-center rounded-full border border-muted-foreground/40 px-2.5 py-0.5 text-xs font-semibold text-muted-foreground bg-muted/10">
+                                                Not yet targeted
+                                            </span>
+                                        )}
                                     </div>
 
                                     {/* Audio generation buttons */}

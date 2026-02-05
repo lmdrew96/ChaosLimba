@@ -1,13 +1,13 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog"
-import { BookOpen, Search, Sparkles, Trash2, CheckCircle2, Plus, Loader2, Volume2 } from "lucide-react"
+import { BookOpen, Search, Sparkles, Trash2, CheckCircle2, Plus, Loader2, Volume2, Pause } from "lucide-react"
 import { CrystalBall } from "@/components/icons/CrystalBall"
 import { MysteryExploreCard, type MysteryItemFull } from "@/components/features/mystery-shelf/MysteryExploreCard"
 
@@ -20,6 +20,53 @@ export default function MysteryShelfPage() {
   // Quick Review Dialog state
   const [quickReviewItem, setQuickReviewItem] = useState<MysteryItemFull | null>(null)
   const [isQuickReviewLoading, setIsQuickReviewLoading] = useState(false)
+
+  // Quick Review TTS state
+  const [isQuickTTSLoading, setIsQuickTTSLoading] = useState(false)
+  const [isQuickTTSPlaying, setIsQuickTTSPlaying] = useState(false)
+  const quickAudioRef = useRef<HTMLAudioElement | null>(null)
+
+  const handleQuickReviewTTS = async () => {
+    if (!quickReviewItem) return
+
+    if (isQuickTTSPlaying && quickAudioRef.current) {
+      quickAudioRef.current.pause()
+      setIsQuickTTSPlaying(false)
+      return
+    }
+
+    setIsQuickTTSLoading(true)
+    try {
+      const res = await fetch('/api/tts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: quickReviewItem.word, speed: 0.85 })
+      })
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        console.error('TTS failed:', data.error || res.status)
+        return
+      }
+
+      const audioBlob = await res.blob()
+      const audioUrl = URL.createObjectURL(audioBlob)
+
+      if (!quickAudioRef.current) {
+        quickAudioRef.current = new Audio()
+        quickAudioRef.current.onended = () => setIsQuickTTSPlaying(false)
+        quickAudioRef.current.onerror = () => setIsQuickTTSPlaying(false)
+      }
+
+      quickAudioRef.current.src = audioUrl
+      quickAudioRef.current.play()
+      setIsQuickTTSPlaying(true)
+    } catch (error) {
+      console.error('TTS error:', error)
+    } finally {
+      setIsQuickTTSLoading(false)
+    }
+  }
 
   // Quick Review - fetch definition if needed, then show dialog
   const handleQuickReview = async (item: MysteryItemFull) => {
@@ -428,11 +475,36 @@ export default function MysteryShelfPage() {
       )}
 
       {/* Quick Review Dialog */}
-      <Dialog open={!!quickReviewItem} onOpenChange={(open) => !open && setQuickReviewItem(null)}>
+      <Dialog open={!!quickReviewItem} onOpenChange={(open) => {
+        if (!open) {
+          // Stop audio and reset TTS state when closing
+          if (quickAudioRef.current) {
+            quickAudioRef.current.pause()
+          }
+          setIsQuickTTSPlaying(false)
+          setQuickReviewItem(null)
+        }
+      }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold text-accent flex items-center gap-3">
               {quickReviewItem?.word}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleQuickReviewTTS}
+                disabled={isQuickTTSLoading}
+                className="h-8 w-8 p-0 text-accent hover:bg-accent/20"
+                title="Hear pronunciation"
+              >
+                {isQuickTTSLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : isQuickTTSPlaying ? (
+                  <Pause className="h-4 w-4" />
+                ) : (
+                  <Volume2 className="h-4 w-4" />
+                )}
+              </Button>
               {quickReviewItem?.pronunciation && (
                 <span className="text-sm font-normal text-muted-foreground font-mono">
                   /{quickReviewItem.pronunciation}/

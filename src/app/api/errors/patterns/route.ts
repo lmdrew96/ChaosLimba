@@ -28,6 +28,8 @@ export type ErrorPattern = {
   tier: 0 | 1 | 2 | 3; // 0 = not tracked, 1 = nudge, 2 = push, 3 = destabilize
   trendDirection: TrendDirection;
   interventionCount: number;
+  lastInterventionAt: Date | null;
+  interventionSuccesses: number;
   // Detailed fields
   trend: (number | null)[]; // last 5 weeks frequency (0-1), null = no data
   trendLabels: string[];
@@ -592,6 +594,8 @@ export async function GET(req: NextRequest) {
       const tier: 0 | 1 | 2 | 3 = adaptPriority?.tier || 0;
       const trendDirection: TrendDirection = adaptPriority?.trending || computeLocalTrending(logs);
       const interventionCount = adaptPriority?.interventionCount || 0;
+      const lastInterventionAt = adaptPriority?.lastInterventionAt || null;
+      const interventionSuccesses = adaptPriority?.interventionSuccesses || 0;
 
       // Calculate real weekly trend
       const { trend, labels: trendLabels } = calculateWeeklyTrend(logs, allLogs);
@@ -621,6 +625,8 @@ export async function GET(req: NextRequest) {
         tier,
         trendDirection,
         interventionCount,
+        lastInterventionAt,
+        interventionSuccesses,
         trend,
         trendLabels,
         examples,
