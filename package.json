@@ -14,6 +14,11 @@
     "curate:add": "npx tsx scripts/curate.ts add",
     "curate:stats": "npx tsx scripts/curate.ts stats",
     "curate:list": "npx tsx scripts/curate.ts list",
+    "generate": "npx tsx scripts/generate-content.ts",
+    "generate:content": "npx tsx scripts/generate-content.ts generate",
+    "generate:batch": "npx tsx scripts/generate-content.ts batch",
+    "generate:stats": "npx tsx scripts/generate-content.ts stats",
+    "generate:topics": "npx tsx scripts/generate-content.ts topics",
     "generate:podcasts": "npx tsx scripts/generate-podcast-audio.ts",
     "test": "jest",
     "test:watch": "jest --watch"
