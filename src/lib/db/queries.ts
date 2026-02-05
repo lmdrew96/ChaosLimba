@@ -546,13 +546,18 @@ export async function getUserFeatureExposureSummary(userId: string): Promise<Fea
 }
 
 /**
- * Get grammar features for a given CEFR level.
+ * Get grammar features for a given CEFR level and all levels below it.
+ * A B1 learner should still practice A1/A2 features.
  */
 export async function getFeaturesForLevel(cefrLevel: CEFRLevelEnum): Promise<GrammarFeature[]> {
+  const levelOrder: CEFRLevelEnum[] = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+  const idx = levelOrder.indexOf(cefrLevel);
+  const includedLevels = levelOrder.slice(0, idx + 1);
+
   return db
     .select()
     .from(grammarFeatureMap)
-    .where(eq(grammarFeatureMap.cefrLevel, cefrLevel))
+    .where(inArray(grammarFeatureMap.cefrLevel, includedLevels))
     .orderBy(asc(grammarFeatureMap.sortOrder));
 }
 

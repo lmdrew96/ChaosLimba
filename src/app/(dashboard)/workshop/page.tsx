@@ -16,12 +16,13 @@ import {
 import { ChallengeCard } from "@/components/features/workshop/ChallengeCard"
 import { WorkshopFeedback } from "@/components/features/workshop/WorkshopFeedback"
 import { FeatureProgress } from "@/components/features/workshop/FeatureProgress"
-import type { WorkshopChallenge, WorkshopEvaluation } from "@/lib/ai/workshop"
+import type { WorkshopChallenge, WorkshopEvaluation, WorkshopChallengeType } from "@/lib/ai/workshop"
 
 interface FeatureExplored {
   featureKey: string
   featureName: string
   correct: boolean
+  challengeType?: WorkshopChallengeType
 }
 
 type TimerMode = null | 300 | 600
@@ -32,6 +33,10 @@ export default function WorkshopPage() {
   const [isActive, setIsActive] = useState(false)
   const [challengeCount, setChallengeCount] = useState(0)
   const [featuresExplored, setFeaturesExplored] = useState<FeatureExplored[]>([])
+
+  // Type history for anti-repeat + surprise
+  const [typeHistory, setTypeHistory] = useState<WorkshopChallengeType[]>([])
+  const [surpriseInterval, setSurpriseInterval] = useState(0)
 
   // Challenge state
   const [currentChallenge, setCurrentChallenge] = useState<WorkshopChallenge | null>(null)
@@ -82,6 +87,17 @@ export default function WorkshopPage() {
       .catch(() => {})
   }, [])
 
+  const getRecentTypes = useCallback(() => typeHistory.slice(-3), [typeHistory])
+
+  const shouldForceSurprise = useCallback(() => {
+    if (!surpriseInterval || challengeCount === 0) return false
+    return challengeCount > 0 && challengeCount % surpriseInterval === 0
+  }, [surpriseInterval, challengeCount])
+
+  const trackType = useCallback((challenge: WorkshopChallenge) => {
+    setTypeHistory(prev => [...prev, challenge.type])
+  }, [])
+
   const fetchChallenge = useCallback(async (sid?: string) => {
     setIsLoadingChallenge(true)
     setError(null)
@@ -90,7 +106,11 @@ export default function WorkshopPage() {
       const res = await fetch("/api/workshop/challenge", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionId: sid || sessionId }),
+        body: JSON.stringify({
+          sessionId: sid || sessionId,
+          recentTypes: getRecentTypes(),
+          forceSurprise: shouldForceSurprise(),
+        }),
       })
 
       if (!res.ok) {
@@ -105,6 +125,7 @@ export default function WorkshopPage() {
       }
 
       setCurrentChallenge(data.challenge)
+      trackType(data.challenge)
       setCurrentEvaluation(null)
       setShowingFeedback(false)
     } catch (err) {
@@ -112,7 +133,7 @@ export default function WorkshopPage() {
     } finally {
       setIsLoadingChallenge(false)
     }
-  }, [sessionId])
+  }, [sessionId, getRecentTypes, shouldForceSurprise, trackType])
 
   const handleStartSession = async (timer: TimerMode) => {
     setTimerMode(timer)
@@ -120,6 +141,8 @@ export default function WorkshopPage() {
     setIsActive(true)
     setChallengeCount(0)
     setFeaturesExplored([])
+    setTypeHistory([])
+    setSurpriseInterval(Math.floor(Math.random() * 3) + 4) // 4-6
     sessionStartRef.current = Date.now()
     await fetchChallenge()
   }
@@ -138,6 +161,7 @@ export default function WorkshopPage() {
           challenge: currentChallenge,
           response,
           sessionId,
+          recentTypes: getRecentTypes(),
         }),
       })
 
@@ -159,12 +183,14 @@ export default function WorkshopPage() {
           featureKey: currentChallenge.featureKey,
           featureName: currentChallenge.featureName,
           correct: data.evaluation.isCorrect,
+          challengeType: currentChallenge.type,
         },
       ])
 
-      // Store pre-fetched challenge
+      // Store pre-fetched challenge and track its type
       if (data.nextChallenge) {
         setPrefetchedChallenge(data.nextChallenge)
+        trackType(data.nextChallenge)
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong")
@@ -186,6 +212,7 @@ export default function WorkshopPage() {
         body: JSON.stringify({
           sessionId,
           featureKey: currentChallenge.featureKey,
+          recentTypes: getRecentTypes(),
         }),
       })
 
@@ -195,6 +222,7 @@ export default function WorkshopPage() {
 
       if (data.nextChallenge) {
         setCurrentChallenge(data.nextChallenge)
+        trackType(data.nextChallenge)
         setCurrentEvaluation(null)
         setShowingFeedback(false)
       } else {

@@ -5,6 +5,7 @@ import { sessions, userPreferences } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { getWorkshopFeatureTarget } from '@/lib/db/queries';
 import { generateWorkshopChallenge } from '@/lib/ai/workshop';
+import type { WorkshopChallengeType } from '@/lib/ai/workshop';
 import type { CEFRLevelEnum } from '@/lib/db/schema';
 
 export async function POST(req: NextRequest) {
@@ -15,7 +16,11 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { sessionId: existingSessionId } = body;
+    const { sessionId: existingSessionId, recentTypes, forceSurprise } = body as {
+      sessionId?: string;
+      recentTypes?: string[];
+      forceSurprise?: boolean;
+    };
 
     // Get user's CEFR level
     const prefs = await db
@@ -35,8 +40,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Generate challenge
-    const challenge = await generateWorkshopChallenge(target.feature, userLevel);
+    // Generate challenge — pass destabilizationTier, recentTypes, and forceSurprise
+    const challenge = await generateWorkshopChallenge(
+      target.feature,
+      userLevel,
+      undefined,
+      target.destabilizationTier,
+      recentTypes as WorkshopChallengeType[] | undefined,
+      forceSurprise
+    );
 
     // Create session if none provided
     let sessionId = existingSessionId;

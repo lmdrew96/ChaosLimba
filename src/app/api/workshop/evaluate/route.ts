@@ -6,7 +6,7 @@ import { eq } from 'drizzle-orm';
 import { saveErrorPatternsToGarden, getWorkshopFeatureTarget } from '@/lib/db/queries';
 import { evaluateWorkshopResponse, generateWorkshopChallenge } from '@/lib/ai/workshop';
 import { trackFeatureExposure } from '@/lib/ai/exposure-tracker';
-import type { WorkshopChallenge } from '@/lib/ai/workshop';
+import type { WorkshopChallenge, WorkshopChallengeType } from '@/lib/ai/workshop';
 import type { CEFRLevelEnum } from '@/lib/db/schema';
 import type { ExtractedErrorPattern } from '@/types/aggregator';
 
@@ -18,10 +18,11 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { challenge, response, sessionId } = body as {
+    const { challenge, response, sessionId, recentTypes } = body as {
       challenge: WorkshopChallenge;
       response: string;
       sessionId: string;
+      recentTypes?: string[];
     };
 
     if (!challenge || !response?.trim() || !sessionId) {
@@ -113,7 +114,13 @@ export async function POST(req: NextRequest) {
     try {
       const target = await getWorkshopFeatureTarget(userId, userLevel);
       if (target) {
-        nextChallenge = await generateWorkshopChallenge(target.feature, userLevel);
+        nextChallenge = await generateWorkshopChallenge(
+          target.feature,
+          userLevel,
+          undefined,
+          target.destabilizationTier,
+          recentTypes as WorkshopChallengeType[] | undefined
+        );
       }
     } catch (err) {
       console.error('[Workshop Evaluate] Failed to pre-fetch next challenge:', err);

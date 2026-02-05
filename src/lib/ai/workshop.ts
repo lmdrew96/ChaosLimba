@@ -16,10 +16,12 @@ export interface WorkshopChallenge {
   prompt: string;
   targetSentence?: string;
   expectedAnswers: string[];
+  options?: string[];
   hint: string;
   grammarRule: string;
   featureKey: string;
   featureName: string;
+  isSurprise?: boolean;
 }
 
 export interface WorkshopEvaluation {
@@ -37,11 +39,24 @@ export interface WorkshopEvaluation {
 const GRAMMAR_CHALLENGE_TYPES: GrammarChallengeType[] = ['transform', 'complete', 'fix', 'rewrite'];
 const VOCAB_CHALLENGE_TYPES: VocabChallengeType[] = ['use_it', 'which_one', 'spot_the_trap'];
 
-function pickRandomChallengeType(feature: GrammarFeature): WorkshopChallengeType {
-  if (feature.category === 'vocabulary_domain') {
-    return VOCAB_CHALLENGE_TYPES[Math.floor(Math.random() * VOCAB_CHALLENGE_TYPES.length)];
+function pickRandomChallengeType(
+  feature: GrammarFeature,
+  recentTypes?: WorkshopChallengeType[]
+): WorkshopChallengeType {
+  const pool = feature.category === 'vocabulary_domain'
+    ? [...VOCAB_CHALLENGE_TYPES]
+    : [...GRAMMAR_CHALLENGE_TYPES];
+
+  // Filter out the most recent type to avoid consecutive repeats
+  if (recentTypes?.length) {
+    const lastType = recentTypes[recentTypes.length - 1];
+    const filtered = pool.filter(t => t !== lastType);
+    if (filtered.length > 0) {
+      return filtered[Math.floor(Math.random() * filtered.length)];
+    }
   }
-  return GRAMMAR_CHALLENGE_TYPES[Math.floor(Math.random() * GRAMMAR_CHALLENGE_TYPES.length)];
+
+  return pool[Math.floor(Math.random() * pool.length)];
 }
 
 // ─── JSON Cleaning (same pattern as content-generator.ts) ───
@@ -83,13 +98,13 @@ function buildChallengePrompt(
   challengeType: WorkshopChallengeType
 ): string {
   const typeInstructions: Record<WorkshopChallengeType, string> = {
-    transform: `TRANSFORM challenge: Give a Romanian sentence, ask the learner to transform it (e.g., change tense, make negative, change subject). The learner must rewrite the sentence.`,
-    complete: `COMPLETE challenge: Give a Romanian sentence with a blank (___) where the answer goes. The blank REPLACES the answer word entirely — do NOT include the infinitive or base form next to the blank. The blank should test the target grammar feature.`,
-    fix: `FIX challenge: Give a Romanian sentence with a deliberate grammar error in it. The learner must identify and correct the error. Mark the error clearly.`,
-    rewrite: `REWRITE challenge: Give a simple idea in English, ask the learner to write it in Romanian using the target grammar structure.`,
-    use_it: `USE IT challenge: Give a Romanian word/phrase and ask the learner to write a complete sentence using it correctly in context.`,
-    which_one: `WHICH ONE challenge: Give 3-4 Romanian sentences, only one uses the target vocabulary/structure correctly. The learner picks the correct one and explains why. Return the options as part of the prompt text.`,
-    spot_the_trap: `SPOT THE TRAP challenge: Give a Romanian sentence that looks correct but has a subtle vocabulary/usage error (false friend, wrong context, etc). The learner must identify what's wrong.`,
+    transform: `TRANSFORM challenge: Put the Romanian sentence in "targetSentence". In "prompt", give a CLEAR instruction telling the learner exactly what transformation to make (e.g., "Change the subject to 'noi' and adjust the verb accordingly." or "Rewrite this sentence in the negative form."). The instruction must be specific — never just "transform this sentence".`,
+    complete: `COMPLETE challenge: Put the sentence with a blank (___) in "prompt". The blank REPLACES the answer word entirely — do NOT include the infinitive or base form next to the blank. The blank should test the target grammar feature.`,
+    fix: `FIX challenge: Put the sentence with the deliberate grammar error in "targetSentence". In "prompt", tell the learner: "This sentence has a grammar error. Rewrite it correctly." Make the error related to the target feature.`,
+    rewrite: `REWRITE challenge: The "prompt" MUST be an idea expressed IN ENGLISH that the learner will translate/write in Romanian. Example: "She reads books every evening." NEVER put Romanian in the prompt — the whole point is the learner produces the Romanian. Set "targetSentence" to null.`,
+    use_it: `USE IT challenge: In "prompt", give a Romanian word or phrase (bolded with **) and tell the learner to write a complete sentence using it. Example: "Write a sentence using **a plăcea** (to like)." Set "targetSentence" to null.`,
+    which_one: `WHICH ONE challenge: Give 3-4 Romanian sentences as options. Only one uses the target vocabulary/structure correctly. The learner picks the correct one. Return the options in the "options" JSON array (NOT in the prompt text). The "prompt" should only contain the question/instruction, e.g. "Which sentence correctly uses the definite article?"`,
+    spot_the_trap: `SPOT THE TRAP challenge: Put the tricky sentence in "targetSentence". In "prompt", tell the learner: "This sentence looks correct but has a subtle error. What's wrong?" The error should relate to the target feature (false friend, wrong agreement, etc).`,
   };
 
   const isBeginnerLevel = userLevel === 'A1' || userLevel === 'A2';
@@ -113,27 +128,37 @@ ${typeInstructions[challengeType]}
 Respond with this exact JSON structure:
 {
   "type": "${challengeType}",
-  "prompt": "The challenge instruction and content shown to the learner",
-  "targetSentence": "The base sentence if applicable (null for rewrite/use_it)",
+  "prompt": "The instruction or content the learner reads (what they need to do or respond to)",
+  "targetSentence": "The Romanian sentence to work with (null if the prompt IS the content, like rewrite/use_it)",
   "expectedAnswers": ["correct answer 1", "correct answer variation 2"],
-  "hint": "A helpful hint that doesn't give away the answer",
+  ${challengeType === 'which_one' ? '"options": ["Option A sentence", "Option B sentence", "Option C sentence", "Option D sentence"],\n  ' : ''}"hint": "A helpful hint that doesn't give away the answer",
   "grammarRule": "Brief explanation of the grammar rule being tested"
-}`;
+}
+
+IMPORTANT: The UI shows a static task instruction above your "prompt" text, so your "prompt" should contain the SPECIFIC content of this challenge (the sentence, the English idea, etc), not generic instructions like "Rewrite this sentence". Be specific and concrete.`;
 }
 
 export async function generateWorkshopChallenge(
   feature: GrammarFeature,
   userLevel: CEFRLevelEnum,
   challengeType?: WorkshopChallengeType,
-  destabilizationTier?: AdaptationTier
+  destabilizationTier?: AdaptationTier,
+  recentTypes?: WorkshopChallengeType[],
+  forceSurprise?: boolean
 ): Promise<WorkshopChallenge> {
   // At tier 2+: force production/correction challenge types
   let type: WorkshopChallengeType;
   if (destabilizationTier && destabilizationTier >= 2 && feature.category !== 'vocabulary_domain') {
     const productionTypes: GrammarChallengeType[] = ['transform', 'fix'];
     type = productionTypes[Math.floor(Math.random() * productionTypes.length)];
+  } else if (forceSurprise && recentTypes?.length) {
+    // Surprise round: flip category preference — if recent was mostly grammar, pick vocab type (or vice versa)
+    const recentGrammar = recentTypes.filter(t => GRAMMAR_CHALLENGE_TYPES.includes(t as GrammarChallengeType)).length;
+    const recentVocab = recentTypes.length - recentGrammar;
+    const pool = recentGrammar >= recentVocab ? [...VOCAB_CHALLENGE_TYPES] : [...GRAMMAR_CHALLENGE_TYPES];
+    type = pool[Math.floor(Math.random() * pool.length)];
   } else {
-    type = challengeType || pickRandomChallengeType(feature);
+    type = challengeType || pickRandomChallengeType(feature, recentTypes);
   }
 
   let userPrompt = buildChallengePrompt(feature, userLevel, type);
@@ -158,10 +183,12 @@ The goal is cognitive disequilibrium — make the learner FEEL why the correct f
     prompt: parsed.prompt,
     targetSentence: parsed.targetSentence || undefined,
     expectedAnswers: Array.isArray(parsed.expectedAnswers) ? parsed.expectedAnswers : [],
+    options: Array.isArray(parsed.options) ? parsed.options : undefined,
     hint: parsed.hint || '',
     grammarRule: parsed.grammarRule || '',
     featureKey: feature.featureKey,
     featureName: feature.featureName,
+    isSurprise: forceSurprise || undefined,
   };
 }
 

@@ -671,7 +671,7 @@ export default function ChaosWindowPage() {
                             )}
                           </div>
                         </div>
-                        <span className="px-2 py-1 text-xs rounded-full bg-chart-4/20 text-chart-4">
+                        <span className="px-2 py-1 text-xs rounded-full bg-chart-4/20 text-chart-5">
                           {userLevel} Level
                         </span>
                       </div>

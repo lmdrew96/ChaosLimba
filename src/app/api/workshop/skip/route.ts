@@ -5,6 +5,7 @@ import { userPreferences } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { getWorkshopFeatureTarget } from '@/lib/db/queries';
 import { generateWorkshopChallenge } from '@/lib/ai/workshop';
+import type { WorkshopChallengeType } from '@/lib/ai/workshop';
 import { trackFeatureExposure } from '@/lib/ai/exposure-tracker';
 import type { CEFRLevelEnum } from '@/lib/db/schema';
 
@@ -16,9 +17,10 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { sessionId, featureKey } = body as {
+    const { sessionId, featureKey, recentTypes } = body as {
       sessionId: string;
       featureKey: string;
+      recentTypes?: string[];
     };
 
     if (!sessionId || !featureKey) {
@@ -49,7 +51,13 @@ export async function POST(req: NextRequest) {
     let nextChallenge = null;
     const target = await getWorkshopFeatureTarget(userId, userLevel);
     if (target) {
-      nextChallenge = await generateWorkshopChallenge(target.feature, userLevel);
+      nextChallenge = await generateWorkshopChallenge(
+        target.feature,
+        userLevel,
+        undefined,
+        target.destabilizationTier,
+        recentTypes as WorkshopChallengeType[] | undefined
+      );
     }
 
     return NextResponse.json({ nextChallenge });
