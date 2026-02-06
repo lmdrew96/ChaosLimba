@@ -115,6 +115,7 @@ export default function ChaosWindowPage() {
 
       const res = await fetch("/api/sessions", {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           sessionType: "chaos_window",
@@ -144,6 +145,7 @@ export default function ChaosWindowPage() {
 
       await fetch("/api/sessions", {
         method: "PATCH",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           sessionId,
@@ -154,7 +156,8 @@ export default function ChaosWindowPage() {
       // Update proficiency tracker based on session performance
       try {
         await fetch(`/api/sessions/${sessionId}/complete`, {
-          method: "POST"
+          method: "POST",
+          credentials: "include",
         })
       } catch (proficiencyError) {
         console.error("Failed to update proficiency:", proficiencyError)
@@ -164,6 +167,7 @@ export default function ChaosWindowPage() {
       // Trigger background personalized content generation (fire-and-forget)
       fetch('/api/generated-content/background', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sessionId }),
       }).catch(err => console.error('Background content generation failed:', err))
@@ -187,7 +191,7 @@ export default function ChaosWindowPage() {
   // Fetch error patterns from Error Garden
   const fetchErrorPatterns = async () => {
     try {
-      const res = await fetch('/api/errors/patterns')
+      const res = await fetch('/api/errors/patterns', { credentials: 'include' })
       if (res.ok) {
         const data = await res.json()
         // Extract top 3 fossilizing patterns for AI to target
@@ -263,7 +267,7 @@ export default function ChaosWindowPage() {
       const params = new URLSearchParams()
       if (excludeId) params.set('excludeId', excludeId)
 
-      const res = await fetch(`/api/content/random?${params}`)
+      const res = await fetch(`/api/content/random?${params}`, { credentials: "include" })
 
       if (!res.ok) {
         if (res.status === 404) {
@@ -340,7 +344,7 @@ export default function ChaosWindowPage() {
 
     try {
       console.log(`[Chaos Window] Fetching transcript for content ${contentId}`)
-      const res = await fetch(`/api/content/transcript/${contentId}`)
+      const res = await fetch(`/api/content/transcript/${contentId}`, { credentials: "include" })
 
       if (!res.ok) {
         // 404 = No transcript available (not a fatal error)
@@ -504,6 +508,7 @@ export default function ChaosWindowPage() {
         // Text submission (existing flow)
         res = await fetch("/api/chaos-window/submit", {
           method: "POST",
+          credentials: "include",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             userResponse: response.trim(),
@@ -532,6 +537,7 @@ export default function ChaosWindowPage() {
 
         res = await fetch("/api/chaos-window/submit", {
           method: "POST",
+          credentials: "include",
           body: formData
         })
       }
