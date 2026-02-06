@@ -4,7 +4,6 @@ import { db } from '@/lib/db';
 import { errorLogs, ErrorLog } from '@/lib/db/schema';
 import { eq, sql, desc, and, gte } from 'drizzle-orm';
 import { getAdaptationProfile, type AdaptationPriority } from '@/lib/ai/adaptation';
-import { mlClusterErrors, type MLCluster } from '@/lib/ai/error-clustering';
 
 export type TrendDirection = 'improving' | 'stable' | 'worsening';
 
@@ -440,19 +439,6 @@ function simpleClusterErrors(errors: typeof errorLogs.$inferSelect[]): Record<st
 }
 
 /**
- * Convert ML clusters to the simple Record format for compatibility.
- */
-function mlClustersToRecord(clusters: MLCluster[]): Record<string, typeof errorLogs.$inferSelect[]> {
-  const result: Record<string, typeof errorLogs.$inferSelect[]> = {};
-
-  for (const cluster of clusters) {
-    result[cluster.key] = cluster.logs;
-  }
-
-  return result;
-}
-
-/**
  * Get the start of a week for a given date (Monday-based).
  */
 function getWeekStart(date: Date): string {
@@ -543,20 +529,12 @@ function computeLocalTrending(
 }
 
 // GET /api/errors/patterns - Get aggregated error patterns for Error Garden
-// Query params:
-//   ?ml=true - Enable ML-based semantic clustering (slower but smarter)
-//   ?threshold=0.65 - Similarity threshold for ML clustering (0.0-1.0)
 export async function GET(req: NextRequest) {
   try {
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-
-    // Parse query params for ML clustering
-    const { searchParams } = new URL(req.url);
-    const useML = searchParams.get('ml') === 'true';
-    const threshold = parseFloat(searchParams.get('threshold') || '0.65');
 
     // Parallel: fetch error logs + adaptation profile
     const [allLogs, adaptProfile] = await Promise.all([
@@ -578,7 +556,6 @@ export async function GET(req: NextRequest) {
           patternCount: 0,
           fossilizingCount: 0,
           tier2PlusCount: 0,
-          mlEnabled: useML,
         },
       });
     }
@@ -589,27 +566,8 @@ export async function GET(req: NextRequest) {
       adaptationLookup.set(priority.patternKey, priority);
     }
 
-    // Cluster errors - use ML or simple clustering based on query param
-    let clusteredErrors: Record<string, typeof allLogs>;
-    let clusteringMethod = 'simple';
-
-    if (useML) {
-      try {
-        console.log('[Patterns API] Using ML clustering with threshold:', threshold);
-        const mlClusters = await mlClusterErrors(allLogs, {
-          similarityThreshold: threshold,
-          minClusterSize: 1,
-        });
-        clusteredErrors = mlClustersToRecord(mlClusters);
-        clusteringMethod = 'ml';
-        console.log(`[Patterns API] ML clustering created ${Object.keys(clusteredErrors).length} clusters`);
-      } catch (error) {
-        console.error('[Patterns API] ML clustering failed, falling back to simple:', error);
-        clusteredErrors = simpleClusterErrors(allLogs);
-      }
-    } else {
-      clusteredErrors = simpleClusterErrors(allLogs);
-    }
+    // Cluster errors by errorType + category
+    const clusteredErrors = simpleClusterErrors(allLogs);
 
     const patterns: ErrorPattern[] = Object.keys(clusteredErrors).map((key, index) => {
       const logs = clusteredErrors[key];
@@ -688,8 +646,6 @@ export async function GET(req: NextRequest) {
         patternCount: patterns.length,
         fossilizingCount,
         tier2PlusCount,
-        mlEnabled: clusteringMethod === 'ml',
-        clusteringMethod,
       },
     });
   } catch (error) {

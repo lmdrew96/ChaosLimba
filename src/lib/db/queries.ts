@@ -26,6 +26,7 @@ import {
   type AdaptationProfile,
   type AdaptationPriority,
 } from '@/lib/ai/adaptation';
+import { enrichErrorCategories } from '@/lib/ai/error-enrichment';
 
 /**
  * Saves error patterns from the Feedback Aggregator to the Error Garden database
@@ -70,44 +71,55 @@ export async function saveErrorPatternsToGarden(
       )
     );
 
-    // Map patterns to NewErrorLog format, filtering duplicates and non-errors
-    const newErrors: NewErrorLog[] = patterns
-      .filter(pattern => {
-        // Only save actual errors, not suggestions/style recommendations
-        if (pattern.feedbackType === 'suggestion') {
-          console.log(`[saveErrorPatternsToGarden] Skipping suggestion (not an error): ${pattern.learnerProduction}`);
-          return false;
-        }
+    // Filter duplicates and non-errors
+    const validPatterns = patterns.filter(pattern => {
+      // Only save actual errors, not suggestions/style recommendations
+      if (pattern.feedbackType === 'suggestion') {
+        console.log(`[saveErrorPatternsToGarden] Skipping suggestion (not an error): ${pattern.learnerProduction}`);
+        return false;
+      }
 
-        // Skip false positives where the "correction" says the original was correct
-        if (pattern.correctForm && /actually correct|is correct|not an error|no error/i.test(pattern.correctForm)) {
-          console.log(`[saveErrorPatternsToGarden] Skipping false positive: "${pattern.correctForm}"`);
-          return false;
-        }
+      // Skip false positives where the "correction" says the original was correct
+      if (pattern.correctForm && /actually correct|is correct|not an error|no error/i.test(pattern.correctForm)) {
+        console.log(`[saveErrorPatternsToGarden] Skipping false positive: "${pattern.correctForm}"`);
+        return false;
+      }
 
-        // Create fingerprint for this pattern
-        const fingerprint = `${pattern.type}:${pattern.category}:${pattern.learnerProduction}:${pattern.correctForm}`;
+      // Create fingerprint for this pattern
+      const fingerprint = `${pattern.type}:${pattern.category}:${pattern.learnerProduction}:${pattern.correctForm}`;
 
-        // Skip if already logged in this session
-        if (existingFingerprints.has(fingerprint)) {
-          console.log(`[saveErrorPatternsToGarden] Skipping duplicate error: ${fingerprint}`);
-          return false;
-        }
+      // Skip if already logged in this session
+      if (existingFingerprints.has(fingerprint)) {
+        console.log(`[saveErrorPatternsToGarden] Skipping duplicate error: ${fingerprint}`);
+        return false;
+      }
 
-        return true;
-      })
-      .map(pattern => ({
-        userId,
-        errorType: mapPatternTypeToErrorType(pattern.type),
-        category: pattern.category,
-        context: pattern.learnerProduction,
-        correction: pattern.correctForm,
-        source,
-        modality: pattern.inputType, // Track text vs speech
-        feedbackType: pattern.feedbackType || 'error', // Distinguish errors from suggestions (default to error)
-        sessionId,
-        contentId: null, // Can be added later if content tracking is needed
-      }));
+      return true;
+    });
+
+    // Enrich categories via Groq for smarter Error Garden clustering
+    const enrichedCategories = await enrichErrorCategories(
+      validPatterns.map(p => ({
+        errorType: mapPatternTypeToErrorType(p.type),
+        rawCategory: p.category,
+        context: p.learnerProduction,
+        correction: p.correctForm,
+      }))
+    );
+
+    // Map to NewErrorLog format with enriched categories
+    const newErrors: NewErrorLog[] = validPatterns.map((pattern, i) => ({
+      userId,
+      errorType: mapPatternTypeToErrorType(pattern.type),
+      category: enrichedCategories[i],
+      context: pattern.learnerProduction,
+      correction: pattern.correctForm,
+      source,
+      modality: pattern.inputType,
+      feedbackType: pattern.feedbackType || 'error',
+      sessionId,
+      contentId: null,
+    }));
 
     if (newErrors.length === 0) {
       console.log('[saveErrorPatternsToGarden] All errors are duplicates, skipping insert');
