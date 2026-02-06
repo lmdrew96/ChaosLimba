@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useMemo } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Flower2, AlertTriangle, TrendingUp, TrendingDown, Minus, Lightbulb, Sparkles, Loader2, LayoutGrid, List as ListIcon, Info, Filter, X, Zap } from "lucide-react"
+import { Flower2, AlertTriangle, TrendingUp, TrendingDown, Minus, Lightbulb, Sparkles, Loader2, LayoutGrid, List as ListIcon, Info, Filter, X, Zap, Brain, RefreshCw } from "lucide-react"
 import type { ErrorPattern } from "@/app/api/errors/patterns/route"
 import { PatternModal } from "@/components/features/error-garden/PatternModal"
 import { cn } from "@/lib/utils"
@@ -15,6 +15,8 @@ type PatternData = {
     patternCount: number
     fossilizingCount: number
     tier2PlusCount: number
+    mlEnabled?: boolean
+    clusteringMethod?: string
   }
 }
 
@@ -57,6 +59,8 @@ export default function ErrorGardenPage() {
   const [viewMode, setViewMode] = useState<ViewMode>("grid")
   const [activeFilters, setActiveFilters] = useState<Set<string>>(new Set())
   const [tierFilter, setTierFilter] = useState<TierFilter>("all")
+  const [useMLClustering, setUseMLClustering] = useState(false)
+  const [mlLoading, setMlLoading] = useState(false)
 
   const toggleFilter = (type: string) => {
     setActiveFilters(prev => {
@@ -74,10 +78,15 @@ export default function ErrorGardenPage() {
     setActiveFilters(new Set())
   }
 
-  const fetchPatterns = useCallback(async () => {
+  const fetchPatterns = useCallback(async (withML: boolean = false) => {
     try {
-      setLoading(true)
-      const response = await fetch("/api/errors/patterns")
+      if (withML) {
+        setMlLoading(true)
+      } else {
+        setLoading(true)
+      }
+      const url = withML ? "/api/errors/patterns?ml=true" : "/api/errors/patterns"
+      const response = await fetch(url)
       if (!response.ok) {
         throw new Error("Failed to fetch patterns")
       }
@@ -89,12 +98,13 @@ export default function ErrorGardenPage() {
       setError("Failed to load error patterns")
     } finally {
       setLoading(false)
+      setMlLoading(false)
     }
   }, [])
 
   useEffect(() => {
-    fetchPatterns()
-  }, [fetchPatterns])
+    fetchPatterns(useMLClustering)
+  }, [fetchPatterns, useMLClustering])
 
   const sortedPatterns = useMemo(() => {
     if (!data?.patterns) return []
@@ -195,28 +205,55 @@ export default function ErrorGardenPage() {
 
       {/* Controls */}
       <div className="flex flex-col sm:flex-row gap-4 justify-between items-center bg-muted/30 p-4 rounded-xl border border-border backdrop-blur-sm">
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <SortButton active={sortBy === "frequency"} onClick={() => setSortBy("frequency")}>Sort by Frequency</SortButton>
           <SortButton active={sortBy === "risk"} onClick={() => setSortBy("risk")}>Sort by Risk</SortButton>
           <SortButton active={sortBy === "count"} onClick={() => setSortBy("count")}>Sort by Count</SortButton>
         </div>
-        <div className="flex gap-2 bg-muted/30 p-1 rounded-lg">
-          <Button
-            variant="ghost"
-            size="sm"
-            className={cn("h-8 w-8 p-0", viewMode === "grid" && "bg-foreground/10 text-foreground")}
-            onClick={() => setViewMode("grid")}
+        <div className="flex gap-3 items-center">
+          {/* ML Clustering Toggle */}
+          <button
+            onClick={() => setUseMLClustering(!useMLClustering)}
+            disabled={mlLoading}
+            className={cn(
+              "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all border",
+              useMLClustering
+                ? "bg-primary/20 border-primary/40 text-primary"
+                : "bg-muted/20 border-border text-muted-foreground hover:bg-muted/30"
+            )}
+            title="ML clustering uses AI embeddings to find semantic patterns"
           >
-            <LayoutGrid className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className={cn("h-8 w-8 p-0", viewMode === "list" && "bg-foreground/10 text-foreground")}
-            onClick={() => setViewMode("list")}
-          >
-            <ListIcon className="h-4 w-4" />
-          </Button>
+            {mlLoading ? (
+              <RefreshCw className="h-4 w-4 animate-spin" />
+            ) : (
+              <Brain className="h-4 w-4" />
+            )}
+            <span className="hidden sm:inline">
+              {mlLoading ? "Analyzing..." : "ML Clustering"}
+            </span>
+            {useMLClustering && data?.stats.mlEnabled && !mlLoading && (
+              <span className="text-xs opacity-70">✓</span>
+            )}
+          </button>
+          {/* View Mode Toggle */}
+          <div className="flex gap-1 bg-muted/30 p-1 rounded-lg">
+            <Button
+              variant="ghost"
+              size="sm"
+              className={cn("h-8 w-8 p-0", viewMode === "grid" && "bg-foreground/10 text-foreground")}
+              onClick={() => setViewMode("grid")}
+            >
+              <LayoutGrid className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className={cn("h-8 w-8 p-0", viewMode === "list" && "bg-foreground/10 text-foreground")}
+              onClick={() => setViewMode("list")}
+            >
+              <ListIcon className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </div>
 
