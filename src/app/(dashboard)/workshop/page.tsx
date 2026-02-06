@@ -77,7 +77,7 @@ export default function WorkshopPage() {
 
   // Fetch user level on mount
   useEffect(() => {
-    fetch("/api/user/preferences")
+    fetch("/api/user/preferences", { credentials: "include" })
       .then((r) => r.ok ? r.json() : null)
       .then((data) => {
         if (data?.preferences?.languageLevel) {
@@ -105,6 +105,7 @@ export default function WorkshopPage() {
     try {
       const res = await fetch("/api/workshop/challenge", {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           sessionId: sid || sessionId,
@@ -156,6 +157,7 @@ export default function WorkshopPage() {
     try {
       const res = await fetch("/api/workshop/evaluate", {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           challenge: currentChallenge,
@@ -208,6 +210,7 @@ export default function WorkshopPage() {
     try {
       const res = await fetch("/api/workshop/skip", {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           sessionId,
@@ -254,6 +257,7 @@ export default function WorkshopPage() {
       const durationSeconds = Math.floor((Date.now() - sessionStartRef.current) / 1000)
       fetch("/api/sessions", {
         method: "PATCH",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sessionId, durationSeconds }),
       }).catch(() => {})

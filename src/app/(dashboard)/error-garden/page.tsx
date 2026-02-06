@@ -86,7 +86,7 @@ export default function ErrorGardenPage() {
         setLoading(true)
       }
       const url = withML ? "/api/errors/patterns?ml=true" : "/api/errors/patterns"
-      const response = await fetch(url)
+      const response = await fetch(url, { credentials: "include" })
       if (!response.ok) {
         throw new Error("Failed to fetch patterns")
       }
