@@ -4,7 +4,7 @@ import { db } from '@/lib/db';
 import { errorLogs, ErrorLog } from '@/lib/db/schema';
 import { eq, sql, desc, and, gte } from 'drizzle-orm';
 import { getAdaptationProfile, type AdaptationPriority } from '@/lib/ai/adaptation';
-import { mlClusterErrors, type MLCluster } from '@/lib/ai/error-clustering';
+import type { MLCluster } from '@/lib/ai/error-clustering';
 
 export type TrendDirection = 'improving' | 'stable' | 'worsening';
 
@@ -596,6 +596,8 @@ export async function GET(req: NextRequest) {
     if (useML) {
       try {
         console.log('[Patterns API] Using ML clustering with threshold:', threshold);
+        // Dynamic import to avoid crashing the route if @xenova/transformers fails to load
+        const { mlClusterErrors } = await import('@/lib/ai/error-clustering');
         const mlClusters = await mlClusterErrors(allLogs, {
           similarityThreshold: threshold,
           minClusterSize: 1,

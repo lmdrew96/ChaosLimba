@@ -5,10 +5,12 @@
 // Groups errors that represent the same underlying interlanguage pattern,
 // even if they have different surface forms.
 
-import { pipeline, type FeatureExtractionPipeline } from '@xenova/transformers';
 import type { errorLogs } from '@/lib/db/schema';
 
 type ErrorLog = typeof errorLogs.$inferSelect;
+
+// Use `any` for the pipeline type since @xenova/transformers is dynamically imported
+type EmbeddingPipeline = any;
 
 export type MLCluster = {
   key: string;                    // Unique cluster ID
@@ -21,20 +23,24 @@ export type MLCluster = {
 };
 
 // Singleton for the embedding model
-let embeddingPipeline: FeatureExtractionPipeline | null = null;
-let initPromise: Promise<FeatureExtractionPipeline> | null = null;
+let embeddingPipeline: EmbeddingPipeline | null = null;
+let initPromise: Promise<EmbeddingPipeline> | null = null;
 
 /**
  * Get or initialize the embedding pipeline.
  * Uses all-MiniLM-L6-v2 for fast, quality sentence embeddings.
+ * Dynamically imports @xenova/transformers to avoid crashing if the package is unavailable.
  */
-async function getEmbeddingPipeline(): Promise<FeatureExtractionPipeline> {
+async function getEmbeddingPipeline(): Promise<EmbeddingPipeline> {
   if (embeddingPipeline) return embeddingPipeline;
 
   if (!initPromise) {
-    initPromise = pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2', {
-      quantized: true, // Smaller, faster
-    });
+    initPromise = (async () => {
+      const { pipeline } = await import('@xenova/transformers');
+      return pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2', {
+        quantized: true, // Smaller, faster
+      });
+    })();
   }
 
   embeddingPipeline = await initPromise;
