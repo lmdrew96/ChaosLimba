@@ -16,7 +16,6 @@ import {
   GraduationCap,
   Speech,
   Brain,
-  Wrench,
   Loader2,
 } from "lucide-react"
 import Link from "next/link"
@@ -37,14 +36,6 @@ interface RecentActivityItem {
 }
 
 const quickActions = [
-  {
-    name: "Workshop",
-    description: "Grammar & vocab micro-challenges",
-    href: "/workshop",
-    icon: Wrench,
-    gradient: "from-accent/20 to-accent/10",
-    iconColor: "text-accent",
-  },
   {
     name: "Ask Tutor",
     description: "Get a linguistic explanation",
@@ -99,7 +90,7 @@ export default function DashboardPage() {
         setIsLoading(false)
       }
     }
-    fetchDashboardData()
+    void fetchDashboardData()
   }, [])
 
   const statCards = [
@@ -142,11 +133,11 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8 max-w-6xl mx-auto">
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-background via-primary/10 to-background p-8 border border-borders">
+      <div className="relative overflow-hidden rounded-2xl bg-linear-to-br from-background via-primary/10 to-background p-8 border border-borders">
         <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl" />
         <div className="absolute bottom-0 left-0 w-48 h-48 bg-foreground/10 rounded-full blur-3xl" />
         <div className="relative">
-          <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-foreground via-primary to-primary/50 bg-clip-text text-transparent">
+          <h1 className="text-3xl font-bold mb-2 bg-linear-to-r from-foreground via-primary to-primary/50 bg-clip-text text-transparent">
             Bună ziua, Chaos Learner!
           </h1>
           <p className="text-muted-foreground max-w-xl">
@@ -156,7 +147,7 @@ export default function DashboardPage() {
           <div className="flex gap-3 mt-6">
             <Button
               asChild
-              className="bg-gradient-to-r from-primary to-primary/70 hover:from-primary hover:to-primary/80 rounded-xl shadow-lg shadow-primary/20"
+              className="bg-linear-to-r from-primary to-primary/70 hover:from-primary hover:to-primary/80 rounded-xl shadow-lg shadow-primary/20"
             >
               <Link href="/chaos-window">
                 <Sparkles className="mr-2 h-4 w-4" />
@@ -215,7 +206,7 @@ export default function DashboardPage() {
               <Link
                 key={action.name}
                 href={action.href}
-                className={`group flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r ${action.gradient} border border-transparent hover:border-primary/30 transition-all duration-200 hover:scale-[1.02]`}
+                className={`group flex items-center gap-4 p-4 rounded-xl bg-linear-to-r ${action.gradient} border border-transparent hover:border-primary/30 transition-all duration-200 hover:scale-[1.02]`}
               >
                 <div
                   className={`p-2 rounded-lg bg-background/50 ${action.iconColor}`}
@@ -284,11 +275,11 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      <Card className="rounded-2xl border-borders bg-gradient-to-r from-secondary/20 to-muted/20">
+      <Card className="rounded-2xl border-borders bg-linear-to-r from-secondary/20 to-muted/20">
         <CardContent className="p-6 text-center">
-          <h3 className="text-lg font-semibold mb-2">Today's Mantra</h3>
+          <h3 className="text-lg font-semibold mb-2">Today&apos;s Mantra</h3>
           <p className="text-xl italic text-muted-foreground">
-            "Productive confusion is the threshold of understanding."
+            &ldquo;Productive confusion is the threshold of understanding.&rdquo;
           </p>
         </CardContent>
       </Card>
