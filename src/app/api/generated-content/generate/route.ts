@@ -154,7 +154,11 @@ export async function POST(req: Request) {
     if (error instanceof ContentGeneratorError) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
-    console.error('[generated-content/generate]', error);
-    return new NextResponse('Content generation failed', { status: 500 });
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    console.error('[generated-content/generate]', message, error);
+    return NextResponse.json(
+      { error: `Content generation failed: ${message}` },
+      { status: 500 }
+    );
   }
 }
