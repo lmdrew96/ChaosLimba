@@ -36,10 +36,10 @@ const categoryPresets: Record<string, string[]> = {
 }
 
 type ErrorLogModalProps = {
-  onErrorLogged?: () => void
+  onErrorLoggedAction?: () => void
 }
 
-export function ErrorLogModal({ onErrorLogged }: ErrorLogModalProps) {
+export function ErrorLogModal({ onErrorLoggedAction }: ErrorLogModalProps) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [errorType, setErrorType] = useState<string>("")
@@ -75,7 +75,7 @@ export function ErrorLogModal({ onErrorLogged }: ErrorLogModalProps) {
       setContext("")
       setCorrection("")
       setOpen(false)
-      onErrorLogged?.()
+      onErrorLoggedAction?.()
     } catch (error) {
       console.error("Failed to log error:", error)
     } finally {

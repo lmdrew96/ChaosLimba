@@ -9,7 +9,7 @@ import { AlertTriangle, BookOpen, Brain, Sparkles, TrendingUp, X, Volume2, Loade
 type PatternModalProps = {
     pattern: ErrorPattern | null
     isOpen: boolean
-    onClose: () => void
+    onCloseAction: () => void
 }
 
 function formatTimeAgo(date: Date | string): string {
@@ -45,7 +45,7 @@ type GeneratedAudio = {
     contentType: string
 }
 
-export function PatternModal({ pattern, isOpen, onClose }: PatternModalProps) {
+export function PatternModal({ pattern, isOpen, onCloseAction }: PatternModalProps) {
     const [generating, setGenerating] = useState<string | null>(null) // contentType being generated
     const [generatedAudio, setGeneratedAudio] = useState<GeneratedAudio | null>(null)
     const [isPlaying, setIsPlaying] = useState(false)
@@ -99,7 +99,7 @@ export function PatternModal({ pattern, isOpen, onClose }: PatternModalProps) {
     if (!pattern) return null
 
     return (
-        <Dialog open={isOpen} onOpenChange={onClose}>
+        <Dialog open={isOpen} onOpenChange={onCloseAction}>
             <DialogContent className="max-w-4xl max-h-[90vh] bg-gradient-to-br from-background to-background border-chart-4/20 p-0 gap-0 overflow-hidden text-foreground block">
                 {/* Header */}
                 <div className="p-6 border-b border-border bg-muted/30">

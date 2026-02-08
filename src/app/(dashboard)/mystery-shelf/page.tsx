@@ -465,9 +465,9 @@ export default function MysteryShelfPage() {
           {selectedItem && (
             <MysteryExploreCard
               item={selectedItem}
-              onClose={() => setSelectedItem(null)}
-              onExplore={runAIAnalysis}
-              onMarkExplored={markExplored}
+              onCloseAction={() => setSelectedItem(null)}
+              onExploreAction={runAIAnalysis}
+              onMarkExploredAction={markExplored}
               isAnalyzing={analyzingIds.has(selectedItem.id)}
             />
           )}

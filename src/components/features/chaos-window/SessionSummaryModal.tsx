@@ -23,8 +23,8 @@ interface GeneratedContentItem {
 
 interface SessionSummaryModalProps {
   isOpen: boolean
-  onClose: () => void
-  onNewSession: () => void
+  onCloseAction: () => void
+  onNewSessionAction: () => void
   sessionId: string | null
   duration: number // seconds
   interactionCount: number
@@ -37,8 +37,8 @@ interface SessionStats {
 
 export function SessionSummaryModal({
   isOpen,
-  onClose,
-  onNewSession,
+  onCloseAction,
+  onNewSessionAction,
   sessionId,
   duration,
   interactionCount,
@@ -94,11 +94,11 @@ export function SessionSummaryModal({
 
   const handleViewErrorGarden = () => {
     router.push('/error-garden')
-    onClose()
+    onCloseAction()
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={onCloseAction}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <div className="flex items-center gap-2 justify-center sm:justify-start">
@@ -199,7 +199,7 @@ export function SessionSummaryModal({
           <Button variant="outline" onClick={handleViewErrorGarden} className="w-full sm:w-auto">
             View Error Garden
           </Button>
-          <Button onClick={onNewSession} className="w-full sm:w-auto">
+          <Button onClick={onNewSessionAction} className="w-full sm:w-auto">
             Start New Session
           </Button>
         </DialogFooter>

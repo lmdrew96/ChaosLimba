@@ -358,7 +358,7 @@ export default function ErrorGardenPage() {
       <PatternModal
         pattern={selectedPattern}
         isOpen={!!selectedPattern}
-        onClose={() => setSelectedPattern(null)}
+        onCloseAction={() => setSelectedPattern(null)}
       />
     </div>
   )

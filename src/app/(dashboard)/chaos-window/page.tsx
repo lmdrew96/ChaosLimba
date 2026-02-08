@@ -902,8 +902,8 @@ export default function ChaosWindowPage() {
       {/* Session Summary Modal */}
       <SessionSummaryModal
         isOpen={showSummary}
-        onClose={() => setShowSummary(false)}
-        onNewSession={() => {
+        onCloseAction={() => setShowSummary(false)}
+        onNewSessionAction={() => {
           setShowSummary(false)
           // Reset for new session
           setResponse("")

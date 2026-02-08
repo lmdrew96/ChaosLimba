@@ -47,13 +47,13 @@ export type MysteryItemFull = {
 
 type Props = {
   item: MysteryItemFull;
-  onClose: () => void;
-  onExplore: (id: string) => Promise<void>;
-  onMarkExplored: (id: string) => void;
+  onCloseAction: () => void;
+  onExploreAction: (id: string) => Promise<void>;
+  onMarkExploredAction: (id: string) => void;
   isAnalyzing: boolean;
 };
 
-export function MysteryExploreCard({ item, onClose, onExplore, onMarkExplored, isAnalyzing }: Props) {
+export function MysteryExploreCard({ item, onCloseAction, onExploreAction, onMarkExploredAction, isAnalyzing }: Props) {
   const [practiceAnswer, setPracticeAnswer] = useState("")
   const [practiceResult, setPracticeResult] = useState<{
     isCorrect: boolean;
@@ -150,7 +150,7 @@ export function MysteryExploreCard({ item, onClose, onExplore, onMarkExplored, i
     }
   }
 
-  const SectionHeader = ({ title, section, icon: Icon }: { title: string; section: string; icon: any }) => (
+  const SectionHeader = ({ title, section, icon: Icon }: { title: string; section: string; icon: React.ElementType }) => (
     <button
       onClick={() => toggleSection(section)}
       className="flex items-center justify-between w-full text-left py-2 px-3 rounded-lg hover:bg-accent/10 transition-colors"
@@ -202,7 +202,7 @@ export function MysteryExploreCard({ item, onClose, onExplore, onMarkExplored, i
           <Button
             variant="ghost"
             size="sm"
-            onClick={onClose}
+            onClick={onCloseAction}
             className="text-muted-foreground hover:text-foreground"
           >
             ✕
@@ -219,7 +219,7 @@ export function MysteryExploreCard({ item, onClose, onExplore, onMarkExplored, i
             </p>
             <Button
               className="w-full bg-accent hover:bg-accent/80"
-              onClick={() => onExplore(item.id)}
+              onClick={() => onExploreAction(item.id)}
               disabled={isAnalyzing}
             >
               {isAnalyzing ? (
@@ -296,7 +296,7 @@ export function MysteryExploreCard({ item, onClose, onExplore, onMarkExplored, i
             <SectionHeader title="Context" section="context" icon={BookOpen} />
             {expandedSections.has('context') && (
               <p className="px-3 pb-3 text-sm italic text-muted-foreground">
-                "{item.context}"
+                &ldquo;{item.context}&rdquo;
               </p>
             )}
           </div>
@@ -310,7 +310,7 @@ export function MysteryExploreCard({ item, onClose, onExplore, onMarkExplored, i
               <ul className="px-3 pb-3 space-y-2">
                 {item.examples.map((ex, i) => (
                   <li key={i} className="text-sm text-muted-foreground italic border-l-2 border-accent/30 pl-3">
-                    "{ex}"
+                    &ldquo;{ex}&rdquo;
                   </li>
                 ))}
               </ul>
@@ -400,7 +400,7 @@ export function MysteryExploreCard({ item, onClose, onExplore, onMarkExplored, i
         {hasAnalysis && !item.isExplored && (
           <Button
             className="w-full bg-chart-4 hover:bg-chart-4/80 rounded-xl"
-            onClick={() => onMarkExplored(item.id)}
+            onClick={() => onMarkExploredAction(item.id)}
           >
             <CheckCircle2 className="mr-2 h-4 w-4" />
             Mark as Explored

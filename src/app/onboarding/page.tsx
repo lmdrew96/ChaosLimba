@@ -1,6 +1,7 @@
+import type { Metadata } from "next";
 import { OnboardingWizard } from "@/components/features/onboarding/OnboardingWizard";
 
-export const metadata = {
+export const metadata: Metadata = {
     title: "Welcome to ChaosLimbă - Proficiency Test",
     description: "Let's discover your Romanian proficiency level",
 };
