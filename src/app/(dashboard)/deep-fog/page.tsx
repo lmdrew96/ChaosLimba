@@ -194,8 +194,15 @@ export default function DeepFogPage() {
           >
             <Shuffle className="h-4 w-4 mr-1" /> Random
           </Button>
-          <Button size="sm" className="bg-foreground/80 hover:bg-foreground/60">
-            <Filter className="h-4 w-4 mr-1" /> Filter
+          <Button
+            size="sm"
+            className="bg-foreground/80 hover:bg-foreground/60"
+            onClick={() => {
+              const next: ContentFilter = filter === "all" ? "text" : filter === "text" ? "audio" : "all";
+              setFilter(next);
+            }}
+          >
+            <Filter className="h-4 w-4 mr-1" /> {filter === "all" ? "Filter" : filter === "text" ? "Text" : "Audio"}
           </Button>
         </div>
       </div>
@@ -294,11 +301,9 @@ export default function DeepFogPage() {
                     <span className="text-xs text-muted-foreground">
                       {formatDuration(item.durationSeconds, item.type)}
                     </span>
-                    <button
-                      className="inline-flex items-center justify-center h-8 px-3 text-xs font-medium rounded-md transition-colors hover:bg-primary/20"
-                    >
+                    <span className="inline-flex items-center justify-center h-8 px-3 text-xs font-medium text-muted-foreground">
                       Enter Fog →
-                    </button>
+                    </span>
                   </div>
                 </CardContent>
               </Card>

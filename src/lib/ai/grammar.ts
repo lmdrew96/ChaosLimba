@@ -49,9 +49,6 @@ function setCache(key: string, result: GrammarResult): void {
   });
 }
 
-export function clearGrammarCache(): void {
-  grammarCache.clear();
-}
 
 export async function analyzeGrammar(text: string): Promise<GrammarResult> {
   if (!text || !text.trim()) {

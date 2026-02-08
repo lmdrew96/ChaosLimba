@@ -51,9 +51,6 @@ function getCache(key: string): number | null {
   return hit.similarity;
 }
 
-export function clearSpamACache() {
-  similarityCache.clear();
-}
 
 /**
  * Calculate Levenshtein distance between two strings

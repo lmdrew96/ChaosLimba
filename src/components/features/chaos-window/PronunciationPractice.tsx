@@ -128,6 +128,46 @@ export function PronunciationPractice({ targetText, onComplete }: PronunciationP
     return 'Needs Practice'
   }
 
+  // Word-level diff: align target and transcribed words, highlight mismatches
+  const getWordDiff = (transcribed: string, target: string) => {
+    const strip = (w: string) => w.replace(/[^a-zA-ZăâîșțĂÂÎȘȚ]/g, '')
+    const tWords = transcribed.toLowerCase().trim().split(/\s+/).map(strip)
+    const eWords = target.toLowerCase().trim().split(/\s+/).map(strip)
+    const tRaw = transcribed.trim().split(/\s+/)
+
+    // Simple LCS-based alignment to handle insertions/deletions
+    const dp: number[][] = Array.from({ length: tWords.length + 1 }, () => Array(eWords.length + 1).fill(0))
+    for (let i = 1; i <= tWords.length; i++) {
+      for (let j = 1; j <= eWords.length; j++) {
+        if (tWords[i - 1] === eWords[j - 1]) {
+          dp[i][j] = dp[i - 1][j - 1] + 1
+        } else {
+          dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1])
+        }
+      }
+    }
+
+    // Backtrack to build aligned diff
+    let i = tWords.length, j = eWords.length
+    const aligned: Array<{ word: string; expected?: string; type: 'match' | 'mismatch' | 'missing' }> = []
+
+    while (i > 0 || j > 0) {
+      if (i > 0 && j > 0 && tWords[i - 1] === eWords[j - 1]) {
+        aligned.push({ word: tRaw[i - 1], type: 'match' })
+        i--; j--
+      } else if (j > 0 && (i === 0 || dp[i][j - 1] >= dp[i - 1][j])) {
+        aligned.push({ word: eWords[j - 1], type: 'missing' })
+        j--
+      } else {
+        const expected = j > 0 ? eWords[j] : undefined
+        aligned.push({ word: tRaw[i - 1], expected, type: 'mismatch' })
+        i--
+      }
+    }
+
+    return aligned.reverse()
+  }
+
   return (
     <Card className="rounded-xl border-accent/20 bg-accent/10">
       <CardContent className="p-5">
@@ -210,9 +250,38 @@ export function PronunciationPractice({ targetText, onComplete }: PronunciationP
               {/* Results */}
               {result && (
                 <div className="p-4 rounded-lg bg-muted/50 border border-accent/20 space-y-3">
+                  {/* Word-level diff */}
                   <div>
                     <p className="text-xs text-muted-foreground mb-1">You said:</p>
-                    <p className="text-base font-medium italic">{result.transcribedText || "Unable to transcribe"}</p>
+                    {result.transcribedText && result.pronunciationScore !== undefined && result.pronunciationScore < 1.0 ? (
+                      <p className="text-base font-medium italic flex flex-wrap gap-x-1.5 leading-relaxed">
+                        {getWordDiff(result.transcribedText, targetText).map((item, i) => (
+                          <span
+                            key={i}
+                            className={
+                              item.type === 'match'
+                                ? 'text-chart-4'
+                                : item.type === 'missing'
+                                ? 'text-destructive line-through opacity-60'
+                                : 'text-destructive underline decoration-wavy'
+                            }
+                            title={
+                              item.type === 'missing'
+                                ? `Missing: "${item.word}"`
+                                : item.type === 'mismatch'
+                                ? `Expected something else here`
+                                : undefined
+                            }
+                          >
+                            {item.type === 'missing' ? `[${item.word}]` : item.word}
+                          </span>
+                        ))}
+                      </p>
+                    ) : (
+                      <p className="text-base font-medium italic text-chart-4">
+                        {result.transcribedText || "Unable to transcribe"}
+                      </p>
+                    )}
                   </div>
 
                   {result.pronunciationScore !== undefined && (
@@ -246,7 +315,7 @@ export function PronunciationPractice({ targetText, onComplete }: PronunciationP
 
                       {!result.isAccurate && (
                         <p className="text-xs text-muted-foreground">
-                          💡 Tip: Listen to the target text and try again!
+                          Listen to the target text and try again!
                         </p>
                       )}
                     </div>

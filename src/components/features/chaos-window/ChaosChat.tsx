@@ -93,7 +93,7 @@ export function ChaosChat({
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault()
       if (textValue.trim().length >= 5 && sessionReady && !isSubmitting) {
-        onSubmit(e as unknown as FormEvent)
+        e.currentTarget.form?.requestSubmit()
       }
     }
   }

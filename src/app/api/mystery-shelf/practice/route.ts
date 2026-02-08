@@ -69,7 +69,7 @@ Grade this practice attempt.
                     category: error.type || 'mystery_shelf_practice',
                     context: userAnswer,
                     correction: error.correct,
-                    source: 'mystery_shelf' as any, // Type assertion for new source
+                    source: 'mystery_shelf',
                     modality: 'text',
                     feedbackType: 'error',
                 });

@@ -1,7 +1,7 @@
 # AI Ensemble Implementation Guide
 
-**Version:** 2.0
-**Last Updated:** February 4, 2026
+**Version:** 2.1
+**Last Updated:** February 7, 2026
 **Purpose:** Single source of truth for AI ensemble technical details
 
 ---

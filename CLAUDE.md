@@ -433,13 +433,15 @@ Your north star when Nae asks "what should I build next?"
 
 1. ✅ **Users Can Sign Up & Browse Content**
 2. ✅ **Grammar Model Grades Written Production** (Claude Haiku 4.5)
-3. 🔧 **Error Garden Displays Patterns** (80% - tracking + fossilization detection via Adaptation Engine)
+3. 🔧 **Error Garden Displays Patterns** (85% - pattern viz + fossilization tiers + trends + adaptation engine)
 4. ✅ **Speech Recognition Transcribes Audio** (Groq API, FREE!)
 5. ✅ **AI Ensemble Works + AI Tutor Asks Questions** (10 components + Adaptation Engine + Workshop!)
-6. ⏳ **Mystery Shelf Stores & Displays Unknowns** (storage done, deep exploration pending)
-7. ⏳ **50+ Hours of Content Curated**
+6. 🔧 **Mystery Shelf Stores & Displays Unknowns** (80% - storage + AI exploration + TTS review + filters)
+7. ⏳ **50+ Hours of Content Curated** (~20+ items, scaling needed)
 
-**Bonus systems built:** 3-tier Adaptation Engine, Workshop (7 challenge types), Smart Content Selection
+**Bonus systems built:** 3-tier Adaptation Engine, Workshop (7 challenge types), Smart Content Selection, Deep Fog (75%), Proficiency Tracker (85%)
+
+**MVP Progress: ~93% Complete (February 7, 2026)**
 
 **When all 7 are checked:** 🎉 **MVP LAUNCH** 🎉
 
@@ -511,8 +513,8 @@ Now go make something amazing. 🔥
 
 ---
 
-**Document Version:** 2.0
-**Last Updated:** February 4, 2026
+**Document Version:** 2.1
+**Last Updated:** February 7, 2026
 **For:** Claude Code working with Nae Drew on ChaosLimbă
 
 **Next Review:** After Milestone 6 completion (Mystery Shelf deep exploration)

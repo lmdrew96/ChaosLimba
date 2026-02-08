@@ -1,10 +1,8 @@
 /**
- * Romanian Pronunciation Analysis using Wav2Vec2
- * Model: gigant/romanian-wav2vec2
- * Purpose: Transcribe Romanian speech and analyze pronunciation quality
+ * Romanian Pronunciation Analysis using Groq Whisper
+ * Transcribes Romanian speech via Groq (FREE) and scores against expected text
  */
 
-const MODEL_ID = "gigant/romanian-wav2vec2";
 const CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes
 const MAX_AUDIO_SIZE_MB = 10; // 10MB limit for audio files
 
@@ -59,9 +57,6 @@ function getCache(key: string): PronunciationResult | null {
   return hit.result;
 }
 
-export function clearPronunciationCache() {
-  pronunciationCache.clear();
-}
 
 /**
  * Calculate pronunciation accuracy by comparing transcribed text with expected text
@@ -119,7 +114,8 @@ function levenshteinDistance(a: string, b: string): number {
 
 /**
  * Analyze Romanian pronunciation from audio input
- * @param audioData - Base64 encoded audio data or audio blob URL
+ * Uses Groq Whisper (FREE) for transcription, then Levenshtein scoring
+ * @param audioData - Audio Blob or base64 string
  * @param expectedText - Optional expected Romanian text for scoring
  * @param threshold - Pronunciation accuracy threshold (default 0.70 = 70% match)
  */
@@ -130,27 +126,25 @@ export async function analyzePronunciation(
 ): Promise<PronunciationResult> {
   const start = Date.now();
 
-  // Convert Blob to base64 if needed
-  let audioBase64: string;
+  // Validate size if Blob
   if (audioData instanceof Blob) {
     if (audioData.size > MAX_AUDIO_SIZE_MB * 1024 * 1024) {
       throw new ValidationError(`Audio file too large (max ${MAX_AUDIO_SIZE_MB}MB)`);
     }
-    audioBase64 = await blobToBase64(audioData);
-  } else {
-    audioBase64 = audioData;
   }
 
-  if (!audioBase64) {
-    throw new ValidationError("Audio data cannot be empty");
+  // Build a cache key from the audio data
+  let cacheKey: string;
+  if (audioData instanceof Blob) {
+    const arrayBuffer = await audioData.arrayBuffer();
+    cacheKey = hashAudioData(Buffer.from(arrayBuffer).toString('base64').slice(0, 500));
+  } else {
+    cacheKey = hashAudioData(audioData.slice(0, 500));
   }
 
   // Check cache
-  const cacheKey = hashAudioData(audioBase64);
   const cachedResult = getCache(cacheKey);
-
   if (cachedResult) {
-    // Recalculate pronunciation score if expectedText provided and different
     if (expectedText && cachedResult.transcribedText) {
       const pronunciationScore = calculatePronunciationScore(
         cachedResult.transcribedText,
@@ -166,50 +160,54 @@ export async function analyzePronunciation(
     return cachedResult;
   }
 
-  const token = process.env.HUGGINGFACE_API_KEY || process.env.HUGGINGFACE_API_TOKEN;
-
-  if (!token) {
-    throw new ValidationError("HuggingFace API token not configured");
+  const groqKey = process.env.GROQ_API_KEY;
+  if (!groqKey) {
+    throw new ValidationError("GROQ_API_KEY not configured");
   }
 
   try {
-    // Wav2Vec2 expects raw audio data
+    // Build FormData for Groq Whisper API
+    const formData = new FormData();
+
+    if (audioData instanceof Blob) {
+      formData.append('file', audioData, 'recording.webm');
+    } else {
+      // base64 string — convert to Blob
+      const buffer = Buffer.from(audioData, 'base64');
+      const blob = new Blob([buffer], { type: 'audio/webm' });
+      formData.append('file', blob, 'recording.webm');
+    }
+
+    formData.append('model', 'whisper-large-v3');
+    formData.append('language', 'ro');
+    formData.append('response_format', 'verbose_json');
+
     const response = await fetch(
-      `https://api-inference.huggingface.co/models/${MODEL_ID}`,
+      'https://api.groq.com/openai/v1/audio/transcriptions',
       {
-        method: "POST",
+        method: 'POST',
         headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
+          'Authorization': `Bearer ${groqKey}`,
         },
-        body: JSON.stringify({
-          inputs: audioBase64,
-          options: {
-            wait_for_model: true,
-            use_cache: true
-          },
-        }),
+        body: formData,
       }
     );
 
     if (!response.ok) {
       const err = await response.text();
-      throw new Error(`HF API error: ${response.status} ${err}`);
+      throw new Error(`Groq Whisper error: ${response.status} ${err}`);
     }
 
-    // Wav2Vec2 output format: { text: "transcribed text" }
     const output = await response.json();
+    const transcribedText = (output.text || '').trim();
 
-    let transcribedText = "";
-    let confidence = 0;
-
-    if (output && typeof output.text === 'string') {
-      transcribedText = output.text;
-      // Some models return confidence, default to 0.8 if not provided
-      confidence = output.confidence ?? 0.8;
-    } else {
-      console.warn("Unexpected Wav2Vec2 output format:", output);
-      throw new Error("Invalid model output format");
+    // Groq verbose_json includes segment-level info; derive confidence from segments
+    let confidence = 0.85; // Whisper large-v3 is generally high confidence
+    if (output.segments && output.segments.length > 0) {
+      const avgNoSpeechProb = output.segments.reduce(
+        (sum: number, s: { no_speech_prob?: number }) => sum + (s.no_speech_prob ?? 0), 0
+      ) / output.segments.length;
+      confidence = Math.max(0, 1 - avgNoSpeechProb);
     }
 
     // Calculate pronunciation score if expected text provided
@@ -225,19 +223,19 @@ export async function analyzePronunciation(
       isAccurate: pronunciationScore ? pronunciationScore >= threshold : false,
       threshold,
       fallbackUsed: false,
-      modelUsed: MODEL_ID,
+      modelUsed: 'whisper-large-v3',
       processingTimeMs: Date.now() - start
     };
 
     setCache(cacheKey, result);
 
     console.log(
-      `Pronunciation analysis completed in ${result.processingTimeMs}ms`
+      `[Pronunciation] Groq Whisper transcribed in ${result.processingTimeMs}ms: "${transcribedText}"`
     );
 
     if (pronunciationScore !== undefined) {
       console.log(
-        `Pronunciation score: ${(pronunciationScore * 100).toFixed(1)}%`
+        `[Pronunciation] Score: ${(pronunciationScore * 100).toFixed(1)}%`
       );
     }
 
@@ -258,23 +256,6 @@ export async function analyzePronunciation(
 }
 
 /**
- * Convert Blob to base64 string
- */
-async function blobToBase64(blob: Blob): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const base64 = reader.result as string;
-      // Remove data:audio/...;base64, prefix if present
-      const base64Data = base64.includes(',') ? base64.split(',')[1] : base64;
-      resolve(base64Data);
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
-}
-
-/**
  * Analyze pronunciation from audio file path (for server-side usage)
  */
 export async function analyzePronunciationFromFile(
@@ -284,7 +265,7 @@ export async function analyzePronunciationFromFile(
 ): Promise<PronunciationResult> {
   const fs = await import('fs/promises');
   const audioBuffer = await fs.readFile(audioFilePath);
-  const base64Audio = audioBuffer.toString('base64');
+  const blob = new Blob([audioBuffer], { type: 'audio/webm' });
 
-  return analyzePronunciation(base64Audio, expectedText, threshold);
+  return analyzePronunciation(blob, expectedText, threshold);
 }

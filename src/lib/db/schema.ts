@@ -60,7 +60,7 @@ export const errorTypeEnum = ['grammar', 'pronunciation', 'vocabulary', 'word_or
 export type ErrorType = (typeof errorTypeEnum)[number];
 
 // Error source enum
-export const errorSourceEnum = ['chaos_window', 'content_player', 'deep_fog', 'manual', 'workshop'] as const;
+export const errorSourceEnum = ['chaos_window', 'content_player', 'deep_fog', 'manual', 'workshop', 'mystery_shelf'] as const;
 export type ErrorSource = (typeof errorSourceEnum)[number];
 
 // Session type enum

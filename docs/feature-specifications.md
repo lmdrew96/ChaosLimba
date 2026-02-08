@@ -1,8 +1,8 @@
 # ChaosLimbă Feature Specifications
 
-**Document Version:** 3.0 - Implementation Status Update (Adaptation Engine + Workshop)
-**Last Updated:** February 4, 2026
-**Status:** MVP 90% Complete - Approaching Beta
+**Document Version:** 3.1 - Codebase Audit Update
+**Last Updated:** February 7, 2026
+**Status:** MVP ~93% Complete - Approaching Beta
 
 ## Document Purpose
 This document provides detailed specifications for each major feature and section of the ChaosLimbă platform, including their purpose, functionality, user interactions, and how they integrate with the broader system architecture.
@@ -18,17 +18,17 @@ This document provides detailed specifications for each major feature and sectio
 
 | Feature | Status | Completion | Notes |
 |---------|--------|------------|-------|
-| **Deep Fog Mode** | 🔧 Partial | 60% | Basic content player working, advanced features pending |
-| **Chaos Window** | ✅ Implemented | 90% | Chat UI, smart content selection, fossilization-aware tutor |
+| **Deep Fog Mode** | 🔧 Partial | 75% | Content browser + filters + word capture to Mystery Shelf + ContentPlayer |
+| **Chaos Window** | ✅ Implemented | 92% | Chat UI, smart content selection, fossilization-aware tutor, content-aware practice audio |
 | **Workshop** | ✅ Implemented | 95% | Non-linear flow, 7 challenge types, adaptation-tier-aware |
-| **Mystery Shelf** | 🔧 Partial | 50% | Collection works, deep exploration pending |
-| **Error Garden** | 🔧 Partial | 80% | Tracking + fossilization detection via Adaptation Engine |
+| **Mystery Shelf** | 🔧 Partial | 80% | Collection + AI exploration + TTS quick review + filters (all/new/explored) |
+| **Error Garden** | 🔧 Partial | 85% | Pattern viz + fossilization tiers + trends + adaptation engine + grid/list views |
 | **Adaptation Engine** | ✅ Implemented | 95% | 3-tier fossilization escalation, lazy measurement, dynamic weights |
-| **Adaptive Tutoring System** | ✅ Implemented | 80% | AI tutor + adaptation engine + smart content selection |
+| **Adaptive Tutoring System** | ✅ Implemented | 85% | AI tutor + adaptation engine + smart content selection |
 | **Grading & Harvesting Engine** | ✅ Implemented | 90% | All core components deployed and working |
-| **Proficiency Tracker** | ✅ Implemented | 80% | Tracking and display working, advanced predictions pending |
+| **Proficiency Tracker** | ✅ Implemented | 85% | CEFR display + skill breakdown + timeline chart |
 | **Onboarding System** | ✅ Implemented | 100% | Complete proficiency assessment workflow |
-| **Theme System** | ✅ Implemented | 100% | Three variants with light/dark modes |
+| **Theme System** | ✅ Implemented | 100% | Three variants (Modern Glass, Forest Haven, Neon Nostalgia) + light/dark modes |
 
 ---
 
@@ -47,7 +47,7 @@ This document provides detailed specifications for each major feature and sectio
 
 ## Deep Fog Mode 🔧 PARTIALLY IMPLEMENTED
 
-**Implementation Status:** 60% Complete (Basic content player working, advanced selection algorithms pending)
+**Implementation Status:** 75% Complete (Content browser + filters + word capture + ContentPlayer)
 **Deployed:** January 28, 2026
 **Route:** `/deep-fog`
 
@@ -57,24 +57,20 @@ Deep Fog Mode is a **passive immersion experience** that intentionally exposes l
 ### Implementation Status
 
 ✅ **Implemented:**
-- Content player for video, audio, and text content
-- Basic content delivery
-- Video player with YouTube integration
-- Audio player with transcript support
-- Text reader interface
+- Content browser with type filters (all/text/audio)
+- Content player for audio and text content (ContentPlayer component)
+- Content modal for immersive reading/listening
+- Word/timestamp capture to Mystery Shelf
+- CEFR level display per content item
+- Shuffle/random content selection
 - Session tracking
-
-🔧 **In Progress:**
-- Unknown word collection interface
-- Context preservation for collected words
 
 🟡 **Not Yet Implemented:**
 - Automatic level targeting (1-3 CEFR levels above learner)
-- Advanced content selection algorithms
-- Visual highlighting of unknown words
-- Batch collection features
+- Visual highlighting of unknown words in text
+- Batch word collection
 - Deep Fog-specific analytics
-- Mystery Shelf integration
+- Advanced content selection algorithms
 
 ### Core Concept
 Unlike traditional language learning that presents content at or slightly above the learner's level, Deep Fog Mode deliberately introduces content 1-3 levels above the user's proficiency. The goal is not immediate comprehension, but rather:
@@ -375,29 +371,29 @@ Based on **Output Hypothesis** and **Focus on Form**:
 
 ## Mystery Shelf 🔧 PARTIALLY IMPLEMENTED
 
-**Implementation Status:** 50% Complete (Basic collection working, deep exploration pending)
+**Implementation Status:** 80% Complete (Collection + AI exploration + TTS quick review + filters)
 **Deployed:** January 28, 2026
 **Route:** `/mystery-shelf`
 
 ### Implementation Status
 
 ✅ **Implemented:**
-- Unknown word/phrase collection system
-- Basic storage and retrieval
-- Item listing with filtering
-- Manual item addition
-- Delete functionality
-- AI-powered analysis of mystery items (basic)
+- Unknown word/phrase collection system (manual + Deep Fog capture)
+- Storage and retrieval with full CRUD
+- AI-powered deep exploration via `/api/ai/analyze-mystery-item` (definition, examples, grammar, pronunciation)
+- MysteryExploreCard component for rich exploration view
+- Quick review dialog with TTS pronunciation (ElevenLabs)
+- Filter system (all/new/explored)
+- Context preservation from original encounter
+- Practice generation via `/api/mystery-shelf/practice`
 
 🟡 **Not Yet Implemented:**
-- Quick review mode with one-click definitions
-- Deep exploration mode with comprehensive information
-- Audio pronunciation for items
-- Practice prompt generation
-- Mastery tracking
-- Context preservation from original encounter
+- Spaced repetition scheduling
+- Mastery tracking progression
+- Batch operations (explore multiple items)
 - Error Garden cross-referencing
 - Chaos Window integration for targeted practice
+- Export functionality
 
 ### Purpose
 Mystery Shelf is a **learner-controlled repository** for unknown words, phrases, and structures collected during Deep Fog Mode and other learning activities. It provides both **quick review** and **deep exploration** options, empowering learners to choose their engagement level.
@@ -570,7 +566,7 @@ Based on **Exploratory Agency** and **Interlanguage Theory**:
 
 ## Error Garden 🔧 PARTIALLY IMPLEMENTED
 
-**Implementation Status:** 80% Complete (Tracking + fossilization detection via Adaptation Engine)
+**Implementation Status:** 85% Complete (Pattern viz + fossilization tiers + trends + adaptation engine)
 **Deployed:** January 23, 2026 (Adaptation Engine: February 2, 2026)
 **Route:** `/error-garden`
 
@@ -580,23 +576,20 @@ Based on **Exploratory Agency** and **Interlanguage Theory**:
 - Automatic error collection from all production tasks (Chaos Window, Workshop, content)
 - Error categorization (grammar, pronunciation, vocabulary, word order)
 - Modality tracking (text vs speech)
-- Basic pattern visualization dashboard
-- Error frequency tracking
-- Timeline view of errors
-- Trend charts and statistics
-- Error log modal with detailed information
-- Pattern modal for exploring specific error types
+- Full pattern visualization dashboard with grid/list view modes
+- Error frequency tracking with sort options (frequency/risk/count)
+- Trend charts (5-week sparkline per pattern)
+- Pattern modal with examples, interlanguage rule, transfer source, intervention suggestions
 - Fossilization detection (3-tier system via Adaptation Engine)
+- Tier filtering (all / tier 1+ / tier 2+)
 - Automated intervention protocols (nudge/push/destabilize)
 - Intervention outcome measurement (lazy assessment 3+ days post-intervention)
-- Trending analysis (current week vs 2 weeks prior)
+- Trending analysis with direction indicators (improving/stable/worsening)
 - Error deduplication within sessions
-
-🔧 **In Progress:**
 - Error clustering using frequency-based grouping + adaptation tiers
 
 🟡 **Not Yet Implemented:**
-- ML-based error clustering (using frequency + adaptation tiers instead)
+- ML-based error clustering (using frequency + adaptation tiers instead — may not be needed)
 - Context-dependent error analysis
 - L1 transfer likelihood detection
 - Population-level pattern insights

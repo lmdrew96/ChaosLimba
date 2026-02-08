@@ -1,10 +1,10 @@
 # ChaosLimbă: Development Documentation
 ## From Inception to MVP and Beyond
 
-**Document Version:** 4.0 - MVP 90% COMPLETE (Adaptation Engine + Workshop)
-**Last Updated:** February 4, 2026
+**Document Version:** 4.1 - MVP ~93% COMPLETE (Codebase Audit Update)
+**Last Updated:** February 7, 2026
 **Author:** Nae Drew
-**Status:** Living Document - MVP 90% Complete!
+**Status:** Living Document - MVP ~93% Complete!
 
 ---
 
@@ -32,7 +32,7 @@
 
 - **Developer:** Nae Drew (solo)
 - **Timeline:** 7-month MVP (Jan 2026 → Aug 2026) - **AHEAD OF SCHEDULE!**
-- **Current Status:** **MVP 90% Complete (February 4, 2026)** 🎉
+- **Current Status:** **MVP ~93% Complete (February 7, 2026)** 🎉
 - **Purpose:** Linguistics major capstone + personal use + commercial potential
 - **Target Users:** English-speaking Romanian learners (A1→C1)
 - **Budget:** $0-5/month (72-100% under original $10-18 estimate!)
@@ -62,22 +62,22 @@ Unlike traditional language apps that enforce linear progression and penalize er
 4. **Adapts in real-time** based on individual error patterns and proficiency
 5. **Employs 10-component AI ensemble** with intelligent routing for comprehensive language analysis
 
-### 🎉 Implementation Status (February 4, 2026)
+### 🎉 Implementation Status (February 7, 2026)
 
-**MVP Progress: 90% COMPLETE**
+**MVP Progress: ~93% COMPLETE**
 
 | Component | Status | Notes |
 |-----------|--------|-------|
-| **Core Infrastructure** | ✅ 100% | Auth, DB, themes, settings complete |
+| **Core Infrastructure** | ✅ 100% | Auth, DB, themes (3 variants + light/dark), settings complete |
 | **AI Ensemble (10 components)** | ✅ 95% | All deployed, ALL FREE APIS! |
 | **Adaptation Engine** | ✅ 95% | 3-tier fossilization escalation, lazy measurement |
 | **Workshop** | ✅ 95% | 7 challenge types, non-linear flow, tier-aware |
 | **Content System** | ✅ 90% | Multi-modal player working, scaling library |
-| **Error Garden** | 🔧 80% | Tracking + fossilization detection via Adaptation Engine |
-| **Chaos Window** | ✅ 90% | Chat UI, smart content selection, fossilization-aware tutor |
-| **Deep Fog Mode** | 🔧 60% | Basic player working, advanced features pending |
-| **Mystery Shelf** | 🔧 50% | Storage complete, exploration pending |
-| **Proficiency Tracker** | ✅ 80% | Tracking + visualization working |
+| **Error Garden** | 🔧 85% | Pattern viz + fossilization tiers + trends + adaptation engine + grid/list views |
+| **Chaos Window** | ✅ 92% | Chat UI, smart content selection, fossilization-aware tutor, content-aware practice audio |
+| **Deep Fog Mode** | 🔧 75% | Content browser + filters + word capture to Mystery Shelf + ContentPlayer |
+| **Mystery Shelf** | 🔧 80% | Collection + AI exploration + TTS quick review + filters (all/new/explored) |
+| **Proficiency Tracker** | ✅ 85% | CEFR display + skill breakdown + timeline chart |
 | **Onboarding** | ✅ 100% | Complete assessment workflow |
 
 **Cost Achievement:** $0-5/month (vs. $10-18 budgeted) = 72-100% cost reduction! 🎉
