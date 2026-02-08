@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog"
-import { BookOpen, Search, Sparkles, Trash2, CheckCircle2, Plus, Loader2, Volume2, Pause } from "lucide-react"
+import { BookOpen, Search, Sparkles, Trash2, CheckCircle2, Plus, Loader2, Volume2, Pause, ArrowDownAZ, Clock, AlertTriangle } from "lucide-react"
 import { CrystalBall } from "@/components/icons/CrystalBall"
 import { MysteryExploreCard, type MysteryItemFull } from "@/components/features/mystery-shelf/MysteryExploreCard"
 
@@ -15,7 +15,15 @@ export default function MysteryShelfPage() {
   const [items, setItems] = useState<MysteryItemFull[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [filter, setFilter] = useState<"all" | "new" | "explored">("all")
+  const [searchQuery, setSearchQuery] = useState("")
+  const [sortMode, setSortMode] = useState<"newest" | "az">("newest")
   const [selectedItem, setSelectedItem] = useState<MysteryItemFull | null>(null)
+
+  // Delete confirmation state
+  const [pendingDeleteItem, setPendingDeleteItem] = useState<MysteryItemFull | null>(null)
+
+  // Duplicate detection state
+  const [duplicateWarning, setDuplicateWarning] = useState<string | null>(null)
 
   // Quick Review Dialog state
   const [quickReviewItem, setQuickReviewItem] = useState<MysteryItemFull | null>(null)
@@ -177,7 +185,8 @@ export default function MysteryShelfPage() {
         const data = await res.json()
         setItems(data.map((item: any) => ({
           ...item,
-          collected: new Date(item.createdAt).toLocaleDateString()
+          collected: new Date(item.createdAt).toLocaleDateString(),
+          createdAt: item.createdAt,
         })))
       }
     } catch (e) {
@@ -191,9 +200,21 @@ export default function MysteryShelfPage() {
     fetchItems()
   }, [])
 
-  const handleAddItem = async () => {
+  const handleAddItem = async (force = false) => {
     if (!newItemWord.trim()) return
 
+    // Duplicate detection
+    if (!force) {
+      const existing = items.find(
+        i => i.word.toLowerCase() === newItemWord.trim().toLowerCase()
+      )
+      if (existing) {
+        setDuplicateWarning(existing.word)
+        return
+      }
+    }
+
+    setDuplicateWarning(null)
     setIsSubmitting(true)
     try {
       const res = await fetch("/api/mystery-shelf", {
@@ -240,9 +261,13 @@ export default function MysteryShelfPage() {
     }
   }
 
-  const removeItem = async (id: string) => {
+  const confirmDelete = async () => {
+    if (!pendingDeleteItem) return
+    const id = pendingDeleteItem.id
+
     setItems(items.filter(item => item.id !== id))
     if (selectedItem?.id === id) setSelectedItem(null)
+    setPendingDeleteItem(null)
 
     try {
       await fetch(`/api/mystery-shelf/${id}`, { method: "DELETE" })
@@ -252,11 +277,28 @@ export default function MysteryShelfPage() {
     }
   }
 
-  const filteredItems = items.filter((item) => {
-    if (filter === "new") return !item.isExplored
-    if (filter === "explored") return item.isExplored
-    return true
-  })
+  const filteredItems = items
+    .filter((item) => {
+      if (filter === "new") return !item.isExplored
+      if (filter === "explored") return item.isExplored
+      return true
+    })
+    .filter((item) => {
+      if (!searchQuery.trim()) return true
+      return item.word.toLowerCase().includes(searchQuery.toLowerCase())
+    })
+    .sort((a, b) => {
+      if (sortMode === "az") return a.word.localeCompare(b.word)
+      return 0 // "newest" preserves API order (already sorted by createdAt desc)
+    })
+
+  // Stats computed from full items list
+  const exploredCount = items.filter(i => i.isExplored).length
+  const exploredPercent = items.length > 0 ? Math.round((exploredCount / items.length) * 100) : 0
+  const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+  const newThisWeek = items.filter(i => i.createdAt && new Date(i.createdAt) >= oneWeekAgo).length
+  const manualCount = items.filter(i => i.source === "manual").length
+  const deepFogCount = items.filter(i => i.source === "deep_fog").length
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-10">
@@ -272,7 +314,7 @@ export default function MysteryShelfPage() {
         </div>
 
         <div className="flex gap-2 items-center">
-          <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+          <Dialog open={isAddOpen} onOpenChange={(open) => { setIsAddOpen(open); if (!open) setDuplicateWarning(null) }}>
             <DialogTrigger asChild>
               <Button className="bg-accent hover:bg-accent/50 text-foreground">
                 <Plus className="h-4 w-4 mr-2" />
@@ -303,10 +345,37 @@ export default function MysteryShelfPage() {
                   />
                 </div>
               </div>
+              {duplicateWarning && (
+                <div className="flex items-start gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+                  <AlertTriangle className="h-4 w-4 text-destructive mt-0.5 shrink-0" />
+                  <div className="flex-1">
+                    <p className="text-sm text-destructive">
+                      You already have &lsquo;{duplicateWarning}&rsquo; on your shelf
+                    </p>
+                    <div className="flex gap-2 mt-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-xs h-7"
+                        onClick={() => setDuplicateWarning(null)}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        size="sm"
+                        className="text-xs h-7 bg-accent hover:bg-accent/50"
+                        onClick={() => handleAddItem(true)}
+                      >
+                        Add Anyway
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
               <DialogFooter>
-                <Button variant="outline" onClick={() => setIsAddOpen(false)}>Cancel</Button>
+                <Button variant="outline" onClick={() => { setIsAddOpen(false); setDuplicateWarning(null) }}>Cancel</Button>
                 <Button
-                  onClick={handleAddItem}
+                  onClick={() => handleAddItem()}
                   className="bg-accent hover:bg-accent/50"
                   disabled={!newItemWord.trim() || isSubmitting}
                 >
@@ -318,25 +387,71 @@ export default function MysteryShelfPage() {
         </div>
       </div>
 
-      <div className="flex gap-2">
-        {(["all", "new", "explored"] as const).map((f) => (
+      {/* Stats Overview */}
+      {!isLoading && items.length > 0 && (
+        <div className="flex flex-wrap gap-4 text-sm">
+          <div className="flex items-center gap-1.5 text-muted-foreground">
+            <BookOpen className="h-3.5 w-3.5" />
+            <span><span className="font-medium text-foreground">{items.length}</span> collected</span>
+          </div>
+          <div className="flex items-center gap-1.5 text-muted-foreground">
+            <CheckCircle2 className="h-3.5 w-3.5 text-chart-4" />
+            <span><span className="font-medium text-foreground">{exploredCount}</span> explored ({exploredPercent}%)</span>
+          </div>
+          <div className="flex items-center gap-1.5 text-muted-foreground">
+            <Clock className="h-3.5 w-3.5" />
+            <span><span className="font-medium text-foreground">{newThisWeek}</span> new this week</span>
+          </div>
+          <div className="flex items-center gap-1.5 text-muted-foreground">
+            <span><span className="font-medium text-foreground">{manualCount}</span> Manual · <span className="font-medium text-foreground">{deepFogCount}</span> Deep Fog</span>
+          </div>
+        </div>
+      )}
+
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="flex gap-2">
+          {(["all", "new", "explored"] as const).map((f) => (
+            <Button
+              key={f}
+              variant={filter === f ? "default" : "outline"}
+              size="sm"
+              onClick={() => setFilter(f)}
+              className={
+                filter === f
+                  ? "bg-accent hover:bg-accent/50"
+                  : "border-borders"
+              }
+            >
+              {f === "all" && `All (${items.length})`}
+              {f === "new" && `New (${items.filter((i) => !i.isExplored).length})`}
+              {f === "explored" &&
+                `Explored (${items.filter((i) => i.isExplored).length})`}
+            </Button>
+          ))}
+        </div>
+        <div className="flex gap-2 flex-1">
+          <div className="relative flex-1 max-w-xs">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+            <Input
+              placeholder="Search words..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="h-8 pl-8 text-sm"
+            />
+          </div>
           <Button
-            key={f}
-            variant={filter === f ? "default" : "outline"}
+            variant="outline"
             size="sm"
-            onClick={() => setFilter(f)}
-            className={
-              filter === f
-                ? "bg-accent hover:bg-accent/50"
-                : "border-borders"
-            }
+            onClick={() => setSortMode(prev => prev === "newest" ? "az" : "newest")}
+            className="border-border text-xs gap-1.5"
           >
-            {f === "all" && `All (${items.length})`}
-            {f === "new" && `New (${items.filter((i) => !i.isExplored).length})`}
-            {f === "explored" &&
-              `Explored (${items.filter((i) => i.isExplored).length})`}
+            {sortMode === "az" ? (
+              <><ArrowDownAZ className="h-3.5 w-3.5" /> A–Z</>
+            ) : (
+              <><Clock className="h-3.5 w-3.5" /> Newest</>
+            )}
           </Button>
-        ))}
+        </div>
       </div>
 
       {isLoading ? (
@@ -379,7 +494,7 @@ export default function MysteryShelfPage() {
                         </p>
                       )}
                       <p className="text-xs text-muted-foreground/60 mt-2">
-                        Collected: {item.collected} • {item.source}
+                        Collected: {item.collected} • {item.source === "deep_fog" ? "Deep Fog" : "Manual"}
                       </p>
                     </div>
                     <div className="flex items-center gap-2 ml-2">
@@ -438,7 +553,7 @@ export default function MysteryShelfPage() {
                       className="text-xs border-destructive/30 hover:bg-destructive/10 text-destructive"
                       onClick={(e) => {
                         e.stopPropagation()
-                        removeItem(item.id)
+                        setPendingDeleteItem(item)
                       }}
                     >
                       <Trash2 className="h-3 w-3" />
@@ -452,10 +567,29 @@ export default function MysteryShelfPage() {
               <Card className="rounded-xl border-dashed border-2 border-border">
                 <CardContent className="p-8 text-center">
                   <BookOpen className="h-12 w-12 mx-auto text-accent mb-4" />
-                  <p className="text-muted-foreground">No items to display</p>
-                  <p className="text-sm text-muted-foreground/60">
-                    Add items manually or collect from Deep Fog mode
-                  </p>
+                  {searchQuery.trim() ? (
+                    <>
+                      <p className="text-muted-foreground">No matches for &ldquo;{searchQuery}&rdquo;</p>
+                      <p className="text-sm text-muted-foreground/60">Try a different search term</p>
+                    </>
+                  ) : filter === "new" ? (
+                    <>
+                      <p className="text-muted-foreground">All caught up!</p>
+                      <p className="text-sm text-muted-foreground/60">Every item has been explored.</p>
+                    </>
+                  ) : filter === "explored" ? (
+                    <>
+                      <p className="text-muted-foreground">No explored items yet</p>
+                      <p className="text-sm text-muted-foreground/60">Try Deep Explore on a word!</p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-muted-foreground">No items to display</p>
+                      <p className="text-sm text-muted-foreground/60">
+                        Add items manually or collect from Deep Fog mode
+                      </p>
+                    </>
+                  )}
                 </CardContent>
               </Card>
             )}
@@ -473,6 +607,28 @@ export default function MysteryShelfPage() {
           )}
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={!!pendingDeleteItem} onOpenChange={(open) => { if (!open) setPendingDeleteItem(null) }}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Delete Item</DialogTitle>
+            <DialogDescription>
+              Delete &lsquo;{pendingDeleteItem?.word}&rsquo; from your shelf? This can&apos;t be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setPendingDeleteItem(null)}>Cancel</Button>
+            <Button
+              variant="destructive"
+              onClick={confirmDelete}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Quick Review Dialog */}
       <Dialog open={!!quickReviewItem} onOpenChange={(open) => {
