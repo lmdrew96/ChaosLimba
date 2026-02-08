@@ -113,12 +113,26 @@ export async function GET() {
             const writingAvg = weightedAvg(writingRaw);
 
             // Convert to 0-100 scale for proficiency lib (score * 10)
-            const fallback = ONBOARDING_DEFAULTS[onboardingLevel];
+            const baseline = ONBOARDING_DEFAULTS[onboardingLevel];
+
+            // Blend session scores with onboarding baseline.
+            // Sessions gradually earn trust: 2 sessions → 10% session weight,
+            // 10 sessions → 50%, 20+ sessions → 80% (capped).
+            // This prevents 2 high-scoring sessions from overriding a B1 baseline to C2.
+            const sessionWeight = Math.min(history.length / 20, 0.8);
+            const baselineWeight = 1 - sessionWeight;
+
+            const blend = (sessionScore: number | null): number => {
+                if (sessionScore === null) return baseline;
+                const sessionOn100 = sessionScore * 10;
+                return (sessionOn100 * sessionWeight) + (baseline * baselineWeight);
+            };
+
             scores = {
-                listeningScore: listeningAvg !== null ? listeningAvg * 10 : fallback,
-                readingScore: readingAvg !== null ? readingAvg * 10 : fallback,
-                speakingScore: speakingAvg !== null ? speakingAvg * 10 : fallback,
-                writingScore: writingAvg !== null ? writingAvg * 10 : fallback,
+                listeningScore: blend(listeningAvg),
+                readingScore: blend(readingAvg),
+                speakingScore: blend(speakingAvg),
+                writingScore: blend(writingAvg),
             };
 
             // Compute trends per skill
