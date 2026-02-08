@@ -28,7 +28,7 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json();
-    const { contentType, voice, contentTitle, contentTranscript, contentTopic, contentId } = body;
+    const { contentType, voice, contentTitle, contentTranscript, contentTopic, contentId, patternContext } = body;
 
     // Validate content type
     if (!contentType || !generatedContentTypeEnum.includes(contentType)) {
@@ -45,13 +45,32 @@ export async function POST(req: Request) {
       .where(eq(userPreferences.userId, userId));
     const userLevel = prefs?.languageLevel ?? 'A1';
 
-    // Fetch user's top error patterns
-    const patterns = await getUserErrorPatternsForContent(userId, 5);
-    if (patterns.length === 0) {
-      return NextResponse.json(
-        { error: 'No error patterns found. Use ChaosLimbă more to build your error profile.' },
-        { status: 404 }
-      );
+    // Build patterns: use patternContext for targeted generation, or fall back to generic top-5
+    let patterns: Awaited<ReturnType<typeof getUserErrorPatternsForContent>>;
+
+    if (patternContext?.errorType && patternContext?.category) {
+      // Construct a single targeted pattern from the Error Garden modal context
+      patterns = [{
+        errorType: patternContext.errorType,
+        category: patternContext.category,
+        count: 1,
+        frequency: 50,
+        isFossilizing: false,
+        examples: (patternContext.examples || []).map((ex: { incorrect?: string; correct?: string }) => ({
+          incorrect: ex.incorrect || '',
+          correct: ex.correct || null,
+          context: 'Error Garden',
+        })),
+        intervention: patternContext.interlanguageRule || 'Targeted practice',
+      }];
+    } else {
+      patterns = await getUserErrorPatternsForContent(userId, 5);
+      if (patterns.length === 0) {
+        return NextResponse.json(
+          { error: 'No error patterns found. Use ChaosLimbă more to build your error profile.' },
+          { status: 404 }
+        );
+      }
     }
 
     // Compute fingerprint for cache dedup (include contentId so different content = different sentences)

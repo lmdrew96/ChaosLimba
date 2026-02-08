@@ -1,7 +1,9 @@
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
-import { mysteryItems, errorLogs, userPreferences } from "@/lib/db/schema";
+import { mysteryItems, sessions, userPreferences } from "@/lib/db/schema";
 import { callGroq } from "@/lib/ai/groq";
+import { saveErrorPatternsToGarden } from "@/lib/db/queries";
+import type { ExtractedErrorPattern } from "@/types/aggregator";
 import { and, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
@@ -60,20 +62,33 @@ Grade this practice attempt.
         const effectiveJson = cleanJson.replace(/<think>[\s\S]*?<\/think>/g, "").trim();
         const result = JSON.parse(effectiveJson);
 
-        // Log errors to Error Garden if any
+        // Log errors to Error Garden via the proper pipeline (enrichment + dedup)
         if (result.grammarErrors && result.grammarErrors.length > 0) {
-            for (const error of result.grammarErrors) {
-                await db.insert(errorLogs).values({
-                    userId,
-                    errorType: 'grammar',
-                    category: error.type || 'mystery_shelf_practice',
-                    context: userAnswer,
-                    correction: error.correct,
-                    source: 'mystery_shelf',
-                    modality: 'text',
-                    feedbackType: 'error',
-                });
-            }
+            // Create a mystery_shelf session for dedup tracking
+            const [session] = await db.insert(sessions).values({
+                userId,
+                sessionType: 'mystery_shelf',
+            }).returning();
+
+            // Map Groq grammar errors → ExtractedErrorPattern[]
+            const errorPatterns: ExtractedErrorPattern[] = result.grammarErrors.map(
+                (error: { incorrect?: string; correct?: string; type?: string }) => ({
+                    type: 'grammar' as const,
+                    category: error.type || 'general',
+                    pattern: `${error.incorrect} → ${error.correct}`,
+                    learnerProduction: userAnswer,
+                    correctForm: error.correct,
+                    confidence: 0.8,
+                    severity: 'medium' as const,
+                    inputType: 'text' as const,
+                    feedbackType: 'error' as const,
+                })
+            );
+
+            // Fire-and-forget to keep response fast
+            saveErrorPatternsToGarden(errorPatterns, userId, session.id, 'mystery_shelf').catch(err => {
+                console.error('[Mystery Practice] Failed to save errors to Error Garden:', err);
+            });
         }
 
         // Update mystery item - mark as having been practiced

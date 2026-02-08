@@ -40,6 +40,10 @@ export type ErrorPattern = {
   theoreticalBasis: string;
   incorrectUsage: number;
   correctUsage: number;
+  // Modality breakdown
+  speechCount: number;
+  textCount: number;
+  primaryModality: 'speech' | 'text' | 'mixed';
 };
 
 /**
@@ -556,6 +560,8 @@ export async function GET(req: NextRequest) {
           patternCount: 0,
           fossilizingCount: 0,
           tier2PlusCount: 0,
+          errorTypeDistribution: {},
+          modalitySplit: { speech: 0, text: 0 },
         },
       });
     }
@@ -593,12 +599,29 @@ export async function GET(req: NextRequest) {
       // Calculate real weekly trend
       const { trend, labels: trendLabels } = calculateWeeklyTrend(logs, allLogs);
 
+      // Compute modality breakdown
+      const speechCount = logs.filter(l => l.modality === 'speech').length;
+      const textCount = logs.filter(l => l.modality === 'text').length;
+      const primaryModality: 'speech' | 'text' | 'mixed' =
+        speechCount > textCount * 2 ? 'speech' :
+        textCount > speechCount * 2 ? 'text' : 'mixed';
+
+      // Source label map for better example context
+      const sourceLabels: Record<string, string> = {
+        chaos_window: 'Chaos Window',
+        workshop: 'Workshop',
+        mystery_shelf: 'Mystery Shelf',
+        content_player: 'Content Player',
+        deep_fog: 'Deep Fog',
+        manual: 'Manual Entry',
+      };
+
       // Extract examples
       const examples: ErrorExample[] = logs.slice(0, 5).map(log => ({
         id: log.id,
         incorrect: log.context || 'Unknown context',
         correct: log.correction,
-        context: log.source === 'chaos_window' ? 'Chaos Window Practice' : 'Content Interaction',
+        context: sourceLabels[log.source] || 'Content Interaction',
         timestamp: log.createdAt.toISOString().split('T')[0],
       }));
 
@@ -630,11 +653,24 @@ export async function GET(req: NextRequest) {
         incorrectUsage: count,
         // Estimate correct usage based on session data (would be more accurate with tracked successes)
         correctUsage: Math.max(1, Math.round(count * (1 / (frequency / 100) - 1))),
+        speechCount,
+        textCount,
+        primaryModality,
       };
     });
 
     const fossilizingCount = patterns.filter((p) => p.isFossilizing).length;
     const tier2PlusCount = patterns.filter((p) => p.tier >= 2).length;
+
+    // Compute error type distribution across all logs
+    const errorTypeDistribution: Record<string, number> = {};
+    for (const log of allLogs) {
+      errorTypeDistribution[log.errorType] = (errorTypeDistribution[log.errorType] || 0) + 1;
+    }
+
+    // Compute global modality split
+    const totalSpeech = allLogs.filter(l => l.modality === 'speech').length;
+    const totalText = allLogs.filter(l => l.modality === 'text').length;
 
     // Sort by frequency by default
     patterns.sort((a, b) => b.frequency - a.frequency);
@@ -646,6 +682,8 @@ export async function GET(req: NextRequest) {
         patternCount: patterns.length,
         fossilizingCount,
         tier2PlusCount,
+        errorTypeDistribution,
+        modalitySplit: { speech: totalSpeech, text: totalText },
       },
     });
   } catch (error) {

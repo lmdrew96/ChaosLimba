@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useMemo } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Flower2, AlertTriangle, TrendingUp, TrendingDown, Minus, Lightbulb, Sparkles, Loader2, LayoutGrid, List as ListIcon, Info, Filter, X, Zap } from "lucide-react"
+import { Flower2, AlertTriangle, TrendingUp, TrendingDown, Minus, Lightbulb, Sparkles, Loader2, LayoutGrid, List as ListIcon, Info, Filter, X, Zap, Mic, Type } from "lucide-react"
 import type { ErrorPattern } from "@/app/api/errors/patterns/route"
 import { PatternModal } from "@/components/features/error-garden/PatternModal"
 import { cn } from "@/lib/utils"
@@ -15,6 +15,8 @@ type PatternData = {
     patternCount: number
     fossilizingCount: number
     tier2PlusCount: number
+    errorTypeDistribution: Record<string, number>
+    modalitySplit: { speech: number; text: number }
   }
 }
 
@@ -192,6 +194,67 @@ export default function ErrorGardenPage() {
           color="purple"
         />
       </div>
+
+      {/* Error Type Distribution + Modality Split */}
+      {data && data.stats.totalErrors > 0 && (
+        <div className="flex flex-col sm:flex-row gap-4 items-stretch">
+          {/* Error Type Distribution Bar */}
+          <div className="flex-1 bg-muted/30 rounded-xl border border-border p-4">
+            <div className="text-xs text-muted-foreground font-medium mb-2">Error Type Distribution</div>
+            <div className="h-3 rounded-full overflow-hidden flex">
+              {ALL_ERROR_TYPES.map(type => {
+                const count = data.stats.errorTypeDistribution[type] || 0
+                const pct = data.stats.totalErrors > 0 ? (count / data.stats.totalErrors) * 100 : 0
+                if (pct === 0) return null
+                const barColors: Record<string, string> = {
+                  grammar: "bg-destructive",
+                  pronunciation: "bg-chart-3",
+                  vocabulary: "bg-accent",
+                  word_order: "bg-primary",
+                }
+                return (
+                  <div
+                    key={type}
+                    className={cn("h-full transition-all", barColors[type])}
+                    style={{ width: `${pct}%` }}
+                    title={`${errorTypeLabels[type]}: ${count} (${Math.round(pct)}%)`}
+                  />
+                )
+              })}
+            </div>
+            <div className="flex flex-wrap gap-3 mt-2">
+              {ALL_ERROR_TYPES.map(type => {
+                const count = data.stats.errorTypeDistribution[type] || 0
+                if (count === 0) return null
+                return (
+                  <span key={type} className={cn("text-xs flex items-center gap-1", errorFilterColors[type].split(' ')[1])}>
+                    <span className={cn("w-2 h-2 rounded-full", { "bg-destructive": type === "grammar", "bg-chart-3": type === "pronunciation", "bg-accent": type === "vocabulary", "bg-primary": type === "word_order" })} />
+                    {errorTypeLabels[type]} {count}
+                  </span>
+                )
+              })}
+            </div>
+          </div>
+          {/* Modality Split */}
+          <div className="sm:w-48 bg-muted/30 rounded-xl border border-border p-4 flex flex-col justify-center">
+            <div className="text-xs text-muted-foreground font-medium mb-2">Input Mode</div>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1.5 text-sm">
+                <Mic className="h-3.5 w-3.5 text-chart-3" />
+                <span className="font-medium">{data.stats.modalitySplit.speech}</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-sm">
+                <Type className="h-3.5 w-3.5 text-accent" />
+                <span className="font-medium">{data.stats.modalitySplit.text}</span>
+              </div>
+            </div>
+            <div className="text-xs text-muted-foreground mt-1">
+              {data.stats.modalitySplit.speech > data.stats.modalitySplit.text ? "Mostly spoken" :
+               data.stats.modalitySplit.text > data.stats.modalitySplit.speech ? "Mostly written" : "Balanced"}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Controls */}
       <div className="flex flex-col sm:flex-row gap-4 justify-between items-center bg-muted/30 p-4 rounded-xl border border-border backdrop-blur-sm">
@@ -447,6 +510,17 @@ function PatternCard({ pattern, onClick }: { pattern: ErrorPattern, onClick: () 
             {pattern.isFossilizing && !tierBadge && (
               <span className="text-xs px-2 py-1 rounded border border-destructive/50 bg-destructive/10 text-destructive font-semibold">
                 HIGH RISK
+              </span>
+            )}
+            {pattern.primaryModality && pattern.primaryModality !== 'mixed' && (
+              <span className={cn(
+                "text-xs px-2 py-1 rounded border flex items-center gap-1",
+                pattern.primaryModality === 'speech'
+                  ? "border-chart-3/40 bg-chart-3/10 text-chart-3"
+                  : "border-accent/40 bg-accent/10 text-accent"
+              )}>
+                {pattern.primaryModality === 'speech' ? <Mic className="h-3 w-3" /> : <Type className="h-3 w-3" />}
+                {pattern.primaryModality === 'speech' ? 'Mostly Speech' : 'Mostly Text'}
               </span>
             )}
           </div>

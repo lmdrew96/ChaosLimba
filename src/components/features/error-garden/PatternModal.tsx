@@ -53,6 +53,7 @@ export function PatternModal({ pattern, isOpen, onCloseAction }: PatternModalPro
     const audioRef = useRef<HTMLAudioElement | null>(null)
 
     async function handleGenerate(contentType: 'practice_sentences' | 'corrected_version') {
+        if (!pattern) return
         setGenerating(contentType)
         setError(null)
         setGeneratedAudio(null)
@@ -61,7 +62,18 @@ export function PatternModal({ pattern, isOpen, onCloseAction }: PatternModalPro
             const res = await fetch('/api/generated-content/generate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ contentType }),
+                body: JSON.stringify({
+                    contentType,
+                    patternContext: {
+                        errorType: pattern.errorType,
+                        category: pattern.category,
+                        interlanguageRule: pattern.interlanguageRule,
+                        examples: pattern.examples.slice(0, 3).map(ex => ({
+                            incorrect: ex.incorrect,
+                            correct: ex.correct,
+                        })),
+                    },
+                }),
             })
 
             if (!res.ok) {
@@ -146,11 +158,17 @@ export function PatternModal({ pattern, isOpen, onCloseAction }: PatternModalPro
                                 <Brain className="h-5 w-5" />
                                 Interlanguage Analysis
                             </h3>
-                            <div className="grid md:grid-cols-2 gap-6">
+                            <div className="grid md:grid-cols-3 gap-6">
                                 <div className="space-y-1">
                                     <div className="text-xs text-chart-4/70 uppercase tracking-wider font-semibold">Current Rule</div>
                                     <div className="p-3 bg-muted/40 rounded-lg text-foreground italic border-l-2 border-chart-4">
                                         "{pattern.interlanguageRule}"
+                                    </div>
+                                </div>
+                                <div className="space-y-1">
+                                    <div className="text-xs text-chart-4/70 uppercase tracking-wider font-semibold">L1 Transfer Source</div>
+                                    <div className="p-3 bg-muted/40 rounded-lg text-foreground/70 border-l-2 border-accent">
+                                        {pattern.transferSource}
                                     </div>
                                 </div>
                                 <div className="space-y-1">
