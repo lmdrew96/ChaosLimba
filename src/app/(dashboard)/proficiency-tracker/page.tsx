@@ -5,8 +5,6 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import {
     TrendingUp,
-    TrendingDown,
-    Minus,
     Loader2,
     Lightbulb,
     Sparkles,
@@ -60,12 +58,6 @@ const CEFR_LABELS: Record<CEFRLevel, string> = {
     'B2': 'Upper Intermediate',
     'C1': 'Advanced',
     'C2': 'Proficient',
-}
-
-const TREND_CONFIG = {
-    improving: { icon: TrendingUp, label: 'Improving', color: 'text-chart-4' },
-    declining: { icon: TrendingDown, label: 'Needs focus', color: 'text-destructive' },
-    stable: { icon: Minus, label: 'Stable', color: 'text-muted-foreground' },
 }
 
 function formatLastUpdated(iso: string): string {
@@ -244,21 +236,15 @@ export default function ProficiencyTrackerPage() {
                     Skill Breakdown
                 </h2>
                 <div className="grid md:grid-cols-2 gap-4">
-                    {skillEntries.map(([skill, data]) => {
-                        const trendConfig = TREND_CONFIG[data.trend]
-                        const TrendIcon = trendConfig.icon
-                        return (
-                            <div key={skill} className="relative">
-                                <SkillProgressBar skill={skill} score={data.score} level={data.level} />
-                                {sessionsTracked >= 2 && (
-                                    <div className={`absolute top-4 right-4 flex items-center gap-1 text-xs ${trendConfig.color}`}>
-                                        <TrendIcon className="h-3 w-3" />
-                                        <span>{trendConfig.label}</span>
-                                    </div>
-                                )}
-                            </div>
-                        )
-                    })}
+                    {skillEntries.map(([skill, data]) => (
+                        <SkillProgressBar
+                            key={skill}
+                            skill={skill}
+                            score={data.score}
+                            level={data.level}
+                            trend={sessionsTracked >= 2 ? data.trend : undefined}
+                        />
+                    ))}
                 </div>
 
                 {/* Strongest/Weakest insight */}

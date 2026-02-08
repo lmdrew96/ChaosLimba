@@ -2,12 +2,15 @@
 
 import { cn } from "@/lib/utils"
 import type { CEFRLevel } from "@/lib/proficiency"
-import { Headphones, BookOpen, Mic2, PenTool } from "lucide-react"
+import { Headphones, BookOpen, Mic2, PenTool, TrendingUp, TrendingDown, Minus } from "lucide-react"
+
+type Trend = 'improving' | 'declining' | 'stable'
 
 interface SkillProgressBarProps {
     skill: 'listening' | 'reading' | 'speaking' | 'writing'
     score: number
     level: CEFRLevel
+    trend?: Trend
 }
 
 const skillConfig = {
@@ -28,9 +31,9 @@ const skillConfig = {
     speaking: {
         icon: Mic2,
         label: "Speaking",
-        color: "from-secondary to-secondary/70",
-        bgColor: "bg-secondary/10",
-        textColor: "text-secondary",
+        color: "from-chart-2 to-chart-2/70",
+        bgColor: "bg-chart-2/10",
+        textColor: "text-chart-2",
     },
     writing: {
         icon: PenTool,
@@ -41,7 +44,13 @@ const skillConfig = {
     },
 }
 
-export function SkillProgressBar({ skill, score, level }: SkillProgressBarProps) {
+const trendConfig = {
+    improving: { icon: TrendingUp, label: 'Improving', color: 'text-chart-4' },
+    declining: { icon: TrendingDown, label: 'Needs focus', color: 'text-destructive' },
+    stable: { icon: Minus, label: '', color: 'text-muted-foreground' },
+}
+
+export function SkillProgressBar({ skill, score, level, trend }: SkillProgressBarProps) {
     const config = skillConfig[skill]
     const Icon = config.icon
 
@@ -74,6 +83,14 @@ export function SkillProgressBar({ skill, score, level }: SkillProgressBarProps)
                     style={{ width: `${score}%` }}
                 />
             </div>
+
+            {/* Trend indicator */}
+            {trend && (
+                <div className={cn("flex items-center gap-1 mt-2 text-xs", trendConfig[trend].color)}>
+                    {(() => { const TrendIcon = trendConfig[trend].icon; return <TrendIcon className="h-3 w-3" /> })()}
+                    {trendConfig[trend].label && <span>{trendConfig[trend].label}</span>}
+                </div>
+            )}
         </div>
     )
 }
