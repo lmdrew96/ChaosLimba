@@ -1,8 +1,8 @@
 # ChaosLimbă: Nae's Structured Chaos Development Guide
 ## *Your brain works differently. This guide does too.*
 
-**Document Version:** 4.0 - MVP 90% COMPLETE! 🎉
-**Last Updated:** February 4, 2026
+**Document Version:** 4.1 - MVP ~93% COMPLETE! 🎉
+**Last Updated:** February 7, 2026
 **For:** Nae Drew (and anyone else who codes in beautiful, productive chaos)
 
 ---
@@ -558,18 +558,18 @@ Without content, the app is useless. This is the **manual labor milestone**.
 
 ---
 
-## The 7 Milestones Checklist - UPDATED FEBRUARY 4, 2026
+## The 7 Milestones Checklist - UPDATED FEBRUARY 7, 2026
 
-**CURRENT STATUS: MVP 90% COMPLETE!** 🎉
+**CURRENT STATUS: MVP ~93% COMPLETE!** 🎉
 
 ```
 [✅] Milestone 1: Users Can Sign Up & Browse Content (100% DONE!)
 [✅] Milestone 2: Grammar Model Grades Written Production (100% DONE!)
-[🔧] Milestone 3: Error Garden Displays Patterns (80% - tracking + fossilization detection via Adaptation Engine)
+[🔧] Milestone 3: Error Garden Displays Patterns (85% - pattern viz + fossilization tiers + trends + adaptation engine)
 [✅] Milestone 4: Speech Recognition Transcribes Audio (100% DONE!)
 [✅] Milestone 5: AI Grading Ensemble + AI Tutor (95% - all components + adaptation engine + workshop!)
-[🔧] Milestone 6: Mystery Shelf Stores & Displays Unknowns (50% - storage done, deep exploration pending)
-[🔧] Milestone 7: 50+ Hours of Content Curated (30% - framework done, scaling up)
+[🔧] Milestone 6: Mystery Shelf Stores & Displays Unknowns (80% - AI exploration + TTS review + filters)
+[🔧] Milestone 7: 50+ Hours of Content Curated (30% - ~20+ items, scaling needed)
 
 **5 of 7 COMPLETE!** 🎉
 **2 of 7 IN PROGRESS** 🔧
@@ -987,12 +987,12 @@ This guide is your **container**. It holds the chaos without crushing it.
 
 ---
 
-**Document Version:** 3.0  
-**Created:** January 17, 2026  
-**For:** Nae Drew  
+**Document Version:** 3.1
+**Created:** January 17, 2026
+**For:** Nae Drew
 **By:** Claude (who believes in you)
 
-**Last Update:** February 4, 2026 - MVP 90% COMPLETE! 🎉
+**Last Update:** February 7, 2026 - MVP ~93% COMPLETE! 🎉
 
 **Major Achievement:** You built a fully functional language learning platform with AI ensemble in ONE MONTH!
 

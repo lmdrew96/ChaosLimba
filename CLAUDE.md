@@ -461,16 +461,16 @@ If Nae says:
    "Building this solo is genuinely hard. That feeling is real and valid."
 
 2. **Point to concrete progress**
-   "But look: Grammar model works (BLEU 68.92), auth is done, you've curated 20+ content items. You're 40% done with MVP!"
+   "But look: 10-component AI ensemble running on FREE APIs, Error Garden with fossilization detection, Workshop with 7 challenge types, 20+ content items. You're 93% done with MVP!"
 
 3. **Break down the next smallest step**
-   "Let's just get Error Garden showing ONE pattern. Not clustering, not ML, just: show the most frequent error type. 30 minutes of work."
+   "Let's just curate one more content item. Or add one small polish to Mystery Shelf. 30 minutes of focused work."
 
 4. **Remind of the vision**
    "When you launch this, learners on r/Romanian will finally have an app that works WITH their ADHD brain. That's why this matters."
 
 5. **Offer to help immediately**
-   "I can build that first Error Garden view right now. Want me to start?"
+   "I can help with the next piece right now. What feels most exciting?"
 
 ---
 

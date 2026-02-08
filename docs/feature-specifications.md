@@ -1459,8 +1459,8 @@ This document provides detailed specifications for each major component of Chaos
 ---
 
 **Document Metadata**
-- Version: 3.0 - Adaptation Engine + Workshop Update
-- Last Updated: February 4, 2026
+- Version: 3.1 - Codebase Audit Update
+- Last Updated: February 7, 2026
 - Author: ChaosLimbă Development Team
 - Status: Living Document (will be updated as features evolve)
 
@@ -1468,7 +1468,7 @@ This document provides detailed specifications for each major component of Chaos
 
 ## Summary: MVP Status
 
-🎉 **MVP 90% Complete - Approaching Beta**
+🎉 **MVP ~93% Complete - Approaching Beta**
 
 **Key Achievements:**
 - ✅ All 9 core features implemented (including Workshop + Adaptation Engine)
@@ -1484,8 +1484,8 @@ This document provides detailed specifications for each major component of Chaos
 - ✅ Proficiency tracking and visualization
 
 **Focus Areas for Next Phase:**
-1. Content curation at scale (50+ hours)
-2. Deep exploration mode for Mystery Shelf
-3. Deep Fog advanced content selection + level targeting
-4. ML-based error clustering (beyond frequency + adaptation tiers)
+1. Content curation at scale (50+ hours) — biggest remaining lift
+2. Deep Fog auto level targeting + visual word highlighting
+3. Mystery Shelf spaced repetition + mastery tracking
+4. Error Garden context-dependent analysis + L1 transfer detection
 5. SPAM-C dialectal/pragmatic analysis (when user base grows)
