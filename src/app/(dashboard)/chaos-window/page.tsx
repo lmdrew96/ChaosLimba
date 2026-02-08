@@ -21,6 +21,8 @@ import { SessionSummaryModal } from "@/components/features/chaos-window/SessionS
 import { TutorResponse, InitialQuestion } from "@/lib/ai/tutor"
 import { ContentItem } from "@/lib/db/schema"
 import { AudioPlayer } from "@/components/features/content-player/AudioPlayer"
+import { PronunciationPractice } from "@/components/features/chaos-window/PronunciationPractice"
+import { PronunciationResult } from "@/lib/ai/pronunciation"
 
 type Modality = "text" | "speech"
 
@@ -108,6 +110,7 @@ export default function ChaosWindowPage() {
   const [practiceError, setPracticeError] = useState<string | null>(null)
   const practiceAudioRef = useRef<HTMLAudioElement | null>(null)
   const [isPracticePlaying, setIsPracticePlaying] = useState(false)
+  const [showCulturalNotes, setShowCulturalNotes] = useState(false)
 
   const startSession = async () => {
     try {
@@ -258,6 +261,54 @@ export default function ChaosWindowPage() {
     }
   }, [errorPatterns, userLevel])
 
+  // Fetch transcript on-demand for content that doesn't have it cached
+  // Accepts the content object directly to avoid stale closure issues
+  const fetchTranscript = useCallback(async (content: ContentItem) => {
+    setIsLoadingTranscript(true)
+    setTranscriptError(null)
+
+    try {
+      console.log(`[Chaos Window] Fetching transcript for content ${content.id}`)
+      const res = await fetch(`/api/content/transcript/${content.id}`, { credentials: "include" })
+
+      if (!res.ok) {
+        // 404 = No transcript available (not a fatal error)
+        if (res.status === 404) {
+          console.log(`[Chaos Window] No transcript available for ${content.id}`)
+          setTranscriptError("Transcript unavailable")
+          return
+        }
+        throw new Error("Failed to fetch transcript")
+      }
+
+      const data = await res.json()
+      const transcript = data.transcript
+
+      // Update context with newly fetched transcript
+      if (transcript) {
+        if (transcript.length > 2000) {
+          setCurrentContext(transcript.slice(0, 2000) + "\n\n[Transcript continues, full context available to AI...]")
+        } else {
+          setCurrentContext(transcript)
+        }
+
+        // Update currentContent to include transcript (enables AudioPlayer transcript toggle)
+        setCurrentContent(prev => prev?.id === content.id ? { ...prev, transcript } : prev)
+
+        // Re-generate AI question now that we have the transcript
+        console.log(`[Chaos Window] Regenerating question with new transcript...`)
+        fetchInitialQuestion(content, transcript)
+
+        console.log(`[Chaos Window] Transcript fetched successfully (${transcript.length} chars)`)
+      }
+    } catch (err) {
+      console.error("[Chaos Window] Failed to fetch transcript:", err)
+      setTranscriptError("Couldn't load transcript - using title only")
+    } finally {
+      setIsLoadingTranscript(false)
+    }
+  }, [fetchInitialQuestion])
+
   // Fetch random content from API
   const fetchRandomContent = useCallback(async (excludeId?: string) => {
     setIsLoadingContent(true)
@@ -281,6 +332,7 @@ export default function ChaosWindowPage() {
       setCurrentContent(data.content)
       setUserLevel(data.userLevel)
       setShowTextTranscript(false)
+      setShowCulturalNotes(false)
 
       // Smart Chaos: store feature targeting metadata
       const features = data.targetFeatures || []
@@ -326,7 +378,7 @@ export default function ChaosWindowPage() {
         if (data.content.type === 'audio') {
           console.log(`[Chaos Window] Content missing transcript, fetching on-demand...`)
           // Don't await - let it load in background
-          fetchTranscript(data.content.id)
+          fetchTranscript(data.content as ContentItem)
         }
       }
     } catch (err) {
@@ -335,56 +387,7 @@ export default function ChaosWindowPage() {
     } finally {
       setIsLoadingContent(false)
     }
-  }, [])
-
-  // Fetch transcript on-demand for content that doesn't have it cached
-  const fetchTranscript = useCallback(async (contentId: string) => {
-    setIsLoadingTranscript(true)
-    setTranscriptError(null)
-
-    try {
-      console.log(`[Chaos Window] Fetching transcript for content ${contentId}`)
-      const res = await fetch(`/api/content/transcript/${contentId}`, { credentials: "include" })
-
-      if (!res.ok) {
-        // 404 = No transcript available (not a fatal error)
-        if (res.status === 404) {
-          console.log(`[Chaos Window] No transcript available for ${contentId}`)
-          setTranscriptError("Transcript unavailable")
-          return
-        }
-        throw new Error("Failed to fetch transcript")
-      }
-
-      const data = await res.json()
-      const transcript = data.transcript
-
-      // Update context with newly fetched transcript
-      if (transcript) {
-        if (transcript.length > 2000) {
-          setCurrentContext(transcript.slice(0, 2000) + "\n\n[Transcript continues, full context available to AI...]")
-        } else {
-          setCurrentContext(transcript)
-        }
-
-        // Update currentContent to include transcript (avoid re-fetch on next render)
-        setCurrentContent(prev => prev?.id === contentId ? { ...prev, transcript } : prev)
-
-        // Re-generate AI question now that we have the transcript
-        if (currentContent && currentContent.id === contentId) {
-          console.log(`[Chaos Window] Regenerating question with new transcript...`)
-          fetchInitialQuestion(currentContent, transcript)
-        }
-
-        console.log(`[Chaos Window] Transcript fetched successfully (${transcript.length} chars)`)
-      }
-    } catch (err) {
-      console.error("[Chaos Window] Failed to fetch transcript:", err)
-      setTranscriptError("Couldn't load transcript - using title only")
-    } finally {
-      setIsLoadingTranscript(false)
-    }
-  }, [])
+  }, [fetchInitialQuestion, fetchTranscript])
 
   // Fetch content when session starts
   useEffect(() => {
@@ -409,6 +412,29 @@ export default function ChaosWindowPage() {
     endSession()
     setIsActive(false)
   }
+
+  // Handle pronunciation practice results — log weak scores to Error Garden
+  const handlePronunciationResult = useCallback(async (result: PronunciationResult) => {
+    if (result.pronunciationScore !== undefined && result.pronunciationScore < 0.70 && sessionId) {
+      try {
+        await fetch('/api/errors', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            errorType: 'pronunciation',
+            source: 'chaos_window',
+            category: 'pronunciation_accuracy',
+            context: `Target: "${practiceAudio?.romanianText}" | Said: "${result.transcribedText}" | Score: ${(result.pronunciationScore * 100).toFixed(0)}%`,
+            sessionId,
+            contentId: currentContent?.id || null,
+          })
+        })
+      } catch (err) {
+        console.error('Failed to log pronunciation error:', err)
+      }
+    }
+  }, [sessionId, practiceAudio?.romanianText, currentContent?.id])
 
   // Audio recording handlers
   const startRecording = async () => {
@@ -742,11 +768,25 @@ export default function ChaosWindowPage() {
                           Next
                         </Button>
                         {currentContent.culturalNotes && (
-                          <Button size="sm" variant="outline" className="border-destructive/30">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="border-destructive/30"
+                            onClick={() => setShowCulturalNotes(!showCulturalNotes)}
+                          >
                             📝 Cultural Notes
                           </Button>
                         )}
                       </div>
+
+                      {/* Cultural notes panel */}
+                      {showCulturalNotes && currentContent.culturalNotes && (
+                        <div className="mt-3 p-3 rounded-lg bg-muted/30 border border-border/40">
+                          <p className="text-sm text-muted-foreground whitespace-pre-line">
+                            {currentContent.culturalNotes}
+                          </p>
+                        </div>
+                      )}
                     </>
                   ) : (
                     <div className="text-center py-8 text-muted-foreground">
@@ -793,7 +833,13 @@ export default function ChaosWindowPage() {
                           const res = await fetch('/api/generated-content/generate', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ contentType: 'practice_sentences' }),
+                            body: JSON.stringify({
+                              contentType: 'practice_sentences',
+                              contentTitle: currentContent?.title,
+                              contentTranscript: (currentContent?.transcript || currentContent?.textContent)?.slice(0, 500),
+                              contentTopic: currentContent?.topic,
+                              contentId: currentContent?.id,
+                            }),
                           })
                           if (!res.ok) {
                             const data = await res.json().catch(() => ({ error: 'Failed' }))
@@ -866,6 +912,12 @@ export default function ChaosWindowPage() {
                         onEnded={() => setIsPracticePlaying(false)}
                       />
                     </div>
+                  )}
+                  {practiceAudio && (
+                    <PronunciationPractice
+                      targetText={practiceAudio.romanianText.split('\n')[0].replace(/\.\s*$/, '')}
+                      onComplete={handlePronunciationResult}
+                    />
                   )}
                 </CardContent>
               </Card>

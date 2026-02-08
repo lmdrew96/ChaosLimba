@@ -28,7 +28,7 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json();
-    const { contentType, voice } = body;
+    const { contentType, voice, contentTitle, contentTranscript, contentTopic, contentId } = body;
 
     // Validate content type
     if (!contentType || !generatedContentTypeEnum.includes(contentType)) {
@@ -54,8 +54,8 @@ export async function POST(req: Request) {
       );
     }
 
-    // Compute fingerprint for cache dedup
-    const fingerprint = computePatternFingerprint(patterns);
+    // Compute fingerprint for cache dedup (include contentId so different content = different sentences)
+    const fingerprint = computePatternFingerprint(patterns, contentId);
 
     // Cache check: look for existing content with same fingerprint
     const now = new Date();
@@ -89,8 +89,14 @@ export async function POST(req: Request) {
       });
     }
 
+    // Build content context if available
+    const contentContext = contentTitle
+      ? { title: contentTitle as string, transcript: contentTranscript as string | undefined, topic: contentTopic as string | undefined }
+      : undefined;
+
     // Generate content based on type
-    const options = { userLevel, errorPatterns: patterns, voice };
+    // Practice sentences: generate 1 sentence for pronunciation practice (saves TTS cost + only 1 is used)
+    const options = { userLevel, errorPatterns: patterns, voice, contentContext, sentenceCount: 1 };
     let romanianText: string;
     let englishText: string | null = null;
     const primaryPattern = patterns[0];

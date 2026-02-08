@@ -17,10 +17,18 @@ export class ContentGeneratorError extends Error {
 
 // ── Input/Output types ─────────────────────────────────────
 
+export interface ContentContext {
+  title: string;
+  transcript?: string;
+  topic?: string;
+}
+
 export interface ContentGenerationOptions {
   userLevel: 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
   errorPatterns: ContentErrorPattern[];
   voice?: 'female' | 'male';
+  contentContext?: ContentContext;
+  sentenceCount?: number;
 }
 
 export interface GeneratedPracticeSentences {
@@ -58,12 +66,13 @@ export type GeneratedContentResult =
 
 // ── Cache fingerprint ──────────────────────────────────────
 
-export function computePatternFingerprint(patterns: ContentErrorPattern[]): string {
+export function computePatternFingerprint(patterns: ContentErrorPattern[], contentId?: string): string {
   const normalized = patterns
     .map(p => `${p.errorType}|${p.category}|${p.examples.map(e => e.incorrect).sort().join(',')}`)
     .sort()
     .join('::');
-  return createHash('md5').update(normalized).digest('hex').slice(0, 16);
+  const input = contentId ? `${normalized}@@${contentId}` : normalized;
+  return createHash('md5').update(input).digest('hex').slice(0, 16);
 }
 
 // ── System prompt ──────────────────────────────────────────
@@ -98,21 +107,27 @@ function cleanGroqJson(output: string): string {
 export async function generatePracticeSentences(
   options: ContentGenerationOptions
 ): Promise<GeneratedPracticeSentences> {
-  const { userLevel, errorPatterns } = options;
+  const { userLevel, errorPatterns, contentContext, sentenceCount = 5 } = options;
 
   if (errorPatterns.length === 0) {
     throw new ContentGeneratorError('At least one error pattern is required');
   }
 
-  const prompt = `Generate 5 practice sentences in Romanian targeting these error patterns for a ${userLevel} learner:
+  const contentGrounding = contentContext
+    ? `\nThe learner is currently studying: "${contentContext.title}"${contentContext.topic ? ` (topic: ${contentContext.topic})` : ''}
+${contentContext.transcript ? `Related content excerpt: "${contentContext.transcript.slice(0, 500)}"\n` : ''}
+Generate sentences that relate to this content's theme and vocabulary while targeting the error patterns below.\n`
+    : '';
 
+  const prompt = `Generate ${sentenceCount} practice sentence${sentenceCount > 1 ? 's' : ''} in Romanian targeting these error patterns for a ${userLevel} learner:
+${contentGrounding}
 ${formatPatternsForPrompt(errorPatterns)}
 
 Each sentence MUST:
 1. Naturally use the grammatical structure the learner struggles with
 2. Be at ${userLevel} CEFR difficulty
 3. Demonstrate the CORRECT usage (not the error)
-4. Be a complete, natural-sounding Romanian sentence
+4. Be a complete, natural-sounding Romanian sentence${contentContext ? '\n5. Relate thematically to the content the learner is currently studying' : ''}
 
 Return JSON:
 {
