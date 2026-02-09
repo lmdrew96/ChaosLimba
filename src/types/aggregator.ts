@@ -71,6 +71,8 @@ export interface AggregatorInput {
   userId?: string;
   sessionId?: string;
   enableSpamB?: boolean;  // Feature flag
+  userText?: string;      // Learner's actual text for semantic mismatch logging
+  expectedText?: string;  // Expected text for semantic mismatch logging
 }
 
 // Scoring weights configuration

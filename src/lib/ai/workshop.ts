@@ -176,16 +176,60 @@ The goal is cognitive disequilibrium — make the learner FEEL why the correct f
   ];
 
   const output = await callGroq(messages, 0.8);
-  const parsed = JSON.parse(cleanGroqJson(output));
+
+  let parsed: Record<string, unknown>;
+  try {
+    parsed = JSON.parse(cleanGroqJson(output));
+  } catch {
+    console.error('[Workshop] Failed to parse challenge JSON, retrying once');
+    // Single retry — LLMs occasionally produce malformed JSON
+    const retryOutput = await callGroq(messages, 0.7);
+    try {
+      parsed = JSON.parse(cleanGroqJson(retryOutput));
+    } catch {
+      console.error('[Workshop] Retry also failed, using fallback challenge');
+      return {
+        type,
+        prompt: type === 'rewrite'
+          ? 'Write a simple sentence in Romanian using the present tense.'
+          : `Practice the grammar feature: ${feature.featureName}`,
+        expectedAnswers: [],
+        hint: `Focus on: ${feature.featureName}`,
+        grammarRule: feature.description || feature.featureName,
+        featureKey: feature.featureKey,
+        featureName: feature.featureName,
+        isSurprise: forceSurprise || undefined,
+      };
+    }
+  }
+
+  // Validate which_one has proper options
+  let options = Array.isArray(parsed.options) ? parsed.options as string[] : undefined;
+  if (type === 'which_one' && (!options || options.length < 3)) {
+    console.warn('[Workshop] which_one missing options, falling back to fix type');
+    return generateWorkshopChallenge(feature, userLevel, 'fix', destabilizationTier, recentTypes);
+  }
+
+  // Validate expectedAnswers align with options for which_one
+  let expectedAnswers = Array.isArray(parsed.expectedAnswers) ? parsed.expectedAnswers as string[] : [];
+  if (type === 'which_one' && options && expectedAnswers.length > 0) {
+    const hasMatch = expectedAnswers.some(ea =>
+      options!.some(opt => opt.toLowerCase().includes(ea.toLowerCase()) || ea.toLowerCase().includes(opt.toLowerCase()))
+    );
+    if (!hasMatch) {
+      // Default to first option as expected if LLM misaligned
+      expectedAnswers = [options[0]];
+    }
+  }
 
   return {
-    type: parsed.type || type,
-    prompt: parsed.prompt,
-    targetSentence: parsed.targetSentence || undefined,
-    expectedAnswers: Array.isArray(parsed.expectedAnswers) ? parsed.expectedAnswers : [],
-    options: Array.isArray(parsed.options) ? parsed.options : undefined,
-    hint: parsed.hint || '',
-    grammarRule: parsed.grammarRule || '',
+    type: (parsed.type as WorkshopChallengeType) || type,
+    prompt: parsed.prompt as string,
+    targetSentence: (parsed.targetSentence as string) || undefined,
+    expectedAnswers,
+    options,
+    hint: (parsed.hint as string) || '',
+    grammarRule: (parsed.grammarRule as string) || '',
     featureKey: feature.featureKey,
     featureName: feature.featureName,
     isSurprise: forceSurprise || undefined,
@@ -254,15 +298,31 @@ export async function evaluateWorkshopResponse(
   ];
 
   const output = await callGroq(messages, 0.3); // Low temperature for consistent evaluation
-  const parsed = JSON.parse(cleanGroqJson(output));
+
+  let parsed: Record<string, unknown>;
+  try {
+    parsed = JSON.parse(cleanGroqJson(output));
+  } catch {
+    console.error('[Workshop] Failed to parse evaluation JSON, using grammar-only result');
+    const hasGrammarErrors = grammarResult?.errors && grammarResult.errors.length > 0;
+    return {
+      isCorrect: !hasGrammarErrors,
+      score: hasGrammarErrors ? 40 : 70,
+      feedback: hasGrammarErrors ? 'There are some grammar issues to work on.' : 'Good effort! Keep practicing.',
+      correction: undefined,
+      ruleExplanation: challenge.grammarRule,
+      grammarErrors: grammarResult?.errors || [],
+      usedTargetStructure: false,
+    };
+  }
 
   return {
-    isCorrect: parsed.isCorrect ?? false,
+    isCorrect: parsed.isCorrect as boolean ?? false,
     score: typeof parsed.score === 'number' ? parsed.score : 0,
-    feedback: parsed.feedback || 'Keep practicing!',
-    correction: parsed.correction || undefined,
-    ruleExplanation: parsed.ruleExplanation || challenge.grammarRule,
+    feedback: (parsed.feedback as string) || 'Keep practicing!',
+    correction: (parsed.correction as string) || undefined,
+    ruleExplanation: (parsed.ruleExplanation as string) || challenge.grammarRule,
     grammarErrors: grammarResult?.errors || [],
-    usedTargetStructure: parsed.usedTargetStructure ?? false,
+    usedTargetStructure: parsed.usedTargetStructure as boolean ?? false,
   };
 }

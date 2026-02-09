@@ -24,7 +24,6 @@ interface DashboardStats {
   wordsCollected: number
   practiceStreak: number
   errorPatterns: number
-  timeTodayMinutes: number
   featuresDiscovered: number
 }
 
@@ -114,13 +113,6 @@ export default function DashboardPage() {
       icon: Flower2,
       color: "text-chart-4",
       bgColor: "bg-chart-4/10",
-    },
-    {
-      label: "Time Today",
-      value: stats ? `${stats.timeTodayMinutes} min` : "—",
-      icon: Clock,
-      color: "text-primary",
-      bgColor: "bg-primary/10",
     },
     {
       label: "Features Discovered",

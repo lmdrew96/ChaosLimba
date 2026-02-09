@@ -84,7 +84,7 @@ export default function WorkshopPage() {
           setUserLevel(data.preferences.languageLevel)
         }
       })
-      .catch(() => {})
+      .catch((err) => console.error('[Workshop] Failed to fetch user level, defaulting to A1:', err))
   }, [])
 
   const getRecentTypes = useCallback(() => typeHistory.slice(-3), [typeHistory])

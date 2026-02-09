@@ -148,8 +148,8 @@ export class FeedbackAggregator {
         type: 'semantic',
         category: 'meaning',
         pattern: 'semantic_mismatch',
-        learnerProduction: 'user_input', // Would be passed in separately
-        correctForm: 'expected_input', // Would be passed in separately
+        learnerProduction: input.userText || 'unknown',
+        correctForm: input.expectedText || 'unknown',
         confidence: 1 - input.semanticResult.similarity,
         severity: this.mapSimilarityToSeverity(input.semanticResult.similarity),
         inputType: input.inputType

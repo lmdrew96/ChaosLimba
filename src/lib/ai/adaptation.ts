@@ -139,10 +139,27 @@ export async function getAdaptationProfile(userId: string): Promise<AdaptationPr
     const interventionSuccesses = successfulInterventions.length;
     const hasImprovement = interventionSuccesses > 0;
 
-    // Determine tier
+    // Determine tier (with exit logic for tier 3)
     let tier: AdaptationTier = 1;
+
+    // Tier 3 exit: if frequency dropped below fossilization threshold after interventions,
+    // or if 2+ successful interventions at tier 3, pattern is resolving — drop to tier 1
+    const tier3Interventions = patternInterventions.filter(i => i.tier === 3);
+    const tier3Successes = tier3Interventions.filter(i =>
+      i.frequencyAfterWindow !== null && i.frequencyAfterWindow < i.frequencyAtIntervention
+    ).length;
+    const hasRecentActivity = lastInterventionAt && (Date.now() - lastInterventionAt.getTime()) < 14 * 24 * 60 * 60 * 1000;
+
     if (frequency >= FOSSILIZATION_THRESHOLD && interventionCount >= TIER3_INTERVENTION_COUNT && !hasImprovement) {
-      tier = 3;
+      // Tier 3 exit: 2+ successful destabilizations → drop to tier 1 (pattern is yielding)
+      if (tier3Successes >= 2) {
+        tier = 1;
+      // Tier 3 timeout: no activity in 14 days → pattern dormant, reset to tier 1
+      } else if (!hasRecentActivity && interventionCount >= TIER3_INTERVENTION_COUNT) {
+        tier = 1;
+      } else {
+        tier = 3;
+      }
     } else if (frequency >= FOSSILIZATION_THRESHOLD && interventionCount >= TIER2_INTERVENTION_COUNT && !hasImprovement) {
       tier = 2;
     }
