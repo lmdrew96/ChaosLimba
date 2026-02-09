@@ -6,7 +6,9 @@ import { Button } from "@/components/ui/button"
 import {
   BookOpen,
   Cloud,
+  Atom,
   Sparkles,
+  Wrench,
   Flower2,
   TrendingUp,
   Target,
@@ -140,7 +142,7 @@ export default function DashboardPage() {
               className="bg-linear-to-r from-primary to-primary/70 hover:from-primary hover:to-primary/80 rounded-xl shadow-lg shadow-primary/20"
             >
               <Link href="/chaos-window">
-                <Sparkles className="mr-2 h-4 w-4" />
+                <Atom className="mr-2 h-4 w-4" />
                 Start Chaos Session
               </Link>
             </Button>
@@ -152,6 +154,16 @@ export default function DashboardPage() {
               <Link href="/deep-fog">
                 <Cloud className="mr-2 h-4 w-4" />
                 Enter Deep Fog
+              </Link>
+            </Button>
+            <Button
+              asChild
+              variant="outline"
+              className="rounded-xl border-muted-foreground/30 hover:bg-muted-foreground/10"
+            >
+              <Link href="/workshop">
+                <Wrench className="mr-2 h-4 w-4" />
+                Tinker in the Workshop
               </Link>
             </Button>
           </div>
