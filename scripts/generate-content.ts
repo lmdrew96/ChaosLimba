@@ -47,10 +47,11 @@ interface GeneratedContent {
 interface ContentResult {
   id: string;
   title: string;
-  audioUrl: string;
+  audioUrl?: string;
   durationSeconds: number;
   characterCount: number;
   estimatedCost: number;
+  type: 'audio' | 'text';
 }
 
 // ============================================================================
@@ -350,6 +351,44 @@ async function insertContent(
   return (result.rows[0] as { id: string }).id;
 }
 
+async function insertTextContent(
+  content: GeneratedContent,
+  durationSeconds: number
+): Promise<string> {
+  const db = getDb();
+
+  const result = await db.execute(sql`
+    INSERT INTO content_items (
+      type, title, difficulty_level, duration_seconds,
+      text_content,
+      language_features, topic, source_attribution, cultural_notes
+    ) VALUES (
+      'text',
+      ${content.title},
+      ${CEFR_TO_DIFFICULTY[content.level]},
+      ${durationSeconds},
+      ${content.text},
+      ${JSON.stringify({
+        grammar: content.grammarFeatures,
+        vocabulary: {
+          keywords: content.vocabularyKeywords,
+          requiredVocabSize: content.level === 'A1' ? 200 : content.level === 'A2' ? 500 : 1000,
+        },
+        structures: [],
+      })}::jsonb,
+      ${content.topic},
+      ${JSON.stringify({
+        creator: 'AI Generated (Llama 3.3 70B)',
+        license: 'ChaosLimbă Internal',
+      })}::jsonb,
+      ${content.culturalNotes || null}
+    )
+    RETURNING id
+  `);
+
+  return (result.rows[0] as { id: string }).id;
+}
+
 // ============================================================================
 // Utility Functions
 // ============================================================================
@@ -358,10 +397,14 @@ function shortHash(text: string): string {
   return createHash('md5').update(text).digest('hex').slice(0, 8);
 }
 
-function estimateDuration(text: string): number {
+function estimateDuration(text: string, type: 'audio' | 'text' = 'audio'): number {
+  const words = text.split(/\s+/).length;
+  if (type === 'text') {
+    // Reading speed for L2 learners: ~100 words per minute (slower than native)
+    return Math.round((words / 100) * 60);
+  }
   // Romanian speech ~150 words per minute at normal speed
   // With 0.95 speaking rate, slightly slower
-  const words = text.split(/\s+/).length;
   return Math.round((words / 140) * 60);
 }
 
@@ -423,9 +466,11 @@ async function showStats(): Promise<void> {
 async function generateSingleContent(
   level: CEFRLevel,
   topic: string,
-  skipConfirm: boolean = false
+  skipConfirm: boolean = false,
+  textOnly: boolean = false
 ): Promise<ContentResult> {
-  console.log(`\n🎯 Generating ${level} content about "${topic}"...\n`);
+  const mode = textOnly ? 'text' : 'audio';
+  console.log(`\n🎯 Generating ${level} ${mode} content about "${topic}"...\n`);
 
   // Step 1: Generate text
   console.log('  1️⃣  Generating Romanian text with AI...');
@@ -439,13 +484,34 @@ async function generateSingleContent(
 
   if (!skipConfirm) {
     const proceed = await confirm({
-      message: 'Generate audio and save to database?',
+      message: textOnly ? 'Save text content to database?' : 'Generate audio and save to database?',
       default: true,
     });
     if (!proceed) {
       console.log('  ⏭️  Skipped\n');
       throw new Error('User cancelled');
     }
+  }
+
+  const durationSeconds = estimateDuration(content.text, mode);
+
+  if (textOnly) {
+    // Text-only: skip TTS, save directly
+    console.log('  2️⃣  Saving text content to database...');
+    const id = await insertTextContent(content, durationSeconds);
+    console.log(`     ✓ ID: ${id}`);
+    console.log(`     ✓ Cost: $0.00 (text only, no TTS)`);
+
+    console.log(`\n✅ Text content created successfully!\n`);
+
+    return {
+      id,
+      title: content.title,
+      durationSeconds,
+      characterCount: content.text.length,
+      estimatedCost: 0,
+      type: 'text',
+    };
   }
 
   // Step 2: Generate audio
@@ -457,7 +523,6 @@ async function generateSingleContent(
 
   // Step 3: Save to database
   console.log('  3️⃣  Saving to database...');
-  const durationSeconds = estimateDuration(content.text);
   const id = await insertContent(content, audio.url, durationSeconds);
   console.log(`     ✓ ID: ${id}`);
 
@@ -470,6 +535,7 @@ async function generateSingleContent(
     durationSeconds,
     characterCount: audio.characterCount,
     estimatedCost: audio.estimatedCost,
+    type: 'audio',
   };
 }
 
@@ -491,6 +557,7 @@ program
   .option('-l, --level <level>', 'CEFR level (A1, A2, B1, B2, C1, C2)')
   .option('-t, --topic <topic>', 'Content topic')
   .option('-y, --yes', 'Skip confirmation prompts')
+  .option('--text-only', 'Generate text content only (no audio/TTS)')
   .action(async (options) => {
     let level = options.level?.toUpperCase() as CEFRLevel;
     let topic = options.topic;
@@ -527,7 +594,7 @@ program
     }
 
     try {
-      await generateSingleContent(level, topic, options.yes);
+      await generateSingleContent(level, topic, options.yes, options.textOnly);
     } catch (error: any) {
       if (error.message !== 'User cancelled') {
         console.error('\n❌ Error:', error.message, '\n');
@@ -542,11 +609,13 @@ program
   .requiredOption('-l, --level <level>', 'CEFR level (A1, A2, B1, B2, C1, C2)')
   .requiredOption('-c, --count <number>', 'Number of items to generate')
   .option('-t, --theme <theme>', 'General theme for all content')
+  .option('--text-only', 'Generate text content only (no audio/TTS)')
   .option('--dry-run', 'Preview without generating')
   .action(async (options) => {
     const level = options.level.toUpperCase() as CEFRLevel;
     const count = parseInt(options.count);
     const theme = options.theme;
+    const textOnly = options.textOnly;
     const dryRun = options.dryRun;
 
     if (!['A1', 'A2', 'B1', 'B2', 'C1', 'C2'].includes(level)) {
@@ -554,8 +623,9 @@ program
       return;
     }
 
-    console.log(`\n🚀 Batch generating ${count} ${level} content items`);
+    console.log(`\n🚀 Batch generating ${count} ${level} ${textOnly ? 'text' : 'audio'} content items`);
     if (theme) console.log(`   Theme: "${theme}"`);
+    if (textOnly) console.log('   Mode: TEXT ONLY (no TTS, $0 cost)');
     if (dryRun) console.log('   [DRY RUN - no actual generation]\n');
 
     const topics = TOPIC_SUGGESTIONS[level];
@@ -575,7 +645,7 @@ program
       }
 
       try {
-        const result = await generateSingleContent(level, topic, true);
+        const result = await generateSingleContent(level, topic, true, textOnly);
         totalCost += result.estimatedCost;
         successCount++;
 

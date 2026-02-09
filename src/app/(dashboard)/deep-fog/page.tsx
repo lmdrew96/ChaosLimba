@@ -361,7 +361,7 @@ export default function DeepFogPage() {
           <CardContent className="p-4">
             <div className="flex items-center gap-4 text-sm flex-wrap">
               <span className="text-foreground">Your level:</span>
-              <span className="px-2 py-1 rounded-full bg-chart-4/20 text-chart-4">
+              <span className="px-2 py-1 rounded-full bg-green-400/20 text-green-300">
                 {cefrLabel(userLevel)}
               </span>
               <span className="text-foreground hidden sm:inline">&bull;</span>
