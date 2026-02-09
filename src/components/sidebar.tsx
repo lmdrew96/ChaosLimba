@@ -13,8 +13,10 @@ import {
   X,
   Atom,
   Wrench,
+  Sun,
+  Moon,
 } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 
 const navItems = [
@@ -66,6 +68,24 @@ const navItems = [
 export function Sidebar() {
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [isDark, setIsDark] = useState(true)
+
+  useEffect(() => {
+    const mode = localStorage.getItem("chaoslimba-mode") || "dark"
+    setIsDark(mode === "dark")
+  }, [])
+
+  const toggleMode = () => {
+    const html = document.documentElement
+    const newDark = !isDark
+    setIsDark(newDark)
+    if (newDark) {
+      html.classList.add("dark")
+    } else {
+      html.classList.remove("dark")
+    }
+    localStorage.setItem("chaoslimba-mode", newDark ? "dark" : "light")
+  }
 
   return (
     <>
@@ -105,6 +125,13 @@ export function Sidebar() {
                 ChaosLimbă
               </span>
             </Link>
+            <button
+              onClick={toggleMode}
+              className="ml-auto p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+              aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+            >
+              {isDark ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+            </button>
           </div>
 
           <nav className="flex-1 px-3 py-6 space-y-1.5 overflow-y-auto">

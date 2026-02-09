@@ -1,11 +1,9 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Card, CardContent } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
-import { Check, Palette, Moon, Sun } from "lucide-react"
+import { Check, Palette } from "lucide-react"
 
-type Theme = "default" | "forest" | "nostalgia"
+type Theme = "default" | "forest" | "nostalgia" | "wild-runes" | "bathhouse" | "vinyl" | "neon-circuit" | "soft-bloom"
 type Mode = "light" | "dark"
 
 interface ThemeOption {
@@ -38,6 +36,41 @@ const THEMES: ThemeOption[] = [
     lightColors: ["#F5F3F7", "#4A4552", "#D896BC", "#C7EFDC", "#B8B4E8"],
     darkColors: ["#2A1E3F", "#87E7FF", "#FF4DA0", "#6B5AA6", "#FF87C8"],
   },
+  {
+    id: "wild-runes",
+    name: "Wild Runes",
+    description: "Ancient tech and open-world wonder",
+    lightColors: ["#F4EFE6", "#2A98A8", "#C89040", "#88B07A", "#C25040"],
+    darkColors: ["#1C2838", "#58D8F0", "#E0A848", "#488078", "#C8D8E8"],
+  },
+  {
+    id: "bathhouse",
+    name: "Bathhouse Glow",
+    description: "Spirited warmth and lantern light",
+    lightColors: ["#F0E0E4", "#C03028", "#C0A030", "#388890", "#7838A0"],
+    darkColors: ["#181028", "#E85040", "#F0C050", "#388878", "#E8D8C0"],
+  },
+  {
+    id: "vinyl",
+    name: "Vinyl Era",
+    description: "1970s warmth, retro soul",
+    lightColors: ["#F2ECD8", "#C06830", "#C8A830", "#608848", "#984030"],
+    darkColors: ["#302018", "#E08838", "#E0C040", "#58A050", "#F0E8D0"],
+  },
+  {
+    id: "neon-circuit",
+    name: "Neon Circuit",
+    description: "Cyberpunk glow and electric edge",
+    lightColors: ["#EEF0F8", "#2858D0", "#D038A0", "#48C060", "#E06030"],
+    darkColors: ["#0C1020", "#4890FF", "#F048B0", "#50F078", "#E8EAF0"],
+  },
+  {
+    id: "soft-bloom",
+    name: "Soft Bloom",
+    description: "Gentle pastels, calm and dreamy",
+    lightColors: ["#F5E8EE", "#D88898", "#98D8B8", "#B8A8D8", "#D89870"],
+    darkColors: ["#281830", "#E888A0", "#60C898", "#A888D0", "#F0E0E8"],
+  },
 ]
 
 export default function ThemeSelector() {
@@ -60,13 +93,21 @@ export default function ThemeSelector() {
     const html = document.documentElement
 
     // Remove all theme classes
-    html.classList.remove("theme-forest", "theme-nostalgia", "dark")
+    html.classList.remove("theme-forest", "theme-nostalgia", "theme-wild-runes", "theme-bathhouse", "theme-vinyl", "theme-neon-circuit", "theme-soft-bloom", "dark")
 
     // Apply selected theme
-    if (selectedTheme === "forest") {
-      html.classList.add("theme-forest")
-    } else if (selectedTheme === "nostalgia") {
-      html.classList.add("theme-nostalgia")
+    const themeClassMap: Record<string, string> = {
+      forest: "theme-forest",
+      nostalgia: "theme-nostalgia",
+      "wild-runes": "theme-wild-runes",
+      bathhouse: "theme-bathhouse",
+      vinyl: "theme-vinyl",
+      "neon-circuit": "theme-neon-circuit",
+      "soft-bloom": "theme-soft-bloom",
+    }
+    const themeClass = themeClassMap[selectedTheme]
+    if (themeClass) {
+      html.classList.add(themeClass)
     }
 
     // Apply mode
@@ -83,39 +124,11 @@ export default function ThemeSelector() {
     setSelectedTheme(theme)
   }
 
-  const toggleMode = () => {
-    setMode((prev) => (prev === "light" ? "dark" : "light"))
-  }
 
   return (
     <div className="space-y-4">
-      {/* Light/Dark Mode Toggle */}
-      <div className="flex items-center justify-between p-4 rounded-xl bg-muted/40 border border-border/40">
-        <div className="flex items-center gap-3">
-          {mode === "light" ? (
-            <Sun className="h-5 w-5 text-amber-500" />
-          ) : (
-            <Moon className="h-5 w-5 text-violet-400" />
-          )}
-          <div>
-            <Label className="text-base font-medium">
-              {mode === "light" ? "Light Mode" : "Dark Mode"}
-            </Label>
-            <p className="text-sm text-muted-foreground">
-              Switch between light and dark appearance
-            </p>
-          </div>
-        </div>
-        <button
-          onClick={toggleMode}
-          className="px-4 py-2 rounded-lg bg-primary/10 hover:bg-primary/20 border border-primary/30 text-primary font-medium transition-colors"
-        >
-          Toggle
-        </button>
-      </div>
-
       {/* Theme Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {THEMES.map((theme) => {
           const isSelected = selectedTheme === theme.id
           const colors = mode === "light" ? theme.lightColors : theme.darkColors

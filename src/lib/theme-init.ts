@@ -10,10 +10,17 @@ export const themeInitScript = `
     const html = document.documentElement;
 
     // Apply theme class
-    if (theme === 'forest') {
-      html.classList.add('theme-forest');
-    } else if (theme === 'nostalgia') {
-      html.classList.add('theme-nostalgia');
+    var themeMap = {
+      forest: 'theme-forest',
+      nostalgia: 'theme-nostalgia',
+      'wild-runes': 'theme-wild-runes',
+      bathhouse: 'theme-bathhouse',
+      vinyl: 'theme-vinyl',
+      'neon-circuit': 'theme-neon-circuit',
+      'soft-bloom': 'theme-soft-bloom'
+    };
+    if (theme && themeMap[theme]) {
+      html.classList.add(themeMap[theme]);
     }
 
     // Apply mode class
