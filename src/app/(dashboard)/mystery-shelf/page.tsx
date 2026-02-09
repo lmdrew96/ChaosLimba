@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog"
-import { BookOpen, Search, Sparkles, Trash2, CheckCircle2, Plus, Loader2, Volume2, Pause, ArrowDownAZ, Clock, AlertTriangle } from "lucide-react"
+import { BookOpen, Search, Sparkles, Trash2, CheckCircle2, Plus, Loader2, Volume2, Pause, ArrowDownAZ, Clock, AlertTriangle, ArrowUp, ArrowDown } from "lucide-react"
 import { CrystalBall } from "@/components/icons/CrystalBall"
 import { MysteryExploreCard, type MysteryItemFull } from "@/components/features/mystery-shelf/MysteryExploreCard"
 
@@ -17,6 +17,7 @@ export default function MysteryShelfPage() {
   const [filter, setFilter] = useState<"all" | "new" | "explored">("all")
   const [searchQuery, setSearchQuery] = useState("")
   const [sortMode, setSortMode] = useState<"newest" | "az">("newest")
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc")
   const [selectedItem, setSelectedItem] = useState<MysteryItemFull | null>(null)
 
   // Delete confirmation state
@@ -288,8 +289,15 @@ export default function MysteryShelfPage() {
       return item.word.toLowerCase().includes(searchQuery.toLowerCase())
     })
     .sort((a, b) => {
-      if (sortMode === "az") return a.word.localeCompare(b.word)
-      return 0 // "newest" preserves API order (already sorted by createdAt desc)
+      const dir = sortDirection === "asc" ? 1 : -1
+      if (sortMode === "az") return dir * a.word.localeCompare(b.word)
+      if (sortMode === "newest") {
+        // API returns newest first (desc). Compare by createdAt.
+        const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0
+        const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0
+        return dir * (aTime - bTime) * -1 // -1 because desc = newest first
+      }
+      return 0
     })
 
   // Stats computed from full items list
@@ -439,18 +447,37 @@ export default function MysteryShelfPage() {
               className="h-8 pl-8 text-sm"
             />
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setSortMode(prev => prev === "newest" ? "az" : "newest")}
-            className="border-border text-xs gap-1.5"
-          >
-            {sortMode === "az" ? (
-              <><ArrowDownAZ className="h-3.5 w-3.5" /> A–Z</>
-            ) : (
-              <><Clock className="h-3.5 w-3.5" /> Newest</>
-            )}
-          </Button>
+          <div className="flex items-center">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const next = sortMode === "newest" ? "az" : "newest"
+                setSortMode(next)
+                setSortDirection(next === "newest" ? "desc" : "asc")
+              }}
+              className="border-border text-xs gap-1.5 rounded-r-none border-r-0"
+            >
+              {sortMode === "az" ? (
+                <><ArrowDownAZ className="h-3.5 w-3.5" /> A–Z</>
+              ) : (
+                <><Clock className="h-3.5 w-3.5" /> Date</>
+              )}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setSortDirection(d => d === "asc" ? "desc" : "asc")}
+              className="border-border text-xs px-1.5 rounded-l-none"
+              title={sortDirection === "asc" ? "Ascending" : "Descending"}
+            >
+              {sortDirection === "asc" ? (
+                <ArrowUp className="h-3.5 w-3.5" />
+              ) : (
+                <ArrowDown className="h-3.5 w-3.5" />
+              )}
+            </Button>
+          </div>
         </div>
       </div>
 
