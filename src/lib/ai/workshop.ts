@@ -69,6 +69,58 @@ function cleanGroqJson(output: string): string {
     .trim();
 }
 
+// ─── Challenge Validation ───
+
+const ROMANIAN_DIACRITICS_REGEX = /[ăâîșțĂÂÎȘȚ]/;
+
+interface ChallengeValidationResult {
+  valid: boolean;
+  reason?: string;
+}
+
+function normalizeForComparison(text: string): string {
+  return text.toLowerCase().replace(/[.,!?;:"""''„"«»\s]+/g, ' ').trim();
+}
+
+function validateChallenge(
+  parsed: Record<string, unknown>,
+  challengeType: WorkshopChallengeType
+): ChallengeValidationResult {
+  const prompt = parsed.prompt as string | undefined;
+  const targetSentence = parsed.targetSentence as string | undefined;
+  const expectedAnswers = Array.isArray(parsed.expectedAnswers)
+    ? (parsed.expectedAnswers as string[])
+    : [];
+
+  // FIX validation: targetSentence must NOT be identical to any expected answer
+  // (i.e., it must actually contain an error)
+  if (challengeType === 'fix' && targetSentence && expectedAnswers.length > 0) {
+    const normalizedTarget = normalizeForComparison(targetSentence);
+    const matchesExpected = expectedAnswers.some(
+      ea => normalizeForComparison(ea) === normalizedTarget
+    );
+    if (matchesExpected) {
+      return {
+        valid: false,
+        reason: 'FIX challenge targetSentence is identical to an expected answer (no actual error present)',
+      };
+    }
+  }
+
+  // REWRITE validation: prompt must be in English, not Romanian
+  // Check for Romanian diacritics which strongly indicate Romanian text
+  if (challengeType === 'rewrite' && prompt) {
+    if (ROMANIAN_DIACRITICS_REGEX.test(prompt)) {
+      return {
+        valid: false,
+        reason: 'REWRITE challenge prompt contains Romanian diacritics — it should be an English sentence to translate',
+      };
+    }
+  }
+
+  return { valid: true };
+}
+
 // ─── Challenge Generation ───
 
 const CHALLENGE_SYSTEM_PROMPT = `You are a Romanian language teaching assistant creating micro-challenges for learners.
@@ -88,6 +140,12 @@ CRITICAL GRAMMAR — Your Romanian MUST be correct:
 - Verbs agree with subject in person/number: "El merge", "Ei merg", "Noi mergem".
 - Check all verb-subject/object agreement before outputting.
 
+CRITICAL CONSTRAINT — MATCH THE TARGET FEATURE:
+- The challenge MUST test the EXACT grammar feature specified, not a different one.
+- If the target feature is "Regular -a Verbs", every verb tested MUST be a regular Group I (-a) verb like: a lucra, a cânta, a mânca (mănâncă), a culca, a visa, a parca, etc.
+- Do NOT substitute irregular verbs, reflexive verbs, or verbs from other conjugation groups.
+- The answer the learner needs to produce MUST directly demonstrate the target feature.
+
 LANGUAGE OF PROMPTS AND HINTS:
 - For A1-A2 learners: Write the "prompt" and "hint" fields in simple Romanian followed by an English translation in parentheses. Example: "Completează propoziția cu forma corectă. (Complete the sentence with the correct form.)"
 - For B1+: Write prompts and hints entirely in Romanian — no English translation needed.`;
@@ -100,8 +158,8 @@ function buildChallengePrompt(
   const typeInstructions: Record<WorkshopChallengeType, string> = {
     transform: `TRANSFORM challenge: Put the Romanian sentence in "targetSentence". In "prompt", give a CLEAR instruction telling the learner exactly what transformation to make (e.g., "Change the subject to 'noi' and adjust the verb accordingly." or "Rewrite this sentence in the negative form."). The instruction must be specific — never just "transform this sentence".`,
     complete: `COMPLETE challenge: Put the sentence with a blank (___) in "prompt". The blank REPLACES the answer word entirely — do NOT include the infinitive or base form next to the blank. The blank should test the target grammar feature.`,
-    fix: `FIX challenge: Put the sentence with the deliberate grammar error in "targetSentence". In "prompt", tell the learner: "This sentence has a grammar error. Rewrite it correctly." Make the error related to the target feature.`,
-    rewrite: `REWRITE challenge: The "prompt" MUST be an idea expressed IN ENGLISH that the learner will translate/write in Romanian. Example: "She reads books every evening." NEVER put Romanian in the prompt — the whole point is the learner produces the Romanian. Set "targetSentence" to null.`,
+    fix: `FIX challenge: Put a sentence with a DELIBERATE grammar error in "targetSentence". The error MUST be clearly wrong — for example, wrong verb conjugation, wrong agreement, wrong case ending. The "expectedAnswers" must contain the CORRECTED version(s) of the sentence. CRITICAL: the "targetSentence" MUST be DIFFERENT from every expectedAnswer because it contains the error. If the target feature is verb conjugation, use the WRONG verb form (e.g., "Ea lucrează și ea cântă" is CORRECT, so you must BREAK one of the conjugations, like "Elena lucră și ea cântă" to test if the learner can fix "lucră" → "lucrează"). In "prompt", describe the sentence and the error to find.`,
+    rewrite: `REWRITE challenge: The "prompt" MUST be written ENTIRELY IN ENGLISH — it is an English sentence or idea that the learner will translate into Romanian. Example prompt: "She reads books every evening." NEVER include Romanian words, Romanian diacritics (ă, â, î, ș, ț), or Romanian sentences in the "prompt" field. The whole point is the learner produces the Romanian themselves. Set "targetSentence" to null.`,
     use_it: `USE IT challenge: In "prompt", give a Romanian word or phrase (bolded with **) and tell the learner to write a complete sentence using it. Example: "Write a sentence using **a plăcea** (to like)." Set "targetSentence" to null.`,
     which_one: `WHICH ONE challenge: Give 3-4 Romanian sentences as options. Only one uses the target vocabulary/structure correctly. The learner picks the correct one. Return the options in the "options" JSON array (NOT in the prompt text). The "prompt" should only contain the question/instruction, e.g. "Which sentence correctly uses the definite article?"`,
     spot_the_trap: `SPOT THE TRAP challenge: Put the tricky sentence in "targetSentence". In "prompt", tell the learner: "This sentence looks correct but has a subtle error. What's wrong?" The error should relate to the target feature (false friend, wrong agreement, etc).`,
@@ -175,32 +233,61 @@ The goal is cognitive disequilibrium — make the learner FEEL why the correct f
     { role: 'user', content: userPrompt },
   ];
 
-  const output = await callGroq(messages, 0.8);
+  // Try up to 2 attempts (initial + 1 retry) with validation
+  let parsed: Record<string, unknown> | null = null;
+  let validationResult: ChallengeValidationResult = { valid: true };
+  const MAX_ATTEMPTS = 2;
 
-  let parsed: Record<string, unknown>;
-  try {
-    parsed = JSON.parse(cleanGroqJson(output));
-  } catch {
-    console.error('[Workshop] Failed to parse challenge JSON, retrying once');
-    // Single retry — LLMs occasionally produce malformed JSON
-    const retryOutput = await callGroq(messages, 0.7);
+  for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+    const temperature = attempt === 0 ? 0.8 : 0.7;
+    const currentMessages = attempt === 0
+      ? messages
+      : [
+          ...messages,
+          { role: 'assistant' as const, content: 'I understand. Let me regenerate.' },
+          { role: 'user' as const, content: `The previous challenge was invalid: ${validationResult.reason}. Please fix this issue and regenerate. Remember: ${type === 'fix' ? 'The targetSentence MUST contain a real grammar error — it must be DIFFERENT from the expectedAnswers.' : type === 'rewrite' ? 'The prompt MUST be in English only — no Romanian text or diacritics.' : 'Ensure the challenge correctly tests the target feature.'}` },
+        ];
+
+    let output: string;
     try {
-      parsed = JSON.parse(cleanGroqJson(retryOutput));
+      output = await callGroq(currentMessages, temperature);
     } catch {
-      console.error('[Workshop] Retry also failed, using fallback challenge');
-      return {
-        type,
-        prompt: type === 'rewrite'
-          ? 'Write a simple sentence in Romanian using the present tense.'
-          : `Practice the grammar feature: ${feature.featureName}`,
-        expectedAnswers: [],
-        hint: `Focus on: ${feature.featureName}`,
-        grammarRule: feature.description || feature.featureName,
-        featureKey: feature.featureKey,
-        featureName: feature.featureName,
-        isSurprise: forceSurprise || undefined,
-      };
+      console.error(`[Workshop] Groq call failed on attempt ${attempt + 1}`);
+      continue;
     }
+
+    try {
+      parsed = JSON.parse(cleanGroqJson(output));
+    } catch {
+      console.error(`[Workshop] Failed to parse challenge JSON on attempt ${attempt + 1}`);
+      continue;
+    }
+
+    // Validate the parsed challenge (parsed is guaranteed non-null here — JSON.parse succeeded)
+    validationResult = validateChallenge(parsed!, type);
+    if (validationResult.valid) {
+      break; // Good challenge, use it
+    }
+
+    console.warn(`[Workshop] Challenge validation failed (attempt ${attempt + 1}): ${validationResult.reason}`);
+    parsed = null; // Reset so we retry
+  }
+
+  // If all attempts failed, use fallback
+  if (!parsed) {
+    console.error('[Workshop] All attempts failed, using fallback challenge');
+    return {
+      type,
+      prompt: type === 'rewrite'
+        ? 'Write a simple sentence in Romanian using the present tense.'
+        : `Practice the grammar feature: ${feature.featureName}`,
+      expectedAnswers: [],
+      hint: `Focus on: ${feature.featureName}`,
+      grammarRule: feature.description || feature.featureName,
+      featureKey: feature.featureKey,
+      featureName: feature.featureName,
+      isSurprise: forceSurprise || undefined,
+    };
   }
 
   // Validate which_one has proper options
