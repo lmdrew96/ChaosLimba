@@ -13,6 +13,8 @@ import {
   grammarFeatureMap,
   userFeatureExposure,
   contentItems,
+  userPreferences,
+  proficiencyHistory,
   type CEFRLevelEnum,
   type ContentItem,
   type GrammarFeature,
@@ -309,9 +311,15 @@ export async function getTutorOpeningMessages(): Promise<Record<string, string>>
 
 // ─── Dashboard Stats Queries ───
 
+export interface LevelProgress {
+  currentLevel: 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
+  nextLevel: string;
+  progress: number; // 0-100% within current level
+}
+
 export interface DashboardStats {
   wordsCollected: number;
-  practiceStreak: number; // consecutive days with sessions
+  levelProgress: LevelProgress;
   errorPatterns: number;
   timeTodayMinutes: number;
 }
@@ -323,12 +331,87 @@ export interface RecentActivityItem {
   time: string;
 }
 
+// CEFR level ordering and score ranges for level progress calculation
+const CEFR_ORDER = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'] as const;
+type CEFRLevel = (typeof CEFR_ORDER)[number];
+
+const ONBOARDING_DEFAULTS: Record<CEFRLevel, number> = {
+  'A1': 10, 'A2': 30, 'B1': 50, 'B2': 70, 'C1': 85, 'C2': 95,
+};
+
+const LEVEL_SCORE_RANGES: Record<CEFRLevel, { min: number; max: number }> = {
+  'A1': { min: 0, max: 25 },
+  'A2': { min: 25, max: 45 },
+  'B1': { min: 45, max: 65 },
+  'B2': { min: 65, max: 80 },
+  'C1': { min: 80, max: 90 },
+  'C2': { min: 90, max: 100 },
+};
+
+// Recency weights for proficiency history: most recent counts most
+const RECENCY_WEIGHTS = [4, 3, 2, 1, 1, 1, 1, 1, 1, 1];
+
 /**
- * Returns dashboard stats: words collected, practice streak, error patterns, time today.
+ * Calculate user's current CEFR level and progress within that level.
+ * Uses same logic as /api/proficiency for consistency.
+ */
+export async function getLevelProgress(userId: string): Promise<LevelProgress> {
+  const [prefs, history] = await Promise.all([
+    db.select().from(userPreferences).where(eq(userPreferences.userId, userId)).limit(1),
+    db.select().from(proficiencyHistory)
+      .where(eq(proficiencyHistory.userId, userId))
+      .orderBy(desc(proficiencyHistory.recordedAt))
+      .limit(10),
+  ]);
+
+  const onboardingLevel = (prefs[0]?.languageLevel as CEFRLevel) || 'A1';
+  const baseline = ONBOARDING_DEFAULTS[onboardingLevel];
+
+  let overallScore: number;
+
+  if (history.length > 0) {
+    // Weighted average of recent overall scores
+    let sum = 0;
+    let totalWeight = 0;
+    for (let i = 0; i < history.length; i++) {
+      const score = parseFloat(history[i].overallScore);
+      const w = RECENCY_WEIGHTS[i] ?? 1;
+      sum += score * w;
+      totalWeight += w;
+    }
+    const avgScore = totalWeight > 0 ? (sum / totalWeight) * 10 : baseline;
+
+    // Blend with baseline (sessions gradually earn trust)
+    const sessionWeight = Math.min(history.length / 20, 0.8);
+    overallScore = (avgScore * sessionWeight) + (baseline * (1 - sessionWeight));
+  } else {
+    overallScore = baseline;
+  }
+
+  // Determine CEFR level from score
+  let currentLevel: CEFRLevel = 'A1';
+  if (overallScore >= 90) currentLevel = 'C2';
+  else if (overallScore >= 80) currentLevel = 'C1';
+  else if (overallScore >= 65) currentLevel = 'B2';
+  else if (overallScore >= 45) currentLevel = 'B1';
+  else if (overallScore >= 25) currentLevel = 'A2';
+
+  const currentIndex = CEFR_ORDER.indexOf(currentLevel);
+  const nextLevel = CEFR_ORDER[currentIndex + 1] || 'C2';
+
+  // Progress within current level (0-100%)
+  const range = LEVEL_SCORE_RANGES[currentLevel];
+  const rawProgress = ((overallScore - range.min) / (range.max - range.min)) * 100;
+  const progress = Math.min(100, Math.max(0, Math.round(rawProgress)));
+
+  return { currentLevel, nextLevel, progress };
+}
+
+/**
+ * Returns dashboard stats: words collected, level progress, error patterns, time today.
  */
 export async function getDashboardStats(userId: string): Promise<DashboardStats> {
-  // Run all queries in parallel
-  const [wordsResult, errorPatternsResult, todaySessionsResult, streakDays] = await Promise.all([
+  const [wordsResult, errorPatternsResult, todaySessionsResult, levelProgress] = await Promise.all([
     // Words collected = mystery shelf items count
     db
       .select({ count: sql<number>`count(*)::int` })
@@ -352,57 +435,16 @@ export async function getDashboardStats(userId: string): Promise<DashboardStats>
         )
       ),
 
-    // Practice streak: get distinct session dates descending, count consecutive from today
-    calculatePracticeStreak(userId),
+    // Level progress
+    getLevelProgress(userId),
   ]);
 
   return {
     wordsCollected: wordsResult[0]?.count ?? 0,
-    practiceStreak: streakDays,
+    levelProgress,
     errorPatterns: errorPatternsResult[0]?.count ?? 0,
     timeTodayMinutes: Math.round((todaySessionsResult[0]?.totalSeconds ?? 0) / 60),
   };
-}
-
-/**
- * Calculate consecutive days with at least one session, counting back from today.
- */
-async function calculatePracticeStreak(userId: string): Promise<number> {
-  const rows = await db
-    .select({ day: sql<string>`date(${sessions.startedAt})` })
-    .from(sessions)
-    .where(eq(sessions.userId, userId))
-    .groupBy(sql`date(${sessions.startedAt})`)
-    .orderBy(desc(sql`date(${sessions.startedAt})`));
-
-  if (rows.length === 0) return 0;
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  let streak = 0;
-  let expected = new Date(today);
-
-  for (const row of rows) {
-    const sessionDay = new Date(row.day);
-    sessionDay.setHours(0, 0, 0, 0);
-
-    // Allow today or yesterday as the first day
-    if (streak === 0) {
-      const diffFromToday = Math.floor((today.getTime() - sessionDay.getTime()) / (1000 * 60 * 60 * 24));
-      if (diffFromToday > 1) break; // No session today or yesterday
-      expected = new Date(sessionDay);
-    }
-
-    if (sessionDay.getTime() === expected.getTime()) {
-      streak++;
-      expected.setDate(expected.getDate() - 1);
-    } else {
-      break;
-    }
-  }
-
-  return streak;
 }
 
 /**

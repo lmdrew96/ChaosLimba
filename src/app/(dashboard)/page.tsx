@@ -9,9 +9,7 @@ import {
   Sparkles,
   Flower2,
   TrendingUp,
-  Clock,
   Target,
-  Zap,
   CircleQuestionMark,
   GraduationCap,
   Speech,
@@ -20,9 +18,15 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 
+interface LevelProgress {
+  currentLevel: string
+  nextLevel: string
+  progress: number
+}
+
 interface DashboardStats {
   wordsCollected: number
-  practiceStreak: number
+  levelProgress: LevelProgress
   errorPatterns: number
   featuresDiscovered: number
 }
@@ -92,6 +96,7 @@ export default function DashboardPage() {
     void fetchDashboardData()
   }, [])
 
+  const levelProgress = stats?.levelProgress
   const statCards = [
     {
       label: "Words Collected",
@@ -99,13 +104,6 @@ export default function DashboardPage() {
       icon: BookOpen,
       color: "text-chart-3",
       bgColor: "bg-chart-3/10",
-    },
-    {
-      label: "Practice Streak",
-      value: stats ? `${stats.practiceStreak} day${stats.practiceStreak !== 1 ? "s" : ""}` : "—",
-      icon: Zap,
-      color: "text-destructive",
-      bgColor: "bg-destructive/10",
     },
     {
       label: "Error Patterns",
@@ -161,12 +159,46 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Link href="/proficiency-tracker" className="block">
+          <Card className="rounded-xl border-border/40 bg-card/50 backdrop-blur hover:border-primary/30 transition-all duration-200 h-full">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <GraduationCap className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  {isLoading ? (
+                    <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                  ) : (
+                    <p className="text-2xl font-bold">{levelProgress?.currentLevel ?? "—"}</p>
+                  )}
+                  <p className="text-xs text-muted-foreground">CEFR Level</p>
+                </div>
+              </div>
+              {!isLoading && levelProgress && (
+                <div>
+                  <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                    <span>{levelProgress.currentLevel}</span>
+                    <span>{levelProgress.nextLevel}</span>
+                  </div>
+                  <div className="h-2 rounded-full bg-muted overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-linear-to-r from-primary to-primary/60 transition-all duration-500"
+                      style={{ width: `${levelProgress.progress}%` }}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1 text-center">{levelProgress.progress}% to {levelProgress.nextLevel}</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </Link>
         {statCards.map((stat) => (
           <Card
             key={stat.label}
-            className="rounded-xl border-border/40 bg-card/50 backdrop-blur"
+            className="rounded-xl border-border/40 bg-card/50 backdrop-blur h-full"
           >
-            <CardContent className="p-4">
+            <CardContent className="p-4 h-full flex items-center">
               <div className="flex items-center gap-3">
                 <div className={`p-2 rounded-lg ${stat.bgColor}`}>
                   <stat.icon className={`h-5 w-5 ${stat.color}`} />
