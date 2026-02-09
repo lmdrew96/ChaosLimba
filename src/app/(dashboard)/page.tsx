@@ -136,7 +136,7 @@ export default function DashboardPage() {
             Ready to embrace some productive confusion? Your learning journey
             continues with structured chaos and exploratory discovery.
           </p>
-          <div className="flex gap-3 mt-6">
+          <div className="flex flex-wrap gap-3 mt-6">
             <Button
               asChild
               className="bg-linear-to-r from-primary to-primary/70 hover:from-primary hover:to-primary/80 rounded-xl shadow-lg shadow-primary/20"
