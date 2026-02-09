@@ -1,6 +1,7 @@
 "use client"
 
-import { User, Settings, LogOut, BookOpen, Volume2, MessageCircle, Sparkles } from "lucide-react"
+import { useState } from "react"
+import { User, Settings, LogOut, BookOpen, Volume2, MessageCircle, Sparkles, HelpCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -14,12 +15,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useClerk, useUser } from "@clerk/nextjs"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
+import { ChaosGuide } from "@/components/features/chaos-guide/ChaosGuide"
 
 export function TopBar() {
   const { signOut, openUserProfile } = useClerk()
   const { user } = useUser()
   const pathname = usePathname()
   const showQuickTools = pathname !== "/"
+  const [guideOpen, setGuideOpen] = useState(false)
 
   // Get user initials for avatar fallback
   const getInitials = () => {
@@ -64,6 +67,14 @@ export function TopBar() {
       </div>
 
       <div className="flex items-center gap-3">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setGuideOpen(true)}
+          className="h-9 w-9 rounded-full hover:bg-chart-4/10 transition-colors"
+        >
+          <HelpCircle className="h-4 w-4 text-muted-foreground" />
+        </Button>
         {showQuickTools && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -149,6 +160,8 @@ export function TopBar() {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
+      <ChaosGuide isOpen={guideOpen} onOpenChange={setGuideOpen} />
     </header>
   )
 }
