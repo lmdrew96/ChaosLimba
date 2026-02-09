@@ -157,7 +157,7 @@ function buildChallengePrompt(
 ): string {
   const typeInstructions: Record<WorkshopChallengeType, string> = {
     transform: `TRANSFORM challenge: Put the Romanian sentence in "targetSentence". In "prompt", give a CLEAR instruction telling the learner exactly what transformation to make (e.g., "Change the subject to 'noi' and adjust the verb accordingly." or "Rewrite this sentence in the negative form."). The instruction must be specific — never just "transform this sentence".`,
-    complete: `COMPLETE challenge: Put the sentence with a blank (___) in "prompt". The blank REPLACES the answer word entirely — do NOT include the infinitive or base form next to the blank. The blank should test the target grammar feature.`,
+    complete: `COMPLETE challenge: Put the sentence with a blank (___) in "prompt". The blank REPLACES the answer word entirely — do NOT include the infinitive or base form next to the blank. The blank should test the target grammar feature. Set "targetSentence" to null — the prompt already contains the sentence, so do NOT duplicate it in targetSentence.`,
     fix: `FIX challenge: Put a sentence with a DELIBERATE grammar error in "targetSentence". The error MUST be clearly wrong — for example, wrong verb conjugation, wrong agreement, wrong case ending. The "expectedAnswers" must contain the CORRECTED version(s) of the sentence. CRITICAL: the "targetSentence" MUST be DIFFERENT from every expectedAnswer because it contains the error. If the target feature is verb conjugation, use the WRONG verb form (e.g., "Ea lucrează și ea cântă" is CORRECT, so you must BREAK one of the conjugations, like "Elena lucră și ea cântă" to test if the learner can fix "lucră" → "lucrează"). In "prompt", describe the sentence and the error to find.`,
     rewrite: `REWRITE challenge: The "prompt" MUST be written ENTIRELY IN ENGLISH — it is an English sentence or idea that the learner will translate into Romanian. Example prompt: "She reads books every evening." NEVER include Romanian words, Romanian diacritics (ă, â, î, ș, ț), or Romanian sentences in the "prompt" field. The whole point is the learner produces the Romanian themselves. Set "targetSentence" to null.`,
     use_it: `USE IT challenge: In "prompt", give a Romanian word or phrase (bolded with **) and tell the learner to write a complete sentence using it. Example: "Write a sentence using **a plăcea** (to like)." Set "targetSentence" to null.`,
@@ -309,10 +309,15 @@ The goal is cognitive disequilibrium — make the learner FEEL why the correct f
     }
   }
 
+  // Strip targetSentence for types where the prompt IS the content (avoids duplicate display)
+  const noTargetSentenceTypes: WorkshopChallengeType[] = ['complete', 'rewrite', 'use_it'];
+  const rawTarget = (parsed.targetSentence as string) || undefined;
+  const targetSentence = noTargetSentenceTypes.includes(type) ? undefined : rawTarget;
+
   return {
     type: (parsed.type as WorkshopChallengeType) || type,
     prompt: parsed.prompt as string,
-    targetSentence: (parsed.targetSentence as string) || undefined,
+    targetSentence,
     expectedAnswers,
     options,
     hint: (parsed.hint as string) || '',
