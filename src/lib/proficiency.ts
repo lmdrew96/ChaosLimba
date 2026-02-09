@@ -1,8 +1,13 @@
 /**
  * CEFR Proficiency Calculation
- * 
+ *
  * Calculates user's CEFR level based on assessment scores across 4 skills.
+ * Also provides recordSessionProficiency() for logging session performance.
  */
+
+import { db } from '@/lib/db';
+import { errorLogs, proficiencyHistory, sessions } from '@/lib/db/schema';
+import { eq, and } from 'drizzle-orm';
 
 export type CEFRLevel = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
 
@@ -109,5 +114,81 @@ export function getSkillBreakdown(input: ProficiencyInput): SkillBreakdown {
         writing: { score: writing, level: getLevel(writing) },
         speaking: { score: speaking, level: getLevel(speaking) },
         overall: { score: overall, level: calculateCEFRLevel(input) },
+    };
+}
+
+/**
+ * Record proficiency from a completed session.
+ * Reads errors for the session, calculates skill scores, and inserts a proficiency_history record.
+ * Used by session complete API route + Mystery Shelf practice route.
+ */
+export async function recordSessionProficiency(userId: string, sessionId: string) {
+    // Verify session belongs to user
+    const session = await db
+        .select()
+        .from(sessions)
+        .where(and(eq(sessions.id, sessionId), eq(sessions.userId, userId)))
+        .limit(1);
+
+    if (!session || session.length === 0) {
+        throw new Error(`Session ${sessionId} not found for user`);
+    }
+
+    const sessionData = session[0];
+
+    // Fetch all errors for this session
+    const sessionErrors = await db
+        .select()
+        .from(errorLogs)
+        .where(eq(errorLogs.sessionId, sessionId));
+
+    console.log(`[Proficiency] Processing ${sessionErrors.length} errors for session ${sessionId} (${sessionData.sessionType})`);
+
+    // Calculate component scores: start at 10.0, deduct 0.5 per error, min 1.0
+    const calculateScore = (errors: typeof sessionErrors, errorType: string): number => {
+        const relevantErrors = errors.filter(e => e.errorType === errorType);
+        let score = 10.0;
+        score -= relevantErrors.length * 0.5;
+        return Math.max(1.0, Math.min(10.0, score));
+    };
+
+    const grammarScore = calculateScore(sessionErrors, 'grammar');
+    const pronunciationScore = calculateScore(sessionErrors, 'pronunciation');
+    const vocabularyScore = calculateScore(sessionErrors, 'vocabulary');
+    const wordOrderScore = calculateScore(sessionErrors, 'word_order');
+
+    const writingScore = grammarScore;
+    const speakingScore = pronunciationScore;
+    const readingScore = (vocabularyScore + wordOrderScore) / 2;
+
+    // Listening score based on session type
+    const listeningScore = sessionData.sessionType === 'chaos_window' ? 7.0 : null;
+
+    const overallScore = (
+        (writingScore * 0.3) +
+        (speakingScore * 0.3) +
+        (readingScore * 0.2) +
+        ((listeningScore || 0) * 0.2)
+    );
+
+    const proficiencyRecord = await db.insert(proficiencyHistory).values({
+        userId,
+        overallScore: overallScore.toFixed(1),
+        listeningScore: listeningScore?.toFixed(1) || null,
+        readingScore: readingScore.toFixed(1),
+        speakingScore: speakingScore.toFixed(1),
+        writingScore: writingScore.toFixed(1),
+        period: 'daily',
+    }).returning();
+
+    console.log(`[Proficiency] Updated: Overall ${overallScore.toFixed(1)} for ${sessionData.sessionType}`);
+
+    return {
+        overall: overallScore.toFixed(1),
+        listening: listeningScore?.toFixed(1),
+        reading: readingScore.toFixed(1),
+        speaking: speakingScore.toFixed(1),
+        writing: writingScore.toFixed(1),
+        errorsProcessed: sessionErrors.length,
     };
 }

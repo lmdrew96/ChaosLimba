@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { mysteryItems, sessions, userPreferences } from "@/lib/db/schema";
 import { callGroq } from "@/lib/ai/groq";
 import { saveErrorPatternsToGarden } from "@/lib/db/queries";
+import { recordSessionProficiency } from "@/lib/proficiency";
 import type { ExtractedErrorPattern } from "@/types/aggregator";
 import { and, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
@@ -86,9 +87,14 @@ Grade this practice attempt.
             );
 
             // Fire-and-forget to keep response fast
-            saveErrorPatternsToGarden(errorPatterns, userId, session.id, 'mystery_shelf').catch(err => {
-                console.error('[Mystery Practice] Failed to save errors to Error Garden:', err);
-            });
+            saveErrorPatternsToGarden(errorPatterns, userId, session.id, 'mystery_shelf')
+                .then(() => {
+                    // Update proficiency after errors are saved
+                    return recordSessionProficiency(userId, session.id);
+                })
+                .catch(err => {
+                    console.error('[Mystery Practice] Failed to save errors/update proficiency:', err);
+                });
         }
 
         // Update mystery item - mark as having been practiced

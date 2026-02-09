@@ -252,7 +252,7 @@ export default function WorkshopPage() {
   const handleEndSession = async () => {
     if (timerRef.current) clearInterval(timerRef.current)
 
-    // Update session duration
+    // Update session duration + proficiency
     if (sessionId && sessionStartRef.current) {
       const durationSeconds = Math.floor((Date.now() - sessionStartRef.current) / 1000)
       fetch("/api/sessions", {
@@ -261,6 +261,12 @@ export default function WorkshopPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sessionId, durationSeconds }),
       }).catch(() => {})
+
+      // Update proficiency tracker (fire-and-forget)
+      fetch(`/api/sessions/${sessionId}/complete`, {
+        method: "POST",
+        credentials: "include",
+      }).catch((err) => console.error("[Workshop] Proficiency update failed:", err))
     }
 
     setIsActive(false)
