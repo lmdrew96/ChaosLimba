@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useMemo } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Flower2, AlertTriangle, TrendingUp, TrendingDown, Minus, Lightbulb, Sparkles, Loader2, LayoutGrid, List as ListIcon, Info, Filter, X, Zap, Mic, Type } from "lucide-react"
+import { Flower2, AlertTriangle, TrendingUp, TrendingDown, Minus, Lightbulb, Sparkles, Loader2, LayoutGrid, List as ListIcon, Info, Filter, X, Zap, Mic, Type, ArrowUp, ArrowDown } from "lucide-react"
 import type { ErrorPattern } from "@/app/api/errors/patterns/route"
 import { PatternModal } from "@/components/features/error-garden/PatternModal"
 import { cn } from "@/lib/utils"
@@ -56,6 +56,7 @@ export default function ErrorGardenPage() {
   // UI State
   const [selectedPattern, setSelectedPattern] = useState<ErrorPattern | null>(null)
   const [sortBy, setSortBy] = useState<SortOption>("frequency")
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc")
   const [viewMode, setViewMode] = useState<ViewMode>("grid")
   const [activeFilters, setActiveFilters] = useState<Set<string>>(new Set())
   const [tierFilter, setTierFilter] = useState<TierFilter>("all")
@@ -115,21 +116,21 @@ export default function ErrorGardenPage() {
     }
 
     // Then sort
+    const dir = sortDirection === "asc" ? 1 : -1
     switch (sortBy) {
       case "frequency":
-        return patterns.sort((a, b) => b.frequency - a.frequency)
+        return patterns.sort((a, b) => dir * (b.frequency - a.frequency))
       case "count":
-        return patterns.sort((a, b) => b.count - a.count)
+        return patterns.sort((a, b) => dir * (b.count - a.count))
       case "risk":
-        // Highest tier first, then by frequency
         return patterns.sort((a, b) => {
-          if (b.tier !== a.tier) return b.tier - a.tier
-          return b.frequency - a.frequency
+          if (b.tier !== a.tier) return dir * (b.tier - a.tier)
+          return dir * (b.frequency - a.frequency)
         })
       default:
         return patterns
     }
-  }, [data?.patterns, sortBy, activeFilters, tierFilter])
+  }, [data?.patterns, sortBy, sortDirection, activeFilters, tierFilter])
 
   const fossilizingPatterns = data?.patterns.filter((p) => p.isFossilizing) || []
   const avgFrequency = data?.patterns.length
@@ -258,10 +259,20 @@ export default function ErrorGardenPage() {
 
       {/* Controls */}
       <div className="flex flex-col sm:flex-row gap-4 justify-between items-center bg-muted/30 p-4 rounded-xl border border-border backdrop-blur-sm">
-        <div className="flex gap-2 flex-wrap">
-          <SortButton active={sortBy === "frequency"} onClick={() => setSortBy("frequency")}>Sort by Frequency</SortButton>
-          <SortButton active={sortBy === "risk"} onClick={() => setSortBy("risk")}>Sort by Risk</SortButton>
-          <SortButton active={sortBy === "count"} onClick={() => setSortBy("count")}>Sort by Count</SortButton>
+        <div className="flex gap-2 flex-wrap items-center">
+          <SortButton active={sortBy === "frequency"} onClick={() => { setSortBy("frequency"); setSortDirection("desc") }}>Frequency</SortButton>
+          <SortButton active={sortBy === "risk"} onClick={() => { setSortBy("risk"); setSortDirection("desc") }}>Risk</SortButton>
+          <SortButton active={sortBy === "count"} onClick={() => { setSortBy("count"); setSortDirection("desc") }}>Count</SortButton>
+          <button
+            onClick={() => setSortDirection(d => d === "asc" ? "desc" : "asc")}
+            className={cn(
+              "p-2 rounded-lg text-sm transition-all border",
+              "border-border bg-muted/20 hover:bg-muted/30 text-muted-foreground hover:text-foreground"
+            )}
+            title={sortDirection === "asc" ? "Ascending" : "Descending"}
+          >
+            {sortDirection === "asc" ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />}
+          </button>
         </div>
         <div className="flex gap-3 items-center">
           {/* View Mode Toggle */}
