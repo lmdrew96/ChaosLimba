@@ -16,6 +16,8 @@ import {
   Search,
   Clock,
   ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
   Eye,
 } from "lucide-react";
 import { ContentPlayer } from "@/components/features/content-player";
@@ -100,6 +102,7 @@ const typeColors = {
 
 type ContentFilter = "all" | "text" | "audio";
 type SortMode = "newest" | "difficulty" | "duration";
+type SortDirection = "asc" | "desc";
 
 export default function DeepFogPage() {
   const [content, setContent] = useState<ContentItem[]>([]);
@@ -115,6 +118,7 @@ export default function DeepFogPage() {
   // Search & sort
   const [searchQuery, setSearchQuery] = useState("");
   const [sortMode, setSortMode] = useState<SortMode>("newest");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
 
   // Stats
   const [totalWordsCollected, setTotalWordsCollected] = useState(0);
@@ -216,17 +220,22 @@ export default function DeepFogPage() {
     }
 
     // Sort
-    if (sortMode === "difficulty") {
+    const dir = sortDirection === "asc" ? 1 : -1;
+    if (sortMode === "newest") {
+      // API returns newest first (desc). Reverse for asc.
+      if (sortDirection === "asc") {
+        result = [...result].reverse();
+      }
+    } else if (sortMode === "difficulty") {
       result = [...result].sort(
-        (a, b) => parseFloat(String(a.difficultyLevel)) - parseFloat(String(b.difficultyLevel))
+        (a, b) => dir * (parseFloat(String(a.difficultyLevel)) - parseFloat(String(b.difficultyLevel)))
       );
     } else if (sortMode === "duration") {
-      result = [...result].sort((a, b) => a.durationSeconds - b.durationSeconds);
+      result = [...result].sort((a, b) => dir * (a.durationSeconds - b.durationSeconds));
     }
-    // "newest" preserves API order (already sorted by createdAt desc)
 
     return result;
-  }, [content, searchQuery, sortMode]);
+  }, [content, searchQuery, sortMode, sortDirection]);
 
   const saveToMysteryShelf = useCallback(
     async (word: string, context: string) => {
@@ -318,15 +327,28 @@ export default function DeepFogPage() {
   const fogTargetMin = fogRange ? difficultyToCEFR(fogRange.min) : null;
   const fogTargetMax = fogRange ? difficultyToCEFR(fogRange.max) : null;
 
-  const nextSort = (): SortMode => {
-    if (sortMode === "newest") return "difficulty";
-    if (sortMode === "difficulty") return "duration";
-    return "newest";
+  const defaultDirection: Record<SortMode, SortDirection> = {
+    newest: "desc",
+    difficulty: "asc",
+    duration: "asc",
   };
 
-  const sortIcon = sortMode === "newest" ? Clock : sortMode === "difficulty" ? ArrowUpDown : Clock;
-  const sortLabel = sortMode === "newest" ? "Newest" : sortMode === "difficulty" ? "Difficulty" : "Duration";
-  const SortIcon = sortIcon;
+  const handleSortClick = () => {
+    const modes: SortMode[] = ["newest", "difficulty", "duration"];
+    const currentIdx = modes.indexOf(sortMode);
+    const nextMode = modes[(currentIdx + 1) % modes.length];
+    setSortMode(nextMode);
+    setSortDirection(defaultDirection[nextMode]);
+  };
+
+  const handleDirectionToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSortDirection((d) => (d === "asc" ? "desc" : "asc"));
+  };
+
+  const sortModeLabel = sortMode === "newest" ? "Date" : sortMode === "difficulty" ? "Difficulty" : "Duration";
+  const SortModeIcon = sortMode === "newest" ? Clock : ArrowUpDown;
+  const DirectionIcon = sortDirection === "asc" ? ArrowUp : ArrowDown;
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
@@ -452,14 +474,25 @@ export default function DeepFogPage() {
               className="h-8 pl-8 text-sm"
             />
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setSortMode(nextSort())}
-            className="border-border text-xs gap-1.5"
-          >
-            <SortIcon className="h-3.5 w-3.5" /> {sortLabel}
-          </Button>
+          <div className="flex items-center">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSortClick}
+              className="border-border text-xs gap-1.5 rounded-r-none border-r-0"
+            >
+              <SortModeIcon className="h-3.5 w-3.5" /> {sortModeLabel}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDirectionToggle}
+              className="border-border text-xs px-1.5 rounded-l-none"
+              title={sortDirection === "asc" ? "Ascending" : "Descending"}
+            >
+              <DirectionIcon className="h-3.5 w-3.5" />
+            </Button>
+          </div>
         </div>
       </div>
 
