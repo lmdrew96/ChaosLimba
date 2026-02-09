@@ -1,6 +1,6 @@
 "use client"
 
-import { User, Settings, LogOut } from "lucide-react"
+import { User, Settings, LogOut, BookOpen, Volume2, MessageCircle, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -12,11 +12,14 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useClerk, useUser } from "@clerk/nextjs"
+import { usePathname } from "next/navigation"
 import Link from "next/link"
 
 export function TopBar() {
   const { signOut, openUserProfile } = useClerk()
   const { user } = useUser()
+  const pathname = usePathname()
+  const showQuickTools = pathname !== "/"
 
   // Get user initials for avatar fallback
   const getInitials = () => {
@@ -61,6 +64,42 @@ export function TopBar() {
       </div>
 
       <div className="flex items-center gap-3">
+        {showQuickTools && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-9 w-9 rounded-full hover:bg-primary/10 transition-colors"
+              >
+                <Sparkles className="h-4 w-4 text-muted-foreground" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-52 rounded-xl" align="end">
+              <DropdownMenuLabel className="text-xs text-muted-foreground">Quick Tools</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="cursor-pointer" asChild>
+                <Link href="/ce-inseamna">
+                  <BookOpen className="mr-2 h-4 w-4" />
+                  Ce înseamnă?
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer" asChild>
+                <Link href="/cum-se-pronunta">
+                  <Volume2 className="mr-2 h-4 w-4" />
+                  Cum se pronunță?
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer" asChild>
+                <Link href="/ask-tutor">
+                  <MessageCircle className="mr-2 h-4 w-4" />
+                  Ask Tutor
+                </Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
