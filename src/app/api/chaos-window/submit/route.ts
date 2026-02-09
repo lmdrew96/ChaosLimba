@@ -5,6 +5,7 @@ import { formatFeedback } from "@/lib/ai/formatter";
 import { trackFeatureExposure, extractFeaturesFromErrors } from "@/lib/ai/exposure-tracker";
 import { saveErrorPatternsToGarden } from "@/lib/db/queries";
 import type { ExtractedErrorPattern } from "@/types/aggregator";
+import type { FossilizationAlert } from "@/lib/ai/adaptation";
 
 export async function POST(req: NextRequest) {
   try {
@@ -22,6 +23,7 @@ export async function POST(req: NextRequest) {
     let contentId: string | undefined;
     let contentFeatures: string[] = [];
     let targetFeatures: Array<{ featureKey: string; featureName: string; description: string }> = [];
+    let fossilizationAlerts: FossilizationAlert[] = [];
 
     if (isSpeechMode) {
       // Speech mode - handle FormData
@@ -43,6 +45,10 @@ export async function POST(req: NextRequest) {
       const targetFeaturesStr = formData.get('targetFeatures') as string | null;
       if (targetFeaturesStr) {
         try { targetFeatures = JSON.parse(targetFeaturesStr); } catch (e) { /* ignore */ }
+      }
+      const fossilizationAlertsStr = formData.get('fossilizationAlerts') as string | null;
+      if (fossilizationAlertsStr) {
+        try { fossilizationAlerts = JSON.parse(fossilizationAlertsStr); } catch (e) { /* ignore */ }
       }
 
       // Parse error patterns from JSON string
@@ -114,6 +120,7 @@ export async function POST(req: NextRequest) {
       contentId = body.contentId || undefined;
       contentFeatures = body.contentFeatures || [];
       targetFeatures = body.targetFeatures || [];
+      fossilizationAlerts = body.fossilizationAlerts || [];
     }
 
     // Validate common inputs
@@ -205,7 +212,8 @@ export async function POST(req: NextRequest) {
       historicalErrorPatterns,
       userLevel,
       targetFeatures,
-      [] // newlyDiscoveredFeatures - populated by Chaos Window frontend in future
+      [], // newlyDiscoveredFeatures
+      fossilizationAlerts
     );
 
     // Step 3: Format feedback for user display

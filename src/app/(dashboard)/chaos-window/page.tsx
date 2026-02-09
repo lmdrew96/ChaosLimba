@@ -6,14 +6,16 @@ import { Button } from "@/components/ui/button"
 import {
   Atom,
   Play,
-  Pause,
   RotateCcw,
   Shuffle,
   Headphones,
   Volume2,
   Loader2,
   FileText,
+  Square,
+  Clock,
 } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
 import { GradingReport } from "@/components/features/chaos-window/AIResponse"
 import { ConversationMessage } from "@/components/features/chaos-window/ConversationHistory"
 import { ChaosChat } from "@/components/features/chaos-window/ChaosChat"
@@ -23,6 +25,7 @@ import { ContentItem } from "@/lib/db/schema"
 import { AudioPlayer } from "@/components/features/content-player/AudioPlayer"
 import { PronunciationPractice } from "@/components/features/chaos-window/PronunciationPractice"
 import { PronunciationResult } from "@/lib/ai/pronunciation"
+import type { FossilizationAlert } from "@/lib/ai/adaptation"
 
 type Modality = "text" | "speech"
 
@@ -102,6 +105,16 @@ export default function ChaosWindowPage() {
   const [isFirstSession, setIsFirstSession] = useState(false)
   const [discoveryToast, setDiscoveryToast] = useState<string | null>(null)
 
+  // Fossilization alerts state (tier 2+ from adaptation engine)
+  const [fossilizationAlerts, setFossilizationAlerts] = useState<FossilizationAlert[]>([])
+
+  // Session elapsed timer
+  const [elapsedSeconds, setElapsedSeconds] = useState(0)
+  const timerRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Recent session stats for landing page
+  const [recentSession, setRecentSession] = useState<{ duration: number; interactions: number } | null>(null)
+
   // Practice audio generation state
   const [practiceAudio, setPracticeAudio] = useState<{
     audioUrl: string; romanianText: string; englishText: string | null; contentType: string
@@ -111,6 +124,48 @@ export default function ChaosWindowPage() {
   const practiceAudioRef = useRef<HTMLAudioElement | null>(null)
   const [isPracticePlaying, setIsPracticePlaying] = useState(false)
   const [showCulturalNotes, setShowCulturalNotes] = useState(false)
+
+  // Elapsed timer tick
+  useEffect(() => {
+    if (isActive && sessionStartTime) {
+      timerRef.current = setInterval(() => {
+        setElapsedSeconds(Math.floor((Date.now() - sessionStartTime) / 1000))
+      }, 1000)
+    }
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current)
+    }
+  }, [isActive, sessionStartTime])
+
+  // Fetch user level + recent session on mount
+  useEffect(() => {
+    fetch("/api/user/preferences", { credentials: "include" })
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => {
+        if (data?.preferences?.languageLevel) {
+          setUserLevel(data.preferences.languageLevel)
+        }
+      })
+      .catch((err) => console.error('[Chaos Window] Failed to fetch user level:', err))
+
+    fetch("/api/sessions?type=chaos_window&limit=1", { credentials: "include" })
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => {
+        if (data?.sessions?.[0]?.durationSeconds) {
+          setRecentSession({
+            duration: data.sessions[0].durationSeconds,
+            interactions: 0, // Not tracked in session table
+          })
+        }
+      })
+      .catch(() => {})
+  }, [])
+
+  const formatTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60)
+    const s = seconds % 60
+    return `${m}:${s.toString().padStart(2, "0")}`
+  }
 
   const startSession = async () => {
     try {
@@ -183,6 +238,8 @@ export default function ChaosWindowPage() {
       // Clear session state
       setSessionId(null)
       setSessionStartTime(null)
+      setElapsedSeconds(0)
+      if (timerRef.current) clearInterval(timerRef.current)
 
       // Show summary modal
       setShowSummary(true)
@@ -191,7 +248,7 @@ export default function ChaosWindowPage() {
     }
   }
 
-  // Fetch error patterns from Error Garden
+  // Fetch error patterns from Error Garden + build fossilization alerts
   const fetchErrorPatterns = async () => {
     try {
       const res = await fetch('/api/errors/patterns', { credentials: 'include' })
@@ -203,6 +260,24 @@ export default function ChaosWindowPage() {
           .slice(0, 3)
           .map((p: any) => `${p.errorType}: ${p.category}`)
         setErrorPatterns(patterns)
+
+        // Build fossilization alerts from tier 2+ patterns (for tutor prompts)
+        const alerts: FossilizationAlert[] = data.patterns
+          .filter((p: any) => p.tier >= 2)
+          .slice(0, 3)
+          .map((p: any) => ({
+            pattern: `${p.errorType}: ${p.category}`,
+            tier: p.tier as 1 | 2 | 3,
+            examples: (p.examples || [])
+              .filter((e: any) => e.incorrect && e.correct)
+              .slice(0, 2)
+              .map((e: any) => ({ incorrect: e.incorrect, correct: e.correct })),
+          }))
+        setFossilizationAlerts(alerts)
+
+        if (alerts.length > 0) {
+          console.log(`[Chaos Window] ${alerts.length} fossilization alert(s) active (tier ${alerts.map(a => a.tier).join(',')})`)
+        }
       }
     } catch (err) {
       console.error('Failed to fetch error patterns:', err)
@@ -233,7 +308,8 @@ export default function ChaosWindowPage() {
           errorPatterns: errorPatterns,
           userLevel: userLevel,
           targetFeatures: features,
-          isFirstSession: firstSession
+          isFirstSession: firstSession,
+          fossilizationAlerts: fossilizationAlerts,
         })
       })
 
@@ -259,7 +335,7 @@ export default function ChaosWindowPage() {
     } finally {
       setIsLoadingQuestion(false)
     }
-  }, [errorPatterns, userLevel])
+  }, [errorPatterns, userLevel, fossilizationAlerts])
 
   // Fetch transcript on-demand for content that doesn't have it cached
   // Accepts the content object directly to avoid stale closure issues
@@ -545,7 +621,8 @@ export default function ChaosWindowPage() {
             userLevel: userLevel,
             contentId: currentContent?.id,
             contentFeatures: (currentContent?.languageFeatures as { grammar?: string[] })?.grammar || [],
-            targetFeatures: targetFeatures
+            targetFeatures: targetFeatures,
+            fossilizationAlerts: fossilizationAlerts,
           })
         })
       } else {
@@ -560,6 +637,7 @@ export default function ChaosWindowPage() {
         if (currentContent?.id) formData.append('contentId', currentContent.id)
         formData.append('contentFeatures', JSON.stringify((currentContent?.languageFeatures as { grammar?: string[] })?.grammar || []))
         formData.append('targetFeatures', JSON.stringify(targetFeatures))
+        formData.append('fossilizationAlerts', JSON.stringify(fossilizationAlerts))
 
         res = await fetch("/api/chaos-window/submit", {
           method: "POST",
@@ -647,21 +725,67 @@ export default function ChaosWindowPage() {
               <h3 className="text-xl font-semibold mb-2">
                 Ready for some chaos?
               </h3>
-              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                Start a session to receive randomized content at your level and
-                practice with AI tutoring
+              <p className="text-muted-foreground mb-4 max-w-md mx-auto">
+                Randomized content at your level with AI tutoring.
+                Listen or read, then answer questions in Romanian.
               </p>
-              <Button
-                size="lg"
-                onClick={handleStartSession}
-                className="bg-gradient-to-r from-destructive to-primary/70 hover:from-destructive/70 hover:to-primary/30 rounded-xl px-8 shadow-lg shadow-destructive/50"
-              >
-                <Play className="mr-2 h-5 w-5" />
-                Start Chaos Session
-              </Button>
+
+              {userLevel && (
+                <Badge variant="outline" className="mb-4 text-destructive border-destructive/30">
+                  {userLevel} Level
+                </Badge>
+              )}
+
+              {/* Last session stats */}
+              {recentSession && (
+                <p className="text-sm text-muted-foreground mb-4">
+                  Last session: {formatTime(recentSession.duration)}
+                </p>
+              )}
+
+              <div>
+                <Button
+                  size="lg"
+                  onClick={handleStartSession}
+                  className="bg-gradient-to-r from-destructive to-primary/70 hover:from-destructive/70 hover:to-primary/30 rounded-xl px-8 shadow-lg shadow-destructive/50"
+                >
+                  <Play className="mr-2 h-5 w-5" />
+                  Start Chaos Session
+                </Button>
+              </div>
             </div>
           ) : (
             <div className="space-y-6">
+              {/* Session header with timer + end button */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Atom className="h-5 w-5 text-destructive animate-pulse" />
+                  <span className="font-semibold">Active Session</span>
+                  {userLevel && (
+                    <Badge variant="outline" className="text-destructive border-destructive/30">
+                      {userLevel}
+                    </Badge>
+                  )}
+                </div>
+                <div className="flex items-center gap-3">
+                  {sessionStartTime && (
+                    <span className="text-sm font-mono text-muted-foreground flex items-center gap-1.5">
+                      <Clock className="h-3.5 w-3.5" />
+                      {formatTime(elapsedSeconds)}
+                    </span>
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleEndSession}
+                    className="text-muted-foreground hover:text-destructive"
+                  >
+                    <Square className="mr-1.5 h-3.5 w-3.5" />
+                    End
+                  </Button>
+                </div>
+              </div>
+
               <Card className="rounded-xl border-destructive/20 bg-muted/30">
                 <CardContent className="p-5">
                   {isLoadingContent ? (
@@ -796,131 +920,110 @@ export default function ChaosWindowPage() {
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardContent>
-                  <div className="flex gap-3 justify-center">
-                    <Button
-                      variant="outline"
-                      onClick={() => setIsActive(!isActive)}
-                      className="border-secondary/30"
-                    >
-                      {isActive ? (
-                        <>
-                          <Pause className="mr-2 h-4 w-4" /> Pause
-                        </>
-                      ) : (
-                        <>
-                          <Play className="mr-2 h-4 w-4" /> Resume
-                        </>
-                      )}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="border-destructive/30"
-                      onClick={() => fetchRandomContent(currentContent?.id)}
-                      disabled={isLoadingContent}
-                    >
-                      <Shuffle className="mr-2 h-4 w-4" />
-                      Next Random Content
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={async () => {
-                        setIsGeneratingPractice(true)
-                        setPracticeError(null)
-                        setPracticeAudio(null)
-                        try {
-                          const res = await fetch('/api/generated-content/generate', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                              contentType: 'practice_sentences',
-                              contentTitle: currentContent?.title,
-                              contentTranscript: (currentContent?.transcript || currentContent?.textContent)?.slice(0, 500),
-                              contentTopic: currentContent?.topic,
-                              contentId: currentContent?.id,
-                            }),
-                          })
-                          if (!res.ok) {
-                            const data = await res.json().catch(() => ({ error: 'Failed' }))
-                            throw new Error(data.error || `Failed (${res.status})`)
+              {/* Action buttons */}
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-destructive/30"
+                  onClick={() => fetchRandomContent(currentContent?.id)}
+                  disabled={isLoadingContent}
+                >
+                  <Shuffle className="mr-1.5 h-3.5 w-3.5" />
+                  Next Content
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={async () => {
+                    setIsGeneratingPractice(true)
+                    setPracticeError(null)
+                    setPracticeAudio(null)
+                    try {
+                      const res = await fetch('/api/generated-content/generate', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          contentType: 'practice_sentences',
+                          contentTitle: currentContent?.title,
+                          contentTranscript: (currentContent?.transcript || currentContent?.textContent)?.slice(0, 500),
+                          contentTopic: currentContent?.topic,
+                          contentId: currentContent?.id,
+                        }),
+                      })
+                      if (!res.ok) {
+                        const data = await res.json().catch(() => ({ error: 'Failed' }))
+                        throw new Error(data.error || `Failed (${res.status})`)
+                      }
+                      const data = await res.json()
+                      setPracticeAudio({
+                        audioUrl: data.content.audioUrl,
+                        romanianText: data.content.romanianText,
+                        englishText: data.content.englishText,
+                        contentType: data.content.contentType,
+                      })
+                    } catch (err: unknown) {
+                      setPracticeError(err instanceof Error ? err.message : 'Generation failed')
+                    } finally {
+                      setIsGeneratingPractice(false)
+                    }
+                  }}
+                  disabled={isGeneratingPractice}
+                  className="border-primary/30 text-primary hover:text-primary/80"
+                >
+                  {isGeneratingPractice ? (
+                    <><Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> Generating...</>
+                  ) : (
+                    <><Volume2 className="mr-1.5 h-3.5 w-3.5" /> Practice Audio</>
+                  )}
+                </Button>
+              </div>
+
+              {practiceError && (
+                <p className="text-sm text-destructive">{practiceError}</p>
+              )}
+
+              {practiceAudio && (
+                <Card className="rounded-xl border-primary/20 bg-muted/30">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <button
+                        onClick={() => {
+                          if (!practiceAudioRef.current) return
+                          if (isPracticePlaying) {
+                            practiceAudioRef.current.pause()
+                            setIsPracticePlaying(false)
+                          } else {
+                            practiceAudioRef.current.src = practiceAudio.audioUrl
+                            practiceAudioRef.current.play()
+                            setIsPracticePlaying(true)
                           }
-                          const data = await res.json()
-                          setPracticeAudio({
-                            audioUrl: data.content.audioUrl,
-                            romanianText: data.content.romanianText,
-                            englishText: data.content.englishText,
-                            contentType: data.content.contentType,
-                          })
-                        } catch (err: unknown) {
-                          setPracticeError(err instanceof Error ? err.message : 'Generation failed')
-                        } finally {
-                          setIsGeneratingPractice(false)
-                        }
-                      }}
-                      disabled={isGeneratingPractice}
-                      className="border-primary/30 text-primary hover:text-primary/80"
-                    >
-                      {isGeneratingPractice ? (
-                        <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Generating...</>
-                      ) : (
-                        <><Volume2 className="mr-2 h-4 w-4" /> Practice Audio</>
-                      )}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={handleEndSession}
-                      className="border-destructive/30 text-destructive hover:text-destructive/80"
-                    >
-                      End Session
-                    </Button>
-                  </div>
-                  {practiceError && (
-                    <p className="text-sm text-destructive mt-2">{practiceError}</p>
-                  )}
-                  {practiceAudio && (
-                    <div className="mt-3 bg-muted/30 rounded-lg p-3 border border-primary/20">
-                      <div className="flex items-center gap-2 mb-2">
-                        <button
-                          onClick={() => {
-                            if (!practiceAudioRef.current) return
-                            if (isPracticePlaying) {
-                              practiceAudioRef.current.pause()
-                              setIsPracticePlaying(false)
-                            } else {
-                              practiceAudioRef.current.src = practiceAudio.audioUrl
-                              practiceAudioRef.current.play()
-                              setIsPracticePlaying(true)
-                            }
-                          }}
-                          className="p-1.5 rounded-full bg-primary/20 hover:bg-primary/30 transition-colors"
-                        >
-                          {isPracticePlaying ? (
-                            <Pause className="h-4 w-4 text-primary" />
-                          ) : (
-                            <Play className="h-4 w-4 text-primary" />
-                          )}
-                        </button>
-                        <span className="text-sm text-primary font-medium">Practice Sentences</span>
-                      </div>
-                      <p className="text-sm text-foreground whitespace-pre-line">{practiceAudio.romanianText}</p>
-                      {practiceAudio.englishText && (
-                        <p className="text-xs text-muted-foreground mt-1 whitespace-pre-line">{practiceAudio.englishText}</p>
-                      )}
-                      <audio
-                        ref={practiceAudioRef}
-                        onEnded={() => setIsPracticePlaying(false)}
-                      />
+                        }}
+                        className="p-1.5 rounded-full bg-primary/20 hover:bg-primary/30 transition-colors"
+                      >
+                        {isPracticePlaying ? (
+                          <Square className="h-4 w-4 text-primary" />
+                        ) : (
+                          <Play className="h-4 w-4 text-primary" />
+                        )}
+                      </button>
+                      <span className="text-sm text-primary font-medium">Practice Sentences</span>
                     </div>
-                  )}
-                  {practiceAudio && (
+                    <p className="text-sm text-foreground whitespace-pre-line">{practiceAudio.romanianText}</p>
+                    {practiceAudio.englishText && (
+                      <p className="text-xs text-muted-foreground mt-1 whitespace-pre-line">{practiceAudio.englishText}</p>
+                    )}
+                    <audio
+                      ref={practiceAudioRef}
+                      onEnded={() => setIsPracticePlaying(false)}
+                    />
                     <PronunciationPractice
                       targetText={practiceAudio.romanianText.split('\n')[0].replace(/\.\s*$/, '')}
                       onComplete={handlePronunciationResult}
                     />
-                  )}
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              )}
 
               {/* Chat Interface */}
               <ChaosChat
@@ -962,7 +1065,9 @@ export default function ChaosWindowPage() {
           setConversationHistory([])
           setGradingReports(new Map())
           setErrorPatterns([])
-          fetchRandomContent()
+          setFossilizationAlerts([])
+          setCurrentContent(null)
+          handleStartSession()
         }}
         sessionId={completedSessionId}
         duration={completedDuration}
