@@ -1,6 +1,6 @@
 # ChaosLimbă Complete Ensemble Architecture: System Overview
-**Document Version:** 5.1 - MVP ~93% COMPLETE (Codebase Audit Update)
-**Last Updated:** February 7, 2026
+**Document Version:** 5.2 - MVP ~99.5% COMPLETE (February 2026 Audit)
+**Last Updated:** February 9, 2026
 **Architecture Type:** 10-Component Ensemble with Dual-Path Routing + 3-Tier Adaptation Engine (ALL FREE APIS)
 
 ## System Overview
@@ -260,7 +260,7 @@ This system represents the "Structured Application" component, providing organiz
 ## Key System Characteristics
 
 ### Hybrid Ensemble Architecture Design
-- **7-Component Ensemble**: 5 ML models + 1 rule-based system + 1 router for comprehensive analysis
+- **10-Component Ensemble**: 5 ML models + 1 rule-based system + 1 router + aggregator + conductor + AI tutor for comprehensive analysis
 - **Dual-Path Processing**: Intelligent routing optimizes resource usage based on input type
 - **Conditional Component Activation**: Speech path activates 5 components, text path activates 2 components
 - **Analysis Element**: Parallel diagnostic processing creates comprehensive, multi-dimensional error analysis
@@ -307,7 +307,7 @@ The system integrates established language learning theories:
 ## Technical Implementation Notes
 
 The architecture demonstrates sophisticated AI integration with:
-- **Ensemble Design**: 7-component architecture with conditional activation
+- **Ensemble Design**: 10-component architecture with conditional activation
 - **Dual-Path Routing**: Intelligent input type detection and component selection
 - **Pre-Trained Models**: Minimal fine-tuning requirements (only 1 of 5 ML models)
 - **Parallel Processing**: Concurrent execution for efficient multi-dimensional analysis
@@ -547,7 +547,7 @@ CREATE TABLE grading_reports (
 **Core Infrastructure:**
 - User Authentication (Clerk)
 - Database Schema (Drizzle ORM + PostgreSQL)
-- Theme System (3 variants: Cobalt, Forest, Sunset + light/dark modes)
+- Theme System (8 color themes: Modern Glass, Forest Haven, Neon Nostalgia, Wild Runes, Bathhouse Glow, Vinyl Era, Neon Circuit, Soft Bloom + light/dark = 16 variants)
 - Settings Management
 
 **Learning Modes:**
@@ -555,8 +555,9 @@ CREATE TABLE grading_reports (
   - Chat-based UI with conversation history
   - Smart content selection (fossilization-aware weighted random)
   - AI tutor conversation with Llama 3.3 70B + fossilization alerts
-  - Session tracking
+  - Session tracking and summary with performance metrics
   - Pronunciation practice integration
+  - Content-aware practice audio
 - **Workshop** - Grammar and vocabulary micro-challenges
   - 4 grammar challenge types: transform, complete, fix, rewrite
   - 3 vocab challenge types: use_it, which_one, spot_the_trap
@@ -564,12 +565,15 @@ CREATE TABLE grading_reports (
   - Destabilization-tier-aware challenge generation
   - Multiple choice UI support
   - Timer modes (5 min, 10 min, freeplay)
+  - Challenge validation with JSON retry
 - **Deep Fog Mode** - Passive immersion with above-level content
-  - Content player for video/audio/text
-  - Basic unknown word collection
+  - CEFR filtering, fog depth levels, search/sort
+  - Content player for audio/text with word capture to Mystery Shelf
+  - Session summary with stats
 - **Mystery Shelf** - Unknown word repository
-  - Collection and storage
-  - Basic viewing interface
+  - AI-powered deep exploration (definitions, examples, grammar, pronunciation)
+  - TTS quick review, filters (all/new/explored), search, sort, stats
+  - Duplicate detection and deletion
 
 **Assessment & Tracking:**
 - **Onboarding System** - Complete proficiency assessment
@@ -578,54 +582,24 @@ CREATE TABLE grading_reports (
   - Initial proficiency calculation
 - **Error Garden** - Error tracking and pattern display
   - Error logging by type (grammar, pronunciation, vocabulary, word order)
-  - Error pattern visualization
-  - Modality tracking (text vs speech)
+  - Pattern visualization with grid/list views, fossilization tiers, trend charts
+  - Modality tracking (text vs speech), L1 transfer analysis
+  - Context-aware audio playback, tier filtering
 - **Proficiency Tracker** - Skill progress monitoring
   - Overall proficiency scoring (1-10 scale)
   - Skill-specific tracking (listening, reading, speaking, writing)
-  - Progress history and timeline visualization
+  - Progress history, timeline visualization, skill insights
+  - Real data from session history with refresh capability
 
 **Content System:**
-- Content management (video, audio, text)
+- Content management (audio, text) — 1080 items, 15.8 hours
 - Transcript support (YouTube auto, manual, Whisper)
 - Common Voice integration for pronunciation practice
 - Audio content generation pipeline (scripts in `/scripts`)
 
-**API Endpoints:** 25+ production API routes deployed
+**API Endpoints:** 40 production API routes deployed
 
-### 🔧 PARTIALLY IMPLEMENTED
-
-**Error Garden:**
-- ✅ Error collection and storage
-- ✅ Pattern display dashboard
-- ✅ Fossilization detection (via 3-tier Adaptation Engine)
-- ✅ Automated intervention protocols (nudge/push/destabilize)
-- ✅ Lazy intervention outcome measurement
-- ❌ ML-based clustering (using frequency counts + adaptation tiers)
-
-**Mystery Shelf:**
-- ✅ Unknown word collection
-- ✅ Basic storage and retrieval
-- ❌ Deep exploration mode
-- ❌ AI-generated practice prompts
-- ❌ Mastery tracking
-
-**Adaptive Tutoring System:**
-- ✅ AI tutor conversations (Llama 3.3 70B)
-- ✅ Fossilization-aware question generation (fossilizationAlerts param)
-- ✅ Smart content selection (weighted random with dynamic weights)
-- ✅ 3-tier Adaptation Engine (nudge → push → destabilize)
-- ✅ Workshop feature targeting with destabilization tiers
-- ✅ Intervention recording and outcome measurement
-- 🔧 ZPD maintenance (basic thresholds in place)
-
-### 🟡 NOT YET IMPLEMENTED
-
-**Deep Fog Mode (Full Feature Set):**
-- Level targeting (1-3 CEFR levels above learner)
-- Batch unknown collection
-- Context preservation for unknowns
-- Deep Fog-specific analytics
+### 🟡 POST-MVP FEATURES
 
 **Playlist Roulette:**
 - Curated content playlists
@@ -636,6 +610,10 @@ CREATE TABLE grading_reports (
 - Population-level error pattern insights
 - Learning trajectory predictions
 - Content effectiveness metrics
+
+**SPAM-C: Dialectal/Pragmatic Analysis:**
+- Regional variation + formality detection
+- When user base expands to multiple Romanian regions
 
 ## Model URLs & Resources
 
@@ -654,8 +632,10 @@ CREATE TABLE grading_reports (
 This system represents a cutting-edge approach to adaptive language learning, combining the power of an ensemble architecture with dual-path routing optimization, sound pedagogical principles, and **100% free-tier AI APIs** to create an effective, personalized learning experience for Romanian language students.
 
 **Key Achievements:**
-- ✅ 10 of 11 core AI components deployed (91% complete)
-- ✅ 72-100% cost reduction from original budget
+- ✅ 10 core AI components deployed (100% complete)
+- ✅ 72-100% cost reduction from original budget ($0-5/month)
 - ✅ All MVP features functional and tested
+- ✅ 8 color themes with light/dark modes (16 variants)
+- ✅ 40 production API routes, 16 pages, 15 DB tables
 - ✅ Scalable architecture ready for user growth
 - 🎯 Ready for beta testing and user feedback

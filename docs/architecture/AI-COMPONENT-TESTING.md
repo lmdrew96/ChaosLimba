@@ -28,52 +28,9 @@ This tests:
 
 ---
 
-## Health Check Endpoint
+## Health Check
 
-Monitor component health in production:
-
-```bash
-GET /api/health/ai-components
-```
-
-**Response:**
-```json
-{
-  "timestamp": "2026-01-27T...",
-  "overall": "healthy",
-  "components": {
-    "grammar": {
-      "status": "healthy",
-      "latencyMs": 1500,
-      "lastChecked": "2026-01-27T..."
-    },
-    "spamA": {
-      "status": "degraded",
-      "latencyMs": 100,
-      "lastChecked": "2026-01-27T..."
-    },
-    "spamD": {
-      "status": "healthy",
-      "latencyMs": 1,
-      "lastChecked": "2026-01-27T..."
-    },
-    "groq": {
-      "status": "healthy",
-      "latencyMs": 300,
-      "lastChecked": "2026-01-27T..."
-    }
-  }
-}
-```
-
-**Status Codes:**
-- `200` - All components healthy or degraded
-- `503` - One or more components unhealthy
-
-**Health States:**
-- `healthy` - Component functioning normally
-- `degraded` - Component working but using fallback (e.g., SPAM-A using Levenshtein instead of HF API)
-- `unhealthy` - Component failing
+> **Note:** The standalone `/api/health/ai-components` endpoint was removed in the Feb 7, 2026 dead code cleanup. Use the verification script below for component health checks.
 
 ---
 
@@ -252,6 +209,5 @@ Run verification after:
 
 ---
 
-**Last Updated:** January 27, 2026
-**Verification Script:** [verify-all-components.ts](../scripts/verify-all-components.ts)
-**Health Endpoint:** [/api/health/ai-components/route.ts](../src/app/api/health/ai-components/route.ts)
+**Last Updated:** February 9, 2026
+**Verification Script:** [verify-all-components.ts](../../scripts/verify-all-components.ts)

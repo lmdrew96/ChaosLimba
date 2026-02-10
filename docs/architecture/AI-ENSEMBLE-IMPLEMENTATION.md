@@ -100,9 +100,9 @@ const providerResult = await checkGrammar(userText);
 ### 4. SPAM-A: Semantic Similarity
 - **File:** `/src/lib/ai/spamA.ts`
 - **Model:** `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2`
-- **API Endpoint:** `/api/spam-a`
 - **Cost:** FREE (HF tier)
 - **Performance:** 80-85% accuracy, 0.2-0.4s response
+- **Note:** Standalone `/api/spam-a` endpoint removed in Feb 7 cleanup; SPAM-A is called internally by the aggregator
 
 ```typescript
 // Usage example
@@ -237,9 +237,11 @@ const evaluation = await evaluateWorkshopResponse(userAnswer, challenge);
 |----------|--------|---------|-----------------|
 | `/api/speech-to-text` | POST | Transcribe audio to text | Speech Recognition |
 | `/api/analyze-pronunciation` | POST | Analyze pronunciation quality | Pronunciation Analysis |
-| `/api/spam-a` | POST | Check semantic similarity | SPAM-A |
-| `/api/aggregate-feedback` | POST | Combine all analyses | Aggregator |
+| `/api/aggregate-feedback` | POST | Combine all analyses | Aggregator (calls SPAM-A/B internally) |
 | `/api/chaos-window/submit` | POST | Full chaos window analysis | All components + Tutor |
+| `/api/chaos-window/initial-question` | POST | Generate initial tutor question | Tutor + Content Selection |
+| `/api/workshop/challenge` | GET | Generate workshop challenge | Workshop Generator |
+| `/api/workshop/evaluate` | POST | Grade workshop response | Workshop Evaluator |
 
 ### Request/Response Formats
 
@@ -451,13 +453,11 @@ src/app/api/
 │   └── route.ts          # Speech recognition endpoint
 ├── analyze-pronunciation/
 │   └── route.ts          # Pronunciation endpoint
-├── spam-a/
-│   └── route.ts          # Semantic similarity endpoint
-├── spam-b/
-│   └── route.ts          # Relevance scoring endpoint
 ├── aggregate-feedback/
-│   └── route.ts          # Aggregator endpoint
+│   └── route.ts          # Aggregator endpoint (calls SPAM-A/B internally)
 ├── chaos-window/
+│   ├── initial-question/
+│   │   └── route.ts      # Generate initial tutor question
 │   └── submit/
 │       └── route.ts      # Full analysis endpoint
 └── workshop/
