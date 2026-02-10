@@ -9,9 +9,130 @@ import {
 
 // Re-export types for external use
 export type { AggregatorInput, AggregatedReport };
-import { GrammarResult, GrammarError } from './grammar';
-import { SpamAResult } from './spamA';
+import { GrammarResult, GrammarError, analyzeGrammar } from './grammar';
+import { compareSemanticSimilarity, SpamAResult } from './spamA';
+import { analyzeRelevance } from './spamB';
+import { checkIntonationShift } from './spamD';
+import { analyzePronunciation } from './pronunciation';
 import { IntonationWarning } from '../../types/intonation';
+
+/**
+ * Input for the feedback pipeline — called directly, no HTTP indirection.
+ */
+export interface FeedbackPipelineInput {
+  userInput: string;
+  expectedResponse?: string;
+  inputType: 'text' | 'speech';
+  userId: string;
+  sessionId: string;
+  context?: string;
+  audioFile?: File | null;
+  stressPatterns?: Array<{ word: string; stress: string }>;
+}
+
+/**
+ * Result from the feedback pipeline.
+ */
+export interface FeedbackPipelineResult {
+  report: AggregatedReport;
+  errorPatterns: ExtractedErrorPattern[];
+  overallScore: number;
+  componentStatus: ComponentStatus;
+}
+
+/**
+ * Run the full feedback analysis pipeline directly (no HTTP fetch).
+ * This is the single source of truth for analyzing user responses.
+ * Modality is preserved end-to-end since there's no serialization boundary.
+ */
+export async function runFeedbackPipeline(input: FeedbackPipelineInput): Promise<FeedbackPipelineResult> {
+  const { userInput, expectedResponse, inputType, userId, sessionId, context, audioFile, stressPatterns } = input;
+
+  console.log(`[FeedbackPipeline] Processing ${inputType} input for user ${userId}`);
+
+  // Step 1: Grammar analysis (all inputs)
+  const grammarResult = await analyzeGrammar(userInput.trim());
+  console.log(`[FeedbackPipeline] Grammar: score ${grammarResult.grammarScore}`);
+
+  // Step 2: Semantic analysis
+  let semanticResult;
+  if (expectedResponse?.trim()) {
+    semanticResult = await compareSemanticSimilarity(userInput.trim(), expectedResponse.trim(), 0.75);
+    console.log(`[FeedbackPipeline] Semantic: similarity ${semanticResult.similarity}`);
+  } else {
+    semanticResult = { similarity: 1.0, semanticMatch: true, threshold: 0.75, fallbackUsed: false };
+  }
+
+  // Step 3: Speech-only components (pronunciation + intonation)
+  let pronunciationResult = undefined;
+  let intonationResult = undefined;
+
+  if (inputType === 'speech') {
+    if (audioFile) {
+      try {
+        const pronResult = await analyzePronunciation(audioFile, expectedResponse?.trim(), 0.70);
+        pronunciationResult = {
+          phonemeScore: pronResult.pronunciationScore ? pronResult.pronunciationScore * 100 : 0,
+          stressAccuracy: pronResult.pronunciationScore ? pronResult.pronunciationScore * 100 : 0,
+          overallPronunciationScore: pronResult.pronunciationScore ? pronResult.pronunciationScore * 100 : 0,
+          detectedErrors: !pronResult.isAccurate ? [{
+            phoneme: 'general',
+            expected: expectedResponse?.trim() || '',
+            actual: pronResult.transcribedText || '',
+            severity: 'medium' as const,
+            position: 0,
+          }] : [],
+        };
+        console.log(`[FeedbackPipeline] Pronunciation: score ${pronunciationResult.overallPronunciationScore}`);
+      } catch (err) {
+        console.error('[FeedbackPipeline] Pronunciation failed:', err);
+      }
+    }
+
+    if (stressPatterns && stressPatterns.length > 0) {
+      intonationResult = checkIntonationShift(userInput.trim(), stressPatterns);
+    } else {
+      intonationResult = { warnings: [] };
+    }
+  }
+
+  // Step 4: Relevance analysis (SPAM-B)
+  let relevanceResult = undefined;
+  if (context?.trim()) {
+    try {
+      relevanceResult = await analyzeRelevance(userInput.trim(), {
+        main_topics: [],
+        full_content: context.trim(),
+      });
+      console.log(`[FeedbackPipeline] Relevance: ${relevanceResult.relevance_score} (${relevanceResult.interpretation})`);
+    } catch (err) {
+      console.error('[FeedbackPipeline] SPAM-B failed:', err);
+    }
+  }
+
+  // Step 5: Aggregate
+  const aggregatorInput: AggregatorInput = {
+    inputType,
+    userId,
+    sessionId,
+    grammarResult,
+    semanticResult,
+    pronunciationResult,
+    intonationResult,
+    relevanceResult,
+    enableSpamB: true,
+  };
+
+  const report = await FeedbackAggregator.aggregateFeedback(aggregatorInput);
+  console.log(`[FeedbackPipeline] Done: score ${report.overallScore}, ${report.errorPatterns.length} errors`);
+
+  return {
+    report,
+    errorPatterns: report.errorPatterns,
+    overallScore: report.overallScore,
+    componentStatus: report.componentResults,
+  };
+}
 
 /**
  * Feedback Aggregator - Component 9 of ChaosLimbă AI Ensemble

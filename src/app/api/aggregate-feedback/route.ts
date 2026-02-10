@@ -234,7 +234,8 @@ export async function POST(req: NextRequest) {
       aggregatedReport.errorPatterns,
       userId,
       sessionId,
-      source
+      source,
+      inputType
     );
     console.log(`[AggregateFeedback] Saved ${savedErrors.length} error patterns to Error Garden`);
 

@@ -4,6 +4,7 @@ import { generateTutorResponse } from "@/lib/ai/tutor";
 import { formatFeedback } from "@/lib/ai/formatter";
 import { trackFeatureExposure, extractFeaturesFromErrors } from "@/lib/ai/exposure-tracker";
 import { saveErrorPatternsToGarden } from "@/lib/db/queries";
+import { runFeedbackPipeline } from "@/lib/ai/aggregator";
 import type { ExtractedErrorPattern } from "@/types/aggregator";
 import type { FossilizationAlert } from "@/lib/ai/adaptation";
 
@@ -140,65 +141,37 @@ export async function POST(req: NextRequest) {
 
     console.log(`[Chaos Window] Processing ${modality} submission with aggregator`);
 
-    // Step 1: Call Feedback Aggregator to analyze user response
-    let aggregatedFeedback = null;
+    // Step 1: Run feedback pipeline directly (no HTTP indirection — modality preserved)
+    const { userId } = await auth();
+    let aggregatedFeedback: { overallScore: number; errorPatterns: any[]; componentStatus: any; rawReport: any; errorsSaved: number } | null = null;
     try {
-      let aggregatorResponse: Response;
+      const pipelineResult = await runFeedbackPipeline({
+        userInput: userResponse.trim(),
+        expectedResponse: expectedResponse?.trim(),
+        inputType: modality,
+        userId: userId!,
+        sessionId,
+        context: context?.trim(),
+        audioFile: audioFile,
+      });
 
-      if (modality === 'speech' && audioFile) {
-        // For speech mode, send both transcribed text and audio file
-        const aggregatorFormData = new FormData();
-        aggregatorFormData.append('userInput', userResponse.trim());
-        aggregatorFormData.append('audio', audioFile);
-        aggregatorFormData.append('inputType', 'speech');
-        aggregatorFormData.append('sessionId', sessionId);
-        if (expectedResponse) {
-          aggregatorFormData.append('expectedResponse', expectedResponse.trim());
-        }
-        if (context) {
-          aggregatorFormData.append('context', context.trim());
-        }
+      // Save errors with explicit modality from session
+      const savedErrors = await saveErrorPatternsToGarden(
+        pipelineResult.errorPatterns,
+        userId!,
+        sessionId,
+        'chaos_window',
+        modality
+      );
 
-        aggregatorResponse = await fetch(
-          `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/aggregate-feedback`,
-          {
-            method: 'POST',
-            headers: {
-              // Forward auth headers
-              Cookie: req.headers.get('cookie') || '',
-            },
-            body: aggregatorFormData,
-          }
-        );
-      } else {
-        // For text mode, send JSON
-        aggregatorResponse = await fetch(
-          `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/aggregate-feedback`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              // Forward auth headers
-              Cookie: req.headers.get('cookie') || '',
-            },
-            body: JSON.stringify({
-              userInput: userResponse.trim(),
-              expectedResponse: expectedResponse?.trim(),
-              inputType: 'text',
-              sessionId,
-              context: context?.trim(),
-            }),
-          }
-        );
-      }
-
-      if (aggregatorResponse.ok) {
-        aggregatedFeedback = await aggregatorResponse.json();
-        console.log(`[Chaos Window] Session ${sessionId}: Score ${aggregatedFeedback.overallScore}/100, ${aggregatedFeedback.errorsSaved || 0} errors saved`);
-        console.log(`[Chaos Window] Error types:`, aggregatedFeedback.errorPatterns?.map((e: any) => e.category).join(', ') || 'none');
-      } else {
-        console.error('[Chaos Window] Aggregator failed:', await aggregatorResponse.text());
-      }
+      aggregatedFeedback = {
+        overallScore: pipelineResult.overallScore,
+        errorPatterns: pipelineResult.errorPatterns,
+        componentStatus: pipelineResult.componentStatus,
+        rawReport: pipelineResult.report,
+        errorsSaved: savedErrors.length,
+      };
+      console.log(`[Chaos Window] Session ${sessionId}: Score ${aggregatedFeedback.overallScore}/100, ${aggregatedFeedback.errorsSaved} errors saved (modality: ${modality})`);
     } catch (aggregatorError) {
       console.error('[Chaos Window] Aggregator error:', aggregatorError);
       // Continue without aggregator results - don't block the flow
@@ -229,7 +202,6 @@ export async function POST(req: NextRequest) {
     // Step 3.5: Save tutor-identified errors to Error Garden when aggregator missed them
     // The aggregator only saves grammar-checker errors; the tutor often catches additional
     // issues (especially for short responses where grammar analysis finds nothing)
-    const { userId } = await auth();
     const aggregatorErrorCount = aggregatedFeedback?.errorsSaved || 0;
     if (userId && sessionId && tutorResponse.feedback?.grammar?.length > 0 && aggregatorErrorCount === 0) {
       const tutorErrorPatterns: ExtractedErrorPattern[] = tutorResponse.feedback.grammar
@@ -252,7 +224,7 @@ export async function POST(req: NextRequest) {
         }));
 
       if (tutorErrorPatterns.length > 0) {
-        saveErrorPatternsToGarden(tutorErrorPatterns, userId, sessionId, 'chaos_window').catch(err => {
+        saveErrorPatternsToGarden(tutorErrorPatterns, userId, sessionId, 'chaos_window', modality).catch(err => {
           console.error('[Chaos Window] Failed to save tutor-identified errors:', err);
         });
         console.log(`[Chaos Window] Saved ${tutorErrorPatterns.length} tutor-identified errors to Error Garden (aggregator found none)`);

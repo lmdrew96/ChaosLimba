@@ -84,7 +84,7 @@ export async function POST(req: NextRequest) {
       }
 
       if (errorPatterns.length > 0) {
-        saveErrorPatternsToGarden(errorPatterns, userId, sessionId, 'workshop').catch(err => {
+        saveErrorPatternsToGarden(errorPatterns, userId, sessionId, 'workshop', 'text').catch(err => {
           console.error('[Workshop Evaluate] Failed to save errors:', err);
         });
       }

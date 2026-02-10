@@ -87,7 +87,7 @@ Grade this practice attempt.
             );
 
             // Fire-and-forget to keep response fast
-            saveErrorPatternsToGarden(errorPatterns, userId, session.id, 'mystery_shelf')
+            saveErrorPatternsToGarden(errorPatterns, userId, session.id, 'mystery_shelf', 'text')
                 .then(() => {
                     // Update proficiency after errors are saved
                     return recordSessionProficiency(userId, session.id);

@@ -4,6 +4,7 @@ import {
   NewErrorLog,
   ErrorSource,
   ErrorType,
+  type Modality,
   sessions,
   mysteryItems,
   stressMinimalPairs,
@@ -47,7 +48,8 @@ export async function saveErrorPatternsToGarden(
   patterns: ExtractedErrorPattern[],
   userId: string,
   sessionId: string,
-  source: ErrorSource
+  source: ErrorSource,
+  modality?: Modality
 ): Promise<typeof errorLogs.$inferSelect[]> {
   if (patterns.length === 0) {
     console.log('[saveErrorPatternsToGarden] No error patterns to save');
@@ -110,6 +112,8 @@ export async function saveErrorPatternsToGarden(
     );
 
     // Map to NewErrorLog format with enriched categories
+    // modality param (from session) takes priority over per-pattern inputType
+    const resolvedModality = modality || undefined;
     const newErrors: NewErrorLog[] = validPatterns.map((pattern, i) => ({
       userId,
       errorType: mapPatternTypeToErrorType(pattern.type),
@@ -117,7 +121,7 @@ export async function saveErrorPatternsToGarden(
       context: pattern.learnerProduction,
       correction: pattern.correctForm,
       source,
-      modality: pattern.inputType,
+      modality: resolvedModality || pattern.inputType,
       feedbackType: pattern.feedbackType || 'error',
       sessionId,
       contentId: null,

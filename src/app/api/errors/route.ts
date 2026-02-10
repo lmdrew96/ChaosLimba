@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { db } from '@/lib/db';
-import { errorLogs, NewErrorLog, errorTypeEnum, errorSourceEnum } from '@/lib/db/schema';
+import { errorLogs, NewErrorLog, errorTypeEnum, errorSourceEnum, modalityEnum } from '@/lib/db/schema';
 import { eq, desc } from 'drizzle-orm';
 
 // GET /api/errors - Fetch user's errors
@@ -77,6 +77,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Validate modality if provided
+    const modality = body.modality && modalityEnum.includes(body.modality) ? body.modality : 'text';
+
     const newError: NewErrorLog = {
       userId,
       errorType: body.errorType,
@@ -84,6 +87,7 @@ export async function POST(req: NextRequest) {
       context: body.context || null,
       correction: body.correction || null,
       source: body.source,
+      modality,
       contentId: body.contentId || null,
       sessionId: body.sessionId || null,
     };
