@@ -491,11 +491,14 @@ export default function MysteryShelfPage() {
             {filteredItems.map((item) => (
               <Card
                 key={item.id}
-                className={`rounded-xl border-border cursor-pointer transition-all hover:border-accent/50 hover:shadow-lg hover:shadow-accent/5 ${selectedItem?.id === item.id
+                role="button"
+                tabIndex={0}
+                className={`rounded-xl border-border cursor-pointer transition-all hover:border-accent/50 hover:shadow-lg hover:shadow-accent/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${selectedItem?.id === item.id
                   ? "ring-2 ring-accent/50 border-accent/50"
                   : ""
                   }`}
                 onClick={() => setSelectedItem(item)}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelectedItem(item) } }}
               >
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between">

@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import { Sidebar } from "@/components/sidebar"
 import { TopBar } from "@/components/top-bar"
 import { auth } from "@clerk/nextjs/server"
@@ -5,6 +6,11 @@ import { redirect } from "next/navigation"
 import { db } from "@/lib/db"
 import { userPreferences } from "@/lib/db/schema"
 import { eq } from "drizzle-orm"
+
+export const metadata: Metadata = {
+  title: "Dashboard",
+  description: "Your ChaosLimba learning dashboard - track progress and explore features",
+}
 
 export default async function DashboardLayout({
   children,

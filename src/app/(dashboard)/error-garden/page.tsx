@@ -498,8 +498,11 @@ function PatternCard({ pattern, onClick }: { pattern: ErrorPattern, onClick: () 
 
   return (
     <div
+      role="button"
+      tabIndex={0}
       onClick={onClick}
-      className="group relative bg-muted/30 backdrop-blur-sm rounded-xl p-5 border border-chart-4/20 hover:border-chart-4/50 transition-all cursor-pointer hover:scale-[1.01] hover:shadow-xl hover:shadow-chart-4/20"
+      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick() } }}
+      className="group relative bg-muted/30 backdrop-blur-sm rounded-xl p-5 border border-chart-4/20 hover:border-chart-4/50 transition-all cursor-pointer hover:scale-[1.01] hover:shadow-xl hover:shadow-chart-4/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
     >
       {/* Hover Glow */}
       <div className="absolute inset-0 bg-gradient-to-r from-chart-4/0 via-chart-4/0 to-chart-4/0 group-hover:via-chart-4/5 rounded-xl transition-all duration-500" />

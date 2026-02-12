@@ -4,6 +4,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Footer } from "@/components/layout/Footer";
+import { Toaster } from "@/components/ui/sonner";
 import { themeInitScript } from "@/lib/theme-init";
 
 const geistSans = Geist({
@@ -17,7 +18,10 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "ChaosLimbă - Romanian Language Learning for ADHD Brains",
+  title: {
+    template: "%s | ChaosLimbă",
+    default: "ChaosLimbă - Romanian Language Learning for ADHD Brains",
+  },
   description:
     "AI-powered Romanian language learning through productive confusion and structured chaos",
 }
@@ -48,6 +52,7 @@ export default function RootLayout({
               <main className="flex-1">{children}</main>
               <Footer />
             </div>
+            <Toaster richColors closeButton position="bottom-right" />
           </ThemeProvider>
         </body>
       </html>

@@ -526,8 +526,11 @@ export default function DeepFogPage() {
             return (
               <Card
                 key={item.id}
-                className={`rounded-xl cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg ${colors.border}`}
+                role="button"
+                tabIndex={0}
+                className={`rounded-xl cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${colors.border}`}
                 onClick={() => setSelectedContent(item)}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelectedContent(item) } }}
               >
                 <CardContent className="p-5">
                   <div className="flex items-start justify-between mb-3">

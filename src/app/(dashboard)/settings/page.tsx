@@ -23,6 +23,18 @@ import { useRouter } from "next/navigation"
 import { useClerk, useUser } from "@clerk/nextjs"
 import type { UserPreferences } from "@/lib/db/schema"
 import ThemeSelector from "@/components/features/settings/ThemeSelector"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import { toast } from "sonner"
 
 const CEFR_LEVELS = [
     { value: "A1", label: "A1", description: "Beginner" },
@@ -93,18 +105,6 @@ export default function SettingsPage() {
     }
 
     const handleResetProgress = async () => {
-        const confirmed = confirm(
-            "⚠️ This will DELETE ALL your progress:\n\n" +
-            "• All error garden patterns\n" +
-            "• All sessions\n" +
-            "• All mystery shelf items\n" +
-            "• Proficiency history\n" +
-            "• Reset to onboarding screen\n\n" +
-            "Are you absolutely sure?"
-        )
-
-        if (!confirmed) return
-
         try {
             setDevActionLoading("reset")
             const response = await fetch("/api/dev/reset-progress", {
@@ -114,20 +114,17 @@ export default function SettingsPage() {
             const data = await response.json()
 
             if (!response.ok) {
-                // Show detailed error from API
                 const errorMsg = data.details || data.error || "Unknown error"
                 console.error("Reset failed with details:", data)
                 throw new Error(errorMsg)
             }
 
-            alert(`✅ ${data.message}`)
-
-            // Redirect to onboarding
+            toast.success(data.message)
             router.push(data.redirectTo)
         } catch (err) {
             console.error("Failed to reset progress:", err)
             const errorMessage = err instanceof Error ? err.message : "Unknown error"
-            alert(`❌ Failed to reset progress\n\n${errorMessage}`)
+            toast.error("Failed to reset progress", { description: errorMessage })
         } finally {
             setDevActionLoading(null)
         }
@@ -374,18 +371,50 @@ export default function SettingsPage() {
                                     Delete all errors, sessions, mystery items, and proficiency history. Reset to onboarding screen.
                                 </p>
                             </div>
-                            <Button
-                                onClick={handleResetProgress}
-                                disabled={devActionLoading === "reset"}
-                                variant="destructive"
-                                className="rounded-xl shrink-0"
-                            >
-                                {devActionLoading === "reset" ? (
-                                    <Loader2 className="h-4 w-4 animate-spin" />
-                                ) : (
-                                    "Reset"
-                                )}
-                            </Button>
+                            <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <Button
+                                        disabled={devActionLoading === "reset"}
+                                        variant="destructive"
+                                        className="rounded-xl shrink-0"
+                                    >
+                                        {devActionLoading === "reset" ? (
+                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                        ) : (
+                                            "Reset"
+                                        )}
+                                    </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle className="flex items-center gap-2">
+                                            <AlertTriangle className="h-5 w-5 text-destructive" />
+                                            Reset All Progress?
+                                        </AlertDialogTitle>
+                                        <AlertDialogDescription asChild>
+                                            <div className="space-y-3">
+                                                <p>This will permanently delete:</p>
+                                                <ul className="list-disc list-inside space-y-1 text-sm">
+                                                    <li>All error garden patterns</li>
+                                                    <li>All sessions</li>
+                                                    <li>All mystery shelf items</li>
+                                                    <li>Proficiency history</li>
+                                                </ul>
+                                                <p>You will be returned to the onboarding screen. This action cannot be undone.</p>
+                                            </div>
+                                        </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction
+                                            onClick={handleResetProgress}
+                                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                        >
+                                            Yes, Reset Everything
+                                        </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
                         </div>
                     </div>
 
