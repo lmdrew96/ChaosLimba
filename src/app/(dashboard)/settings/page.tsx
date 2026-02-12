@@ -64,8 +64,8 @@ export default function SettingsPage() {
                 if (!response.ok) throw new Error("Failed to fetch preferences")
                 const data = await response.json()
                 setPreferences(data.preferences)
-            } catch (err) {
-                console.error("Failed to load preferences:", err)
+            } catch {
+                // Error handled via state
                 setError("Failed to load your settings")
             } finally {
                 setLoading(false)
@@ -96,8 +96,8 @@ export default function SettingsPage() {
 
             // Clear saved indicator after 2 seconds
             setTimeout(() => setSaved(false), 2000)
-        } catch (err) {
-            console.error("Failed to update preference:", err)
+        } catch {
+            // Error handled via state
             setError("Failed to save changes")
         } finally {
             setSaving(false)
@@ -115,14 +115,13 @@ export default function SettingsPage() {
 
             if (!response.ok) {
                 const errorMsg = data.details || data.error || "Unknown error"
-                console.error("Reset failed with details:", data)
                 throw new Error(errorMsg)
             }
 
             toast.success(data.message)
             router.push(data.redirectTo)
         } catch (err) {
-            console.error("Failed to reset progress:", err)
+            // Error handled via toast
             const errorMessage = err instanceof Error ? err.message : "Unknown error"
             toast.error("Failed to reset progress", { description: errorMessage })
         } finally {

@@ -145,9 +145,8 @@ export function TutorOnboardingStep({ selfAssessment, data, onUpdate }: TutorOnb
                 });
             }
 
-        } catch (error) {
-            console.error("Tutor API error:", error);
-            // Add error message from tutor
+        } catch {
+            // Error handled via fallback tutor message
             const errorMessage: ChatMessage = {
                 id: `tutor-error-${Date.now()}`,
                 role: "tutor",

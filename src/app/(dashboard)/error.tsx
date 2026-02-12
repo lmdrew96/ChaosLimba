@@ -14,7 +14,7 @@ export default function DashboardError({
   reset: () => void
 }) {
   useEffect(() => {
-    console.error("[Dashboard Error]", error)
+    // Error boundary caught an error — logged automatically by Next.js
   }, [error])
 
   return (

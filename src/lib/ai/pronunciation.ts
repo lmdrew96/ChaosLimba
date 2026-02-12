@@ -229,16 +229,6 @@ export async function analyzePronunciation(
 
     setCache(cacheKey, result);
 
-    console.log(
-      `[Pronunciation] Groq Whisper transcribed in ${result.processingTimeMs}ms: "${transcribedText}"`
-    );
-
-    if (pronunciationScore !== undefined) {
-      console.log(
-        `[Pronunciation] Score: ${(pronunciationScore * 100).toFixed(1)}%`
-      );
-    }
-
     return result;
 
   } catch (error) {

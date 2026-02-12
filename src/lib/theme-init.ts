@@ -28,7 +28,7 @@ export const themeInitScript = `
       html.classList.add('dark');
     }
   } catch (e) {
-    console.error('Failed to initialize theme:', e);
+    // Theme init failed — will use defaults
   }
 })();
 `

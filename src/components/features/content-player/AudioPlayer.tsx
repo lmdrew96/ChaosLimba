@@ -91,8 +91,8 @@ export function AudioPlayer({
         await audio.play();
         setIsPlaying(true);
       }
-    } catch (err) {
-      console.error("Playback failed:", err);
+    } catch {
+      // Error handled via state
       setError("Playback failed");
     }
   };
@@ -167,6 +167,19 @@ export function AudioPlayer({
       <div
         className="h-2 bg-muted/20 rounded-full cursor-pointer mb-4 relative overflow-hidden group"
         onClick={handleSeek}
+        role="slider"
+        aria-label="Audio progress"
+        aria-valuemin={0}
+        aria-valuemax={Math.round(duration)}
+        aria-valuenow={Math.round(currentTime)}
+        aria-valuetext={`${formatTime(currentTime)} of ${formatTime(duration)}`}
+        tabIndex={0}
+        onKeyDown={(e) => {
+          const audio = audioRef.current;
+          if (!audio || !duration) return;
+          if (e.key === "ArrowRight") { audio.currentTime = Math.min(duration, audio.currentTime + 5); }
+          if (e.key === "ArrowLeft") { audio.currentTime = Math.max(0, audio.currentTime - 5); }
+        }}
       >
         {/* Buffered indicator */}
         <div
@@ -194,6 +207,7 @@ export function AudioPlayer({
             onClick={togglePlay}
             className="bg-primary hover:bg-primary/80 rounded-full h-10 w-10"
             disabled={isLoading}
+            aria-label={isLoading ? "Loading audio" : isPlaying ? "Pause" : "Play"}
           >
             {isLoading ? (
               <div className="h-4 w-4 border-2 border-foreground/30 border-t-foreground rounded-full animate-spin" />
@@ -221,7 +235,8 @@ export function AudioPlayer({
                 "hover:bg-primary/20",
                 showTranscript ? "text-primary bg-primary/10" : "text-muted-foreground"
               )}
-              title={showTranscript ? "Hide transcript" : "Show transcript"}
+              aria-label={showTranscript ? "Hide transcript" : "Show transcript"}
+              aria-expanded={showTranscript}
             >
               <FileText className="h-4 w-4" />
             </Button>
@@ -234,6 +249,7 @@ export function AudioPlayer({
               variant="ghost"
               onClick={captureTimestamp}
               className="text-chart-3 hover:bg-chart-3/20 hover:text-chart-3/80"
+              aria-label={`Save timestamp at ${formatTime(currentTime)}`}
             >
               <Bookmark className="h-4 w-4 mr-1" />
               <span className="hidden sm:inline">Save</span>
@@ -247,6 +263,7 @@ export function AudioPlayer({
               handleSpeedChange(parseFloat(e.target.value) as PlaybackSpeed)
             }
             className="bg-muted/20 text-sm rounded px-2 py-1.5 border border-primary/20 outline-none cursor-pointer hover:bg-muted/30 transition-colors"
+            aria-label="Playback speed"
           >
             {PLAYBACK_SPEEDS.map((speed) => (
               <option key={speed} value={speed}>

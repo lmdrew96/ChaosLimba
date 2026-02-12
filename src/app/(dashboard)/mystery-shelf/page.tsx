@@ -23,6 +23,9 @@ export default function MysteryShelfPage() {
   // Delete confirmation state
   const [pendingDeleteItem, setPendingDeleteItem] = useState<MysteryItemFull | null>(null)
 
+  // Action feedback toast
+  const [actionToast, setActionToast] = useState<{ message: string; type: "success" | "error" } | null>(null)
+
   // Duplicate detection state
   const [duplicateWarning, setDuplicateWarning] = useState<string | null>(null)
 
@@ -53,8 +56,7 @@ export default function MysteryShelfPage() {
       })
 
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}))
-        console.error('TTS failed:', data.error || res.status)
+        setActionToast({ message: "Pronunciation unavailable", type: "error" })
         return
       }
 
@@ -70,8 +72,8 @@ export default function MysteryShelfPage() {
       quickAudioRef.current.src = audioUrl
       quickAudioRef.current.play()
       setIsQuickTTSPlaying(true)
-    } catch (error) {
-      console.error('TTS error:', error)
+    } catch {
+      setActionToast({ message: "Pronunciation unavailable", type: "error" })
     } finally {
       setIsQuickTTSLoading(false)
     }
@@ -104,8 +106,8 @@ export default function MysteryShelfPage() {
           // Update main items list too
           setItems(items.map(i => i.id === item.id ? enrichedItem : i))
         }
-      } catch (error) {
-        console.error("Quick review fetch failed", error)
+      } catch {
+        // Error handled — quick review fetch is non-critical
       } finally {
         setIsQuickReviewLoading(false)
       }
@@ -118,6 +120,13 @@ export default function MysteryShelfPage() {
       setQuickReviewItem(null)
     }
   }
+
+  // Auto-dismiss action toast
+  useEffect(() => {
+    if (!actionToast) return
+    const timer = setTimeout(() => setActionToast(null), 2500)
+    return () => clearTimeout(timer)
+  }, [actionToast])
 
   // AI Analysis Logic
   const [analyzingIds, setAnalyzingIds] = useState<Set<string>>(new Set())
@@ -162,8 +171,8 @@ export default function MysteryShelfPage() {
           } : null)
         }
       }
-    } catch (error) {
-      console.error("AI Analysis failed", error)
+    } catch {
+      // Error handled — AI analysis failure is non-critical
     } finally {
       setAnalyzingIds(prev => {
         const next = new Set(prev)
@@ -190,8 +199,8 @@ export default function MysteryShelfPage() {
           createdAt: item.createdAt,
         })))
       }
-    } catch (e) {
-      console.error("Failed to fetch items", e)
+    } catch {
+      // Error handled — items list will remain empty
     } finally {
       setIsLoading(false)
     }
@@ -234,8 +243,8 @@ export default function MysteryShelfPage() {
         setNewItemContext("")
         setIsAddOpen(false)
       }
-    } catch (e) {
-      console.error("Failed to add item", e)
+    } catch {
+      // Error handled — add failure is non-critical
     } finally {
       setIsSubmitting(false)
     }
@@ -256,15 +265,17 @@ export default function MysteryShelfPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ isExplored: true })
       })
-    } catch (e) {
-      console.error("Failed to update item", e)
+      setActionToast({ message: "Marked as explored", type: "success" })
+    } catch {
       fetchItems()
+      setActionToast({ message: "Failed to update — try again", type: "error" })
     }
   }
 
   const confirmDelete = async () => {
     if (!pendingDeleteItem) return
     const id = pendingDeleteItem.id
+    const word = pendingDeleteItem.word
 
     setItems(items.filter(item => item.id !== id))
     if (selectedItem?.id === id) setSelectedItem(null)
@@ -272,9 +283,10 @@ export default function MysteryShelfPage() {
 
     try {
       await fetch(`/api/mystery-shelf/${id}`, { method: "DELETE" })
-    } catch (e) {
-      console.error("Failed to delete item", e)
+      setActionToast({ message: `"${word}" removed from shelf`, type: "success" })
+    } catch {
       fetchItems()
+      setActionToast({ message: `Failed to delete "${word}"`, type: "error" })
     }
   }
 
@@ -457,6 +469,7 @@ export default function MysteryShelfPage() {
                 setSortDirection(next === "newest" ? "desc" : "asc")
               }}
               className="border-border text-xs gap-1.5 rounded-r-none border-r-0"
+              aria-label={`Sort by ${sortMode === "az" ? "alphabetical" : "date"}, click to change`}
             >
               {sortMode === "az" ? (
                 <><ArrowDownAZ className="h-3.5 w-3.5" /> A–Z</>
@@ -469,7 +482,7 @@ export default function MysteryShelfPage() {
               size="sm"
               onClick={() => setSortDirection(d => d === "asc" ? "desc" : "asc")}
               className="border-border text-xs px-1.5 rounded-l-none"
-              title={sortDirection === "asc" ? "Ascending" : "Descending"}
+              aria-label={sortDirection === "asc" ? "Sort ascending, click to sort descending" : "Sort descending, click to sort ascending"}
             >
               {sortDirection === "asc" ? (
                 <ArrowUp className="h-3.5 w-3.5" />
@@ -585,6 +598,7 @@ export default function MysteryShelfPage() {
                         e.stopPropagation()
                         setPendingDeleteItem(item)
                       }}
+                      aria-label={`Delete "${item.word}"`}
                     >
                       <Trash2 className="h-3 w-3" />
                     </Button>
@@ -681,7 +695,7 @@ export default function MysteryShelfPage() {
                 onClick={handleQuickReviewTTS}
                 disabled={isQuickTTSLoading}
                 className="h-8 w-8 p-0 text-accent hover:bg-accent/20"
-                title="Hear pronunciation"
+                aria-label={isQuickTTSPlaying ? "Pause pronunciation" : "Hear pronunciation"}
               >
                 {isQuickTTSLoading ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -759,6 +773,22 @@ export default function MysteryShelfPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Action feedback toast */}
+      {actionToast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] animate-in fade-in slide-in-from-bottom-4 duration-300">
+          <div className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-foreground shadow-lg backdrop-blur-sm ${
+            actionToast.type === "error" ? "bg-destructive" : "bg-chart-4"
+          }`}>
+            {actionToast.type === "error" ? (
+              <AlertTriangle className="h-4 w-4" />
+            ) : (
+              <CheckCircle2 className="h-4 w-4" />
+            )}
+            <span className="text-sm font-medium">{actionToast.message}</span>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

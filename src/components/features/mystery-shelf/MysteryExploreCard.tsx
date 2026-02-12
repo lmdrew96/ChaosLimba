@@ -82,11 +82,7 @@ export function MysteryExploreCard({ item, onCloseAction, onExploreAction, onMar
         body: JSON.stringify({ text: item.word, speed: 0.85 })
       })
 
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}))
-        console.error('TTS failed:', data.error || res.status)
-        return
-      }
+      if (!res.ok) return
 
       const audioBlob = await res.blob()
       const audioUrl = URL.createObjectURL(audioBlob)
@@ -100,8 +96,8 @@ export function MysteryExploreCard({ item, onCloseAction, onExploreAction, onMar
       audioRef.current.src = audioUrl
       audioRef.current.play()
       setIsPlaying(true)
-    } catch (error) {
-      console.error('TTS error:', error)
+    } catch {
+      // Error handled — TTS failure is non-critical
     } finally {
       setIsTTSLoading(false)
     }
@@ -143,8 +139,8 @@ export function MysteryExploreCard({ item, onCloseAction, onExploreAction, onMar
           feedback: result.feedback
         })
       }
-    } catch (error) {
-      console.error("Practice submission failed", error)
+    } catch {
+      // Error handled — practice submission failure is non-critical
     } finally {
       setIsSubmittingPractice(false)
     }
@@ -154,6 +150,7 @@ export function MysteryExploreCard({ item, onCloseAction, onExploreAction, onMar
     <button
       onClick={() => toggleSection(section)}
       className="flex items-center justify-between w-full text-left py-2 px-3 rounded-lg hover:bg-accent/10 transition-colors"
+      aria-expanded={expandedSections.has(section)}
     >
       <span className="flex items-center gap-2 text-sm font-medium text-accent">
         <Icon className="h-4 w-4" />
@@ -182,7 +179,7 @@ export function MysteryExploreCard({ item, onCloseAction, onExploreAction, onMar
                 onClick={handlePlayPronunciation}
                 disabled={isTTSLoading}
                 className="h-8 w-8 p-0 text-accent hover:bg-accent/20"
-                title="Hear pronunciation"
+                aria-label={isPlaying ? "Pause pronunciation" : "Hear pronunciation"}
               >
                 {isTTSLoading ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -204,6 +201,7 @@ export function MysteryExploreCard({ item, onCloseAction, onExploreAction, onMar
             size="sm"
             onClick={onCloseAction}
             className="text-muted-foreground hover:text-foreground"
+            aria-label="Close exploration card"
           >
             ✕
           </Button>

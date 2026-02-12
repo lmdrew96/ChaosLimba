@@ -24,15 +24,6 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        console.log(`[Initial Question API] Generating question for: "${contentTitle}" (${contentType}) at ${userLevel || 'B1'} level`);
-        console.log(`[Initial Question API] Transcript available: ${!!contentTranscript && contentTranscript.length > 50}`);
-        if (targetFeatures?.length > 0) {
-            console.log(`[Initial Question API] Targeting features: ${targetFeatures.map((f: { featureKey: string }) => f.featureKey).join(', ')}`);
-        }
-        if (isFirstSession) {
-            console.log(`[Initial Question API] First session detected!`);
-        }
-
         const question = await generateInitialQuestion(
             contentTitle,
             contentTranscript || null,
@@ -43,8 +34,6 @@ export async function POST(request: NextRequest) {
             isFirstSession || false,
             fossilizationAlerts || []
         );
-
-        console.log(`[Initial Question API] Generated: "${question.question}" (${question.questionType})`);
 
         return NextResponse.json({ question });
 

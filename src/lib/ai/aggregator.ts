@@ -48,17 +48,13 @@ export interface FeedbackPipelineResult {
 export async function runFeedbackPipeline(input: FeedbackPipelineInput): Promise<FeedbackPipelineResult> {
   const { userInput, expectedResponse, inputType, userId, sessionId, context, audioFile, stressPatterns } = input;
 
-  console.log(`[FeedbackPipeline] Processing ${inputType} input for user ${userId}`);
-
   // Step 1: Grammar analysis (all inputs)
   const grammarResult = await analyzeGrammar(userInput.trim());
-  console.log(`[FeedbackPipeline] Grammar: score ${grammarResult.grammarScore}`);
 
   // Step 2: Semantic analysis
   let semanticResult;
   if (expectedResponse?.trim()) {
     semanticResult = await compareSemanticSimilarity(userInput.trim(), expectedResponse.trim(), 0.75);
-    console.log(`[FeedbackPipeline] Semantic: similarity ${semanticResult.similarity}`);
   } else {
     semanticResult = { similarity: 1.0, semanticMatch: true, threshold: 0.75, fallbackUsed: false };
   }
@@ -83,9 +79,8 @@ export async function runFeedbackPipeline(input: FeedbackPipelineInput): Promise
             position: 0,
           }] : [],
         };
-        console.log(`[FeedbackPipeline] Pronunciation: score ${pronunciationResult.overallPronunciationScore}`);
       } catch (err) {
-        console.error('[FeedbackPipeline] Pronunciation failed:', err);
+        // Pronunciation unavailable - aggregator will rebalance scoring
       }
     }
 
@@ -104,9 +99,8 @@ export async function runFeedbackPipeline(input: FeedbackPipelineInput): Promise
         main_topics: [],
         full_content: context.trim(),
       });
-      console.log(`[FeedbackPipeline] Relevance: ${relevanceResult.relevance_score} (${relevanceResult.interpretation})`);
     } catch (err) {
-      console.error('[FeedbackPipeline] SPAM-B failed:', err);
+      // SPAM-B unavailable - continue without relevance scoring
     }
   }
 
@@ -124,7 +118,6 @@ export async function runFeedbackPipeline(input: FeedbackPipelineInput): Promise
   };
 
   const report = await FeedbackAggregator.aggregateFeedback(aggregatorInput);
-  console.log(`[FeedbackPipeline] Done: score ${report.overallScore}, ${report.errorPatterns.length} errors`);
 
   return {
     report,
@@ -146,7 +139,6 @@ export class FeedbackAggregator {
    */
   static async aggregateFeedback(input: AggregatorInput): Promise<AggregatedReport> {
     const startTime = Date.now();
-    console.log(`[FeedbackAggregator] Processing ${input.inputType} input`);
 
     // Validate required inputs
     this.validateInput(input);
@@ -180,7 +172,6 @@ export class FeedbackAggregator {
       }
     };
 
-    console.log(`[FeedbackAggregator] Report generated in ${processingTime}ms, overall score: ${overallScore}`);
     return report;
   }
 
@@ -196,13 +187,8 @@ export class FeedbackAggregator {
       throw new Error('Semantic result is required for all input types');
     }
 
-    if (input.inputType === 'speech' && !input.pronunciationResult) {
-      console.warn('[FeedbackAggregator] Speech input missing pronunciation result');
-    }
-
-    if (input.inputType === 'speech' && !input.intonationResult) {
-      console.warn('[FeedbackAggregator] Speech input missing intonation result');
-    }
+    // Speech inputs may be missing pronunciation/intonation results
+    // The aggregator will rebalance scoring accordingly
   }
 
   /**

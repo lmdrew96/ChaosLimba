@@ -142,8 +142,6 @@ export async function recordSessionProficiency(userId: string, sessionId: string
         .from(errorLogs)
         .where(eq(errorLogs.sessionId, sessionId));
 
-    console.log(`[Proficiency] Processing ${sessionErrors.length} errors for session ${sessionId} (${sessionData.sessionType})`);
-
     // Calculate component scores: start at 10.0, deduct 0.5 per error, min 1.0
     const calculateScore = (errors: typeof sessionErrors, errorType: string): number => {
         const relevantErrors = errors.filter(e => e.errorType === errorType);
@@ -180,8 +178,6 @@ export async function recordSessionProficiency(userId: string, sessionId: string
         writingScore: writingScore.toFixed(1),
         period: 'daily',
     }).returning();
-
-    console.log(`[Proficiency] Updated: Overall ${overallScore.toFixed(1)} for ${sessionData.sessionType}`);
 
     return {
         overall: overallScore.toFixed(1),

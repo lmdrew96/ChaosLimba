@@ -28,8 +28,6 @@ type AIPayload = {
 
 export class AIConductor {
     static async process(intent: AIIntent, payload: AIPayload): Promise<any> {
-        console.log(`[AIConductor] Processing intent: ${intent}`);
-
         switch (intent) {
             case "analyze_mystery_item":
                 return this.handleMysteryAnalysis(payload);

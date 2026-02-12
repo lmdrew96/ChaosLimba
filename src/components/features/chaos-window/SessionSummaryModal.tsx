@@ -79,8 +79,8 @@ export function SessionSummaryModal({
           topErrors,
         })
       }
-    } catch (err) {
-      console.error('Failed to fetch session stats:', err)
+    } catch {
+      // Error handled — stats display is non-critical
     } finally {
       setIsLoading(false)
     }

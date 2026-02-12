@@ -76,8 +76,8 @@ export function OnboardingWizard() {
 
                     const result = await response.json();
                     updateStepData("calculatedLevel", result.level);
-                } catch (err) {
-                    console.error("Onboarding completion failed:", err);
+                } catch {
+                    // Error handled via state
                     setError("Something went wrong. Please try again.");
                     setIsSubmitting(false);
                     return;

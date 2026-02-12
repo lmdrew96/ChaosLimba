@@ -84,7 +84,7 @@ export default function WorkshopPage() {
           setUserLevel(data.preferences.languageLevel)
         }
       })
-      .catch((err) => console.error('[Workshop] Failed to fetch user level, defaulting to A1:', err))
+      .catch(() => {}) // Non-critical — defaults to A1
   }, [])
 
   const getRecentTypes = useCallback(() => typeHistory.slice(-3), [typeHistory])
@@ -266,7 +266,7 @@ export default function WorkshopPage() {
       fetch(`/api/sessions/${sessionId}/complete`, {
         method: "POST",
         credentials: "include",
-      }).catch((err) => console.error("[Workshop] Proficiency update failed:", err))
+      }).catch(() => {}) // Fire-and-forget proficiency update
     }
 
     setIsActive(false)
@@ -376,7 +376,7 @@ export default function WorkshopPage() {
 
         <div className="flex items-center gap-3">
           {timerMode && timeRemaining > 0 && (
-            <span className="text-sm font-mono text-muted-foreground">
+            <span className="text-sm font-mono text-muted-foreground" role="timer" aria-label={`${formatTime(timeRemaining)} remaining`} aria-live="off">
               {formatTime(timeRemaining)}
             </span>
           )}
@@ -400,9 +400,19 @@ export default function WorkshopPage() {
 
       {/* Error display */}
       {error && (
-        <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-xl px-4 py-3">
-          <AlertCircle className="h-4 w-4 shrink-0" />
-          {error}
+        <div className="flex items-start gap-3 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-xl px-4 py-3">
+          <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <p>{error}</p>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="mt-2 text-xs text-destructive hover:text-destructive/80 h-7 px-2"
+              onClick={() => { setError(null); fetchChallenge() }}
+            >
+              Try again
+            </Button>
+          </div>
         </div>
       )}
 

@@ -109,11 +109,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    console.log(`[AggregateFeedback] Processing ${inputType} input for user ${userId}`);
-
     // Step 1: Run grammar analysis (required for all inputs)
     const grammarResult = await analyzeGrammar(userInput.trim());
-    console.log(`[AggregateFeedback] Grammar analysis complete, score: ${grammarResult.grammarScore}`);
 
     // Step 2: Run semantic analysis (required if expectedResponse provided)
     let semanticResult = null;
@@ -123,7 +120,6 @@ export async function POST(req: NextRequest) {
         expectedResponse.trim(),
         0.75 // Default threshold
       );
-      console.log(`[AggregateFeedback] Semantic analysis complete, similarity: ${semanticResult.similarity}`);
     } else {
       // Create a default semantic result if no expected response provided
       semanticResult = {
@@ -132,7 +128,6 @@ export async function POST(req: NextRequest) {
         threshold: 0.75,
         fallbackUsed: false,
       };
-      console.log('[AggregateFeedback] No expected response provided, skipping semantic analysis');
     }
 
     // Step 3: For speech input, run pronunciation and intonation
@@ -164,14 +159,9 @@ export async function POST(req: NextRequest) {
               }
             ] : []
           };
-          console.log(`[AggregateFeedback] Pronunciation analysis complete, score: ${pronunciationResult.overallPronunciationScore}`);
         } catch (pronError) {
-          console.error('[AggregateFeedback] Pronunciation analysis failed:', pronError);
           // Pronunciation unavailable - aggregator will rebalance scoring
-          console.log('[AggregateFeedback] Pronunciation analysis failed, skipping');
         }
-      } else {
-        console.log('[AggregateFeedback] No audio file provided, pronunciation unavailable');
       }
 
       // Run intonation check if stress patterns provided
@@ -180,11 +170,9 @@ export async function POST(req: NextRequest) {
           userInput.trim(),
           stressPatterns
         );
-        console.log(`[AggregateFeedback] Intonation check complete, warnings: ${intonationResult.warnings.length}`);
       } else {
         // Create empty intonation result
         intonationResult = { warnings: [] };
-        console.log('[AggregateFeedback] No stress patterns provided, skipping intonation check');
       }
     }
 
@@ -195,7 +183,6 @@ export async function POST(req: NextRequest) {
 
     if (enableSpamB && context?.trim()) {
       try {
-        console.log('[AggregateFeedback] Running SPAM-B relevance analysis...');
         relevanceResult = await analyzeRelevance(
           userInput.trim(),
           {
@@ -203,13 +190,9 @@ export async function POST(req: NextRequest) {
             full_content: context.trim()
           }
         );
-        console.log(`[AggregateFeedback] Relevance analysis complete, score: ${relevanceResult.relevance_score} (${relevanceResult.interpretation})`);
       } catch (spamBError) {
-        console.error('[AggregateFeedback] SPAM-B analysis failed:', spamBError);
-        // Don't fail the whole request, just log error
+        // SPAM-B unavailable - continue without relevance scoring
       }
-    } else if (enableSpamB && !context) {
-      console.log('[AggregateFeedback] Skipping SPAM-B: No context provided');
     }
 
     // Step 4: Aggregate all component results
@@ -226,7 +209,6 @@ export async function POST(req: NextRequest) {
     };
 
     const aggregatedReport = await FeedbackAggregator.aggregateFeedback(aggregatorInput);
-    console.log(`[AggregateFeedback] Aggregation complete, overall score: ${aggregatedReport.overallScore}`);
 
     // Step 5: Save error patterns to Error Garden
     const source: ErrorSource = 'chaos_window'; // Default source, can be parameterized later
@@ -237,7 +219,6 @@ export async function POST(req: NextRequest) {
       source,
       inputType
     );
-    console.log(`[AggregateFeedback] Saved ${savedErrors.length} error patterns to Error Garden`);
 
     // Step 6: Return aggregated report
     const response: AggregateFeedbackResponse = {

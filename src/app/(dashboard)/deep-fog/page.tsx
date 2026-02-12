@@ -480,6 +480,7 @@ export default function DeepFogPage() {
               size="sm"
               onClick={handleSortClick}
               className="border-border text-xs gap-1.5 rounded-r-none border-r-0"
+              aria-label={`Sort by ${sortModeLabel}, click to change`}
             >
               <SortModeIcon className="h-3.5 w-3.5" /> {sortModeLabel}
             </Button>
@@ -488,7 +489,7 @@ export default function DeepFogPage() {
               size="sm"
               onClick={handleDirectionToggle}
               className="border-border text-xs px-1.5 rounded-l-none"
-              title={sortDirection === "asc" ? "Ascending" : "Descending"}
+              aria-label={sortDirection === "asc" ? "Sort ascending, click to sort descending" : "Sort descending, click to sort ascending"}
             >
               <DirectionIcon className="h-3.5 w-3.5" />
             </Button>
@@ -665,6 +666,7 @@ export default function DeepFogPage() {
                 size="sm"
                 className="text-muted-foreground"
                 onClick={handleDismissSummary}
+                aria-label="Dismiss session summary"
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -739,6 +741,7 @@ export default function DeepFogPage() {
               <Button
                 onClick={handleCloseModal}
                 className="px-3 text-xs text-foreground/60 font-medium rounded-md transition-colors bg-transparent hover:bg-foreground/40"
+                aria-label="Close content viewer"
               >
                 <X className="h-4 w-4" />
               </Button>

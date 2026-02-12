@@ -269,8 +269,7 @@ The goal is cognitive disequilibrium — make the learner FEEL why the correct f
       break; // Good challenge, use it
     }
 
-    console.warn(`[Workshop] Challenge validation failed (attempt ${attempt + 1}): ${validationResult.reason}`);
-    parsed = null; // Reset so we retry
+    parsed = null; // Reset so we retry — validation failed
   }
 
   // If all attempts failed, use fallback
@@ -293,7 +292,7 @@ The goal is cognitive disequilibrium — make the learner FEEL why the correct f
   // Validate which_one has proper options
   let options = Array.isArray(parsed.options) ? parsed.options as string[] : undefined;
   if (type === 'which_one' && (!options || options.length < 3)) {
-    console.warn('[Workshop] which_one missing options, falling back to fix type');
+    // which_one missing options, falling back to fix type
     return generateWorkshopChallenge(feature, userLevel, 'fix', destabilizationTier, recentTypes);
   }
 

@@ -209,10 +209,6 @@ export async function analyzeRelevance(
 
     setCache(cacheKey, result);
 
-    console.log(
-      `[SPAM-B] ✅ Relevance computed in ${result.processingTime}ms: ${(maxSimilarity * 100).toFixed(1)}% (${interpretation})`
-    );
-
     return result;
 
   } catch (error) {

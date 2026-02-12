@@ -61,21 +61,16 @@ export async function analyzeGrammar(text: string): Promise<GrammarResult> {
   const cacheKey = getCacheKey(normalizedText);
   const cached = getCache(cacheKey);
   if (cached) {
-    console.log(`Grammar cache hit for: "${normalizedText}"`);
     return cached;
   }
 
   try {
-    console.log(`Analyzing grammar with Claude Haiku: "${normalizedText}"`);
-
     // Use the provider-agnostic grammar checker
     const providerResult = await checkGrammarWithProvider(normalizedText);
 
     // Transform to our existing format
     const errors = transformToGrammarErrors(providerResult.errors);
     const grammarScore = calculateGrammarScore(normalizedText, providerResult.correctedText, errors.length);
-
-    console.log(`Found ${errors.length} grammar issues`);
 
     const result: GrammarResult = {
       correctedText: providerResult.correctedText,

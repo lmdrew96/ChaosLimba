@@ -27,8 +27,6 @@ export async function GET(
 
     const { contentId } = await params;
 
-    console.log(`[Transcript API] Fetching transcript for content ${contentId}`);
-
     // Fetch content item
     const content = await db
       .select()
@@ -44,7 +42,6 @@ export async function GET(
 
     // If transcript already exists, return it (cached)
     if (item.transcript) {
-      console.log(`[Transcript API] Using cached transcript (${item.transcript.length} chars)`);
       return NextResponse.json({
         transcript: item.transcript,
         source: item.transcriptSource,
@@ -52,14 +49,11 @@ export async function GET(
       });
     }
 
-    console.log(`[Transcript API] No cached transcript, fetching on-demand for ${item.type} content`);
-
     // Generate transcript based on content type
     let transcript: string | null = null;
     let transcriptSource: string | null = null;
 
     if (item.type === 'audio' && item.audioUrl) {
-      console.log(`[Transcript API] Transcribing audio with Groq Whisper: ${item.audioUrl}`);
       transcript = await transcribeAudioUrl(item.audioUrl);
       transcriptSource = 'whisper';
     } else if (item.type === 'text') {
@@ -71,14 +65,11 @@ export async function GET(
     }
 
     if (!transcript) {
-      console.warn(`[Transcript API] Failed to fetch transcript for ${item.type} content ${contentId}`);
       return NextResponse.json({
         error: 'No transcript available',
         fallback: `Content: "${item.title}"`
       }, { status: 404 });
     }
-
-    console.log(`[Transcript API] Successfully fetched transcript (${transcript.length} chars), caching to database`);
 
     // Cache transcript in database for future use
     await db

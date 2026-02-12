@@ -89,6 +89,12 @@ export function Sidebar() {
 
   return (
     <>
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[60] focus:px-4 focus:py-2 focus:rounded-lg focus:bg-primary focus:text-primary-foreground focus:outline-none"
+      >
+        Skip to main content
+      </a>
       <Button
         variant="ghost"
         size="icon"
@@ -134,7 +140,7 @@ export function Sidebar() {
             </button>
           </div>
 
-          <nav className="flex-1 px-3 py-6 space-y-1.5 overflow-y-auto">
+          <nav aria-label="Main navigation" className="flex-1 px-3 py-6 space-y-1.5 overflow-y-auto">
             {navItems.map((item) => {
               const isActive = pathname === item.href
               return (

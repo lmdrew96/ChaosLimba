@@ -129,8 +129,8 @@ export default function CumSePronuntaPage() {
         audioCacheRef.current.set(cacheKey, url)
 
         playFromUrl(url)
-      } catch (err) {
-        console.error("[Cum se pronunță]", err)
+      } catch {
+        // Error handled via state
         setError("Nu am putut genera audio. Încearcă din nou.")
       } finally {
         setIsLoading(false)

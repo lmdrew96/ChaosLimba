@@ -11,17 +11,13 @@ export async function transcribeAudioUrl(
   lang: string = 'ro'
 ): Promise<string | null> {
   try {
-    console.log(`[Audio Transcript] Fetching audio from ${audioUrl}`);
-
     // Fetch audio file
     const audioResponse = await fetch(audioUrl);
     if (!audioResponse.ok) {
-      console.error(`[Audio Transcript] Failed to fetch ${audioUrl}: ${audioResponse.statusText}`);
       return null;
     }
 
     const audioBlob = await audioResponse.blob();
-    console.log(`[Audio Transcript] Fetched ${audioBlob.size} bytes, transcribing with Groq Whisper v3...`);
 
     // Send to Groq Whisper v3
     const formData = new FormData();
@@ -42,18 +38,14 @@ export async function transcribeAudioUrl(
     );
 
     if (!transcriptionResponse.ok) {
-      const error = await transcriptionResponse.text();
-      console.error('[Audio Transcript] Groq API failed:', error);
       return null;
     }
 
     const result = await transcriptionResponse.json();
     const transcribedText = result.text;
 
-    console.log(`[Audio Transcript] Successfully transcribed ${transcribedText.length} characters`);
     return transcribedText;
   } catch (error) {
-    console.error('[Audio Transcript] Error:', error);
     return null;
   }
 }

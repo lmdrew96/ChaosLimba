@@ -52,7 +52,6 @@ export async function saveErrorPatternsToGarden(
   modality?: Modality
 ): Promise<typeof errorLogs.$inferSelect[]> {
   if (patterns.length === 0) {
-    console.log('[saveErrorPatternsToGarden] No error patterns to save');
     return [];
   }
 
@@ -79,13 +78,11 @@ export async function saveErrorPatternsToGarden(
     const validPatterns = patterns.filter(pattern => {
       // Only save actual errors, not suggestions/style recommendations
       if (pattern.feedbackType === 'suggestion') {
-        console.log(`[saveErrorPatternsToGarden] Skipping suggestion (not an error): ${pattern.learnerProduction}`);
         return false;
       }
 
       // Skip false positives where the "correction" says the original was correct
       if (pattern.correctForm && /actually correct|is correct|not an error|no error/i.test(pattern.correctForm)) {
-        console.log(`[saveErrorPatternsToGarden] Skipping false positive: "${pattern.correctForm}"`);
         return false;
       }
 
@@ -94,7 +91,6 @@ export async function saveErrorPatternsToGarden(
 
       // Skip if already logged in this session
       if (existingFingerprints.has(fingerprint)) {
-        console.log(`[saveErrorPatternsToGarden] Skipping duplicate error: ${fingerprint}`);
         return false;
       }
 
@@ -128,7 +124,6 @@ export async function saveErrorPatternsToGarden(
     }));
 
     if (newErrors.length === 0) {
-      console.log('[saveErrorPatternsToGarden] All errors are duplicates, skipping insert');
       return [];
     }
 
@@ -137,8 +132,6 @@ export async function saveErrorPatternsToGarden(
       .insert(errorLogs)
       .values(newErrors)
       .returning();
-
-    console.log(`[saveErrorPatternsToGarden] Inserted ${insertedErrors.length} error patterns to Error Garden`);
 
     return insertedErrors;
   } catch (error) {

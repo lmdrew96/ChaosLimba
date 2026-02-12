@@ -151,7 +151,6 @@ export async function enrichErrorCategories(
       }
     }
 
-    console.log(`[Error Enrichment] Enriched ${needsEnrichment.length} categories via Groq`);
   } catch (err) {
     console.error('[Error Enrichment] Groq enrichment failed, using raw categories:', err);
     // Fall back silently — raw categories are still usable

@@ -110,10 +110,6 @@ export async function generateRomanianAudio(
     const characterCount = trimmed.length;
     const estimatedCost = characterCount * COST_PER_CHAR;
 
-    console.log(
-      `[Google TTS] ${characterCount} chars, voice=${voiceName}, cost=$${estimatedCost.toFixed(6)}, size=${audioBuffer.length} bytes`
-    );
-
     return {
       audioContent: audioBuffer,
       characterCount,

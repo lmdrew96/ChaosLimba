@@ -65,8 +65,8 @@ export default function CeInseamnaPage() {
       setResult(data)
       setCurrentWord(word)
       setHistory((prev) => [{ word, result: data }, ...prev.filter((h) => h.word.toLowerCase() !== word.toLowerCase())])
-    } catch (err) {
-      console.error("[Ce înseamnă]", err)
+    } catch {
+      // Error handled via state
       setError("Nu am putut analiza cuvântul. Încearcă din nou.")
     } finally {
       setIsLoading(false)
@@ -91,8 +91,8 @@ export default function CeInseamnaPage() {
 
       if (!res.ok) throw new Error("Failed to save")
       setSavedToShelf(true)
-    } catch (err) {
-      console.error("[Ce înseamnă] Save failed:", err)
+    } catch {
+      // Save error silenced — non-critical
     } finally {
       setIsSaving(false)
     }

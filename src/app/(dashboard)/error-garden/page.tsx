@@ -87,8 +87,8 @@ export default function ErrorGardenPage() {
       const result = await response.json()
       setData(result)
       setError(null)
-    } catch (err) {
-      console.error("Failed to fetch error patterns:", err)
+    } catch {
+      // Error handled via state
       setError("Failed to load error patterns")
     } finally {
       setLoading(false)
@@ -269,7 +269,7 @@ export default function ErrorGardenPage() {
               "p-2 rounded-lg text-sm transition-all border",
               "border-border bg-muted/20 hover:bg-muted/30 text-muted-foreground hover:text-foreground"
             )}
-            title={sortDirection === "asc" ? "Ascending" : "Descending"}
+            aria-label={sortDirection === "asc" ? "Sort ascending, click to sort descending" : "Sort descending, click to sort ascending"}
           >
             {sortDirection === "asc" ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />}
           </button>
@@ -282,6 +282,8 @@ export default function ErrorGardenPage() {
               size="sm"
               className={cn("h-8 w-8 p-0", viewMode === "grid" && "bg-foreground/10 text-foreground")}
               onClick={() => setViewMode("grid")}
+              aria-label="Grid view"
+              aria-pressed={viewMode === "grid"}
             >
               <LayoutGrid className="h-4 w-4" />
             </Button>
@@ -290,6 +292,8 @@ export default function ErrorGardenPage() {
               size="sm"
               className={cn("h-8 w-8 p-0", viewMode === "list" && "bg-foreground/10 text-foreground")}
               onClick={() => setViewMode("list")}
+              aria-label="List view"
+              aria-pressed={viewMode === "list"}
             >
               <ListIcon className="h-4 w-4" />
             </Button>

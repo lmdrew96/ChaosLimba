@@ -107,8 +107,8 @@ export default function ProficiencyTrackerPage() {
             setProficiency(profData)
             setHistory(histData)
             setError(null)
-        } catch (err) {
-            console.error('Failed to fetch proficiency data:', err)
+        } catch {
+            // Error handled via state
             setError('Failed to load proficiency data')
         } finally {
             setLoading(false)

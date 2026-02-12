@@ -24,6 +24,18 @@ export const metadata: Metadata = {
   },
   description:
     "AI-powered Romanian language learning through productive confusion and structured chaos",
+  openGraph: {
+    title: "ChaosLimbă",
+    description: "AI-powered Romanian language learning through productive confusion and structured chaos",
+    siteName: "ChaosLimbă",
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "ChaosLimbă",
+    description: "AI-powered Romanian language learning for ADHD brains",
+  },
 }
 
 export default function RootLayout({

@@ -169,7 +169,7 @@ export function ChallengeCard({ challenge, onSubmit, onSkip, isSubmitting }: Cha
 
         {/* Response input */}
         {isMultipleChoice ? (
-          <div className="grid gap-2">
+          <div className="grid gap-2" role="radiogroup" aria-label="Answer options">
             {challenge.options!.map((option, i) => {
               const letter = String.fromCharCode(65 + i)
               const isSelected = selectedOption === option
@@ -177,6 +177,8 @@ export function ChallengeCard({ challenge, onSubmit, onSkip, isSubmitting }: Cha
                 <button
                   key={i}
                   type="button"
+                  role="radio"
+                  aria-checked={isSelected}
                   onClick={() => !isSubmitting && setSelectedOption(option)}
                   className={`flex items-start gap-3 text-left px-4 py-3 rounded-xl border transition-all ${
                     isSelected
@@ -195,14 +197,19 @@ export function ChallengeCard({ challenge, onSubmit, onSkip, isSubmitting }: Cha
             })}
           </div>
         ) : (
-          <Textarea
-            value={response}
-            onChange={(e) => setResponse(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Type your answer in Romanian..."
-            className="min-h-[80px] rounded-xl border-border/40 bg-background/50 focus:border-accent/50 resize-none"
-            disabled={isSubmitting}
-          />
+          <div>
+            <Textarea
+              value={response}
+              onChange={(e) => setResponse(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Type your answer in Romanian..."
+              className="min-h-[80px] rounded-xl border-border/40 bg-background/50 focus:border-accent/50 resize-none"
+              disabled={isSubmitting}
+            />
+            {response.trim().length > 0 && response.trim().length < 3 && (
+              <p className="text-xs text-muted-foreground mt-1.5 ml-1">Minimum 3 characters to submit</p>
+            )}
+          </div>
         )}
 
         {/* Actions */}

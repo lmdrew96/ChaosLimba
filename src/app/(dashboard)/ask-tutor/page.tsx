@@ -95,8 +95,8 @@ export default function AskTutorPage() {
         ...prev,
         { role: "assistant", content: data.response },
       ])
-    } catch (err) {
-      console.error("[Ask Tutor]", err)
+    } catch {
+      // Error handled via state
       setError("Tutorul nu a putut răspunde. Încearcă din nou.")
       // Remove the user message if the request failed
       setMessages(messages)

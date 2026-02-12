@@ -59,7 +59,6 @@ export async function trackFeatureExposure(params: TrackExposureParams): Promise
 
     if (records.length > 0) {
       await db.insert(userFeatureExposure).values(records);
-      console.log(`[ExposureTracker] Tracked ${records.length} feature exposures for user ${params.userId}`);
     }
   } catch (error) {
     // Fire-and-forget: log but don't throw

@@ -114,9 +114,6 @@ async function callHFWithRetry(
 
       // Success - return immediately
       if (response.ok) {
-        if (attempt > 0) {
-          console.log(`[SPAM-A] ✅ Request succeeded on attempt ${attempt + 1}`);
-        }
         return response;
       }
 
@@ -128,9 +125,6 @@ async function callHFWithRetry(
         // Don't retry on last attempt
         if (attempt < maxRetries - 1) {
           const delay = Math.pow(2, attempt) * 1000; // 1s, 2s, 4s
-          console.warn(
-            `[SPAM-A] ⚠️  Attempt ${attempt + 1}/${maxRetries} failed with ${response.status}, retrying in ${delay}ms...`
-          );
           await new Promise(resolve => setTimeout(resolve, delay));
           continue;
         }
@@ -145,9 +139,6 @@ async function callHFWithRetry(
       // Don't retry on last attempt
       if (attempt < maxRetries - 1) {
         const delay = Math.pow(2, attempt) * 1000;
-        console.warn(
-          `[SPAM-A] ⚠️  Attempt ${attempt + 1}/${maxRetries} failed with error, retrying in ${delay}ms...`
-        );
         await new Promise(resolve => setTimeout(resolve, delay));
         continue;
       }
@@ -155,7 +146,6 @@ async function callHFWithRetry(
   }
 
   // All retries exhausted
-  console.error(`[SPAM-A] ❌ All ${maxRetries} attempts failed. Last error:`, lastError);
   throw lastError || new Error('HF API request failed after all retries');
 }
 
@@ -239,16 +229,11 @@ export async function compareSemanticSimilarity(
     } else {
       // Sometimes it might return object with 'score' key?
       // But usually sentence-similarity returns a list of scores corresponding to 'sentences' list
-      console.warn("[SPAM-A] ⚠️  Unexpected HF output format:", output);
-      // Safety fallback for unknown formats if any
+      // Safety fallback for unknown formats
       similarity = 0;
     }
 
     setCache(cacheKey, similarity);
-
-    console.log(
-      `[SPAM-A] ✅ Similarity computed in ${Date.now() - start}ms: ${(similarity * 100).toFixed(1)}% (API)`
-    );
 
     return {
       similarity,
@@ -261,15 +246,8 @@ export async function compareSemanticSimilarity(
 
   } catch (error) {
     // All API retries failed - use Levenshtein distance as fallback
-    console.warn("[SPAM-A] ⚠️  HF API unavailable after retries, using Levenshtein fallback");
-    console.error("[SPAM-A] Error details:", error);
-
     const similarity = levenshteinSimilarity(normalizedUser, normalizedExpected);
     setCache(cacheKey, similarity);
-
-    console.log(
-      `[SPAM-A] ✅ Similarity computed in ${Date.now() - start}ms: ${(similarity * 100).toFixed(1)}% (Levenshtein fallback)`
-    );
 
     return {
       similarity,

@@ -146,7 +146,7 @@ export default function ChaosWindowPage() {
           setUserLevel(data.preferences.languageLevel)
         }
       })
-      .catch((err) => console.error('[Chaos Window] Failed to fetch user level:', err))
+      .catch(() => {})
 
     fetch("/api/sessions?type=chaos_window&limit=1", { credentials: "include" })
       .then((r) => r.ok ? r.json() : null)
@@ -185,11 +185,9 @@ export default function ChaosWindowPage() {
         const data = await res.json()
         setSessionId(data.session.id)
         setSessionStartTime(new Date().getTime())
-      } else {
-        console.error("Failed to start session")
       }
     } catch (err) {
-      console.error("Error starting session:", err)
+      // Session start failed silently — user can retry
     }
   }
 
@@ -218,7 +216,6 @@ export default function ChaosWindowPage() {
           credentials: "include",
         })
       } catch (proficiencyError) {
-        console.error("Failed to update proficiency:", proficiencyError)
         // Continue even if proficiency update fails - not critical for UX
       }
 
@@ -228,7 +225,7 @@ export default function ChaosWindowPage() {
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sessionId }),
-      }).catch(err => console.error('Background content generation failed:', err))
+      }).catch(() => {}) // Fire-and-forget
 
       // Save stats for summary modal
       setCompletedSessionId(sessionId)
@@ -244,7 +241,7 @@ export default function ChaosWindowPage() {
       // Show summary modal
       setShowSummary(true)
     } catch (err) {
-      console.error("Error ending session:", err)
+      // Session end failed — data already saved locally
     }
   }
 
@@ -275,12 +272,9 @@ export default function ChaosWindowPage() {
           }))
         setFossilizationAlerts(alerts)
 
-        if (alerts.length > 0) {
-          console.log(`[Chaos Window] ${alerts.length} fossilization alert(s) active (tier ${alerts.map(a => a.tier).join(',')})`)
-        }
       }
     } catch (err) {
-      console.error('Failed to fetch error patterns:', err)
+      // Error patterns fetch failed — continue without targeting
     }
   }
 
@@ -296,8 +290,6 @@ export default function ChaosWindowPage() {
     setTutorHint(null)
 
     try {
-      console.log(`[Chaos Window] Generating initial question for: "${content.title}"`)
-
       const res = await fetch('/api/chaos-window/initial-question', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -322,10 +314,7 @@ export default function ChaosWindowPage() {
 
       setTutorPrompt(question.question)
       setTutorHint(question.hint || null)
-
-      console.log(`[Chaos Window] Initial question set: "${question.question}"`)
     } catch (err) {
-      console.error('[Chaos Window] Failed to generate initial question:', err)
       // Fallback to a generic question based on content type
       const fallback = {
         audio: 'Ce ai auzit în acest audio? Descrie pe scurt conținutul.',
@@ -344,13 +333,11 @@ export default function ChaosWindowPage() {
     setTranscriptError(null)
 
     try {
-      console.log(`[Chaos Window] Fetching transcript for content ${content.id}`)
       const res = await fetch(`/api/content/transcript/${content.id}`, { credentials: "include" })
 
       if (!res.ok) {
         // 404 = No transcript available (not a fatal error)
         if (res.status === 404) {
-          console.log(`[Chaos Window] No transcript available for ${content.id}`)
           setTranscriptError("Transcript unavailable")
           return
         }
@@ -372,13 +359,9 @@ export default function ChaosWindowPage() {
         setCurrentContent(prev => prev?.id === content.id ? { ...prev, transcript } : prev)
 
         // Re-generate AI question now that we have the transcript
-        console.log(`[Chaos Window] Regenerating question with new transcript...`)
         fetchInitialQuestion(content, transcript)
-
-        console.log(`[Chaos Window] Transcript fetched successfully (${transcript.length} chars)`)
       }
     } catch (err) {
-      console.error("[Chaos Window] Failed to fetch transcript:", err)
       setTranscriptError("Couldn't load transcript - using title only")
     } finally {
       setIsLoadingTranscript(false)
@@ -452,13 +435,11 @@ export default function ChaosWindowPage() {
 
         // Audio without transcript - fetch it!
         if (data.content.type === 'audio') {
-          console.log(`[Chaos Window] Content missing transcript, fetching on-demand...`)
           // Don't await - let it load in background
           fetchTranscript(data.content as ContentItem)
         }
       }
     } catch (err) {
-      console.error("Failed to fetch random content:", err)
       setContentError("Nu am putut încărca conținutul. Încearcă din nou.")
     } finally {
       setIsLoadingContent(false)
@@ -507,7 +488,7 @@ export default function ChaosWindowPage() {
           })
         })
       } catch (err) {
-        console.error('Failed to log pronunciation error:', err)
+        // Non-critical: error logging failed
       }
     }
   }, [sessionId, practiceAudio?.romanianText, currentContent?.id])
@@ -542,7 +523,6 @@ export default function ChaosWindowPage() {
       setIsRecording(true)
       setError(null)
     } catch (err) {
-      console.error('Failed to start recording:', err)
       setError('Could not access microphone. Please check permissions.')
     }
   }
@@ -685,7 +665,6 @@ export default function ChaosWindowPage() {
       }
 
     } catch (submitError) {
-      console.error("Failed to submit response", submitError)
       setError("Nu am putut trimite răspunsul. Încearcă din nou.")
     } finally {
       setIsSubmitting(false)

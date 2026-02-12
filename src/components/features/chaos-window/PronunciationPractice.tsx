@@ -51,8 +51,8 @@ export function PronunciationPractice({ targetText, onComplete }: PronunciationP
       setIsRecording(true)
       setError(null)
       setResult(null)
-    } catch (err) {
-      console.error('Failed to start recording:', err)
+    } catch {
+      // Error handled via state
       setError('Could not access microphone. Please check permissions.')
     }
   }
@@ -100,8 +100,8 @@ export function PronunciationPractice({ targetText, onComplete }: PronunciationP
       if (onComplete) {
         onComplete(pronunciationResult)
       }
-    } catch (err) {
-      console.error('Analysis error:', err)
+    } catch {
+      // Error handled via state
       setError('Failed to analyze pronunciation. Please try again.')
     } finally {
       setIsAnalyzing(false)

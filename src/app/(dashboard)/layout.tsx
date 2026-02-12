@@ -38,7 +38,7 @@ export default async function DashboardLayout({
       <Sidebar />
       <div className="md:pl-64">
         <TopBar />
-        <main className="p-6">{children}</main>
+        <main id="main-content" className="p-6">{children}</main>
       </div>
     </div>
   )

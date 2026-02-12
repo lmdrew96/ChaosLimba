@@ -70,7 +70,6 @@ export async function POST(req: NextRequest) {
       }
 
       // Transcribe audio using Groq speech-to-text
-      console.log('[Chaos Window] Transcribing audio with Groq...');
       try {
         const groqFormData = new FormData();
         groqFormData.append('file', audioFile);
@@ -100,7 +99,6 @@ export async function POST(req: NextRequest) {
 
         const transcriptionResult = await transcriptionResponse.json();
         userResponse = transcriptionResult.text;
-        console.log('[Chaos Window] Transcription:', userResponse);
       } catch (transcriptionError) {
         console.error('[Chaos Window] Transcription error:', transcriptionError);
         return NextResponse.json(
@@ -139,8 +137,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    console.log(`[Chaos Window] Processing ${modality} submission with aggregator`);
-
     // Step 1: Run feedback pipeline directly (no HTTP indirection — modality preserved)
     const { userId } = await auth();
     let aggregatedFeedback: { overallScore: number; errorPatterns: any[]; componentStatus: any; rawReport: any; errorsSaved: number } | null = null;
@@ -171,7 +167,6 @@ export async function POST(req: NextRequest) {
         rawReport: pipelineResult.report,
         errorsSaved: savedErrors.length,
       };
-      console.log(`[Chaos Window] Session ${sessionId}: Score ${aggregatedFeedback.overallScore}/100, ${aggregatedFeedback.errorsSaved} errors saved (modality: ${modality})`);
     } catch (aggregatorError) {
       console.error('[Chaos Window] Aggregator error:', aggregatorError);
       // Continue without aggregator results - don't block the flow
@@ -227,7 +222,6 @@ export async function POST(req: NextRequest) {
         saveErrorPatternsToGarden(tutorErrorPatterns, userId, sessionId, 'chaos_window', modality).catch(err => {
           console.error('[Chaos Window] Failed to save tutor-identified errors:', err);
         });
-        console.log(`[Chaos Window] Saved ${tutorErrorPatterns.length} tutor-identified errors to Error Garden (aggregator found none)`);
       }
     }
 

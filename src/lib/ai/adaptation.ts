@@ -244,7 +244,6 @@ export async function recordIntervention(
 
   try {
     await db.insert(adaptationInterventions).values(intervention);
-    console.log(`[Adaptation] Recorded ${source} intervention for "${priority.patternKey}" at tier ${priority.tier}`);
   } catch (error) {
     console.error('[Adaptation] Failed to record intervention:', error);
   }
@@ -301,7 +300,6 @@ async function measureInterventionOutcomes(
     }
   }
 
-  console.log(`[Adaptation] Measured ${unmeasured.length} intervention outcomes for user ${userId}`);
 }
 
 /**

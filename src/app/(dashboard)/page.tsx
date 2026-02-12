@@ -89,8 +89,8 @@ export default function DashboardPage() {
           setStats(data.stats)
           setRecentActivity(data.recentActivity)
         }
-      } catch (error) {
-        console.error("Failed to fetch dashboard stats:", error)
+      } catch {
+        // Error handled gracefully — dashboard renders with default state
       } finally {
         setIsLoading(false)
       }
