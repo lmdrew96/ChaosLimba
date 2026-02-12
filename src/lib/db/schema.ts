@@ -198,6 +198,35 @@ export const proficiencyHistory = pgTable('proficiency_history', {
 export type ProficiencyHistoryRecord = typeof proficiencyHistory.$inferSelect;
 export type NewProficiencyHistoryRecord = typeof proficiencyHistory.$inferInsert;
 
+// ─── Learning Narratives (Linguistic Autobiography) ───
+
+export interface AutobiographyStats {
+  sessionCount: number;
+  totalMinutes: number;
+  sessionsByType: Record<string, number>;
+  errorCount: number;
+  resolvedPatterns: number;
+  wordsCollected: number;
+  featuresDiscovered: number;
+  proficiencyDelta: number | null;
+  topErrorType: string | null;
+  biggestImprovement: { pattern: string; before: number; after: number } | null;
+}
+
+export const learningNarratives = pgTable('learning_narratives', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: text('user_id').notNull(),
+  narrative: text('narrative').notNull(),
+  reflection: text('reflection'),
+  periodStart: timestamp('period_start').notNull(),
+  periodEnd: timestamp('period_end').notNull(),
+  stats: jsonb('stats').$type<AutobiographyStats>().notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export type LearningNarrative = typeof learningNarratives.$inferSelect;
+export type NewLearningNarrative = typeof learningNarratives.$inferInsert;
+
 // Generated content type enum
 export const generatedContentTypeEnum = ['practice_sentences', 'mini_lesson', 'corrected_version'] as const;
 export type GeneratedContentType = (typeof generatedContentTypeEnum)[number];

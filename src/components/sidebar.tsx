@@ -15,6 +15,7 @@ import {
   Wrench,
   Sun,
   Moon,
+  ScrollText,
 } from "lucide-react"
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
@@ -61,6 +62,12 @@ const navItems = [
     href: "/proficiency-tracker",
     icon: TrendingUp,
     description: "Your CEFR progress",
+  },
+  {
+    name: "Journey",
+    href: "/journey",
+    icon: ScrollText,
+    description: "Your learning story",
   },
 ]
 

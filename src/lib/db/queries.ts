@@ -16,10 +16,13 @@ import {
   contentItems,
   userPreferences,
   proficiencyHistory,
+  adaptationInterventions,
+  learningNarratives,
   type CEFRLevelEnum,
   type ContentItem,
   type GrammarFeature,
   type AdaptationTier,
+  type AutobiographyStats,
 } from './schema';
 import { ExtractedErrorPattern } from '@/types/aggregator';
 import { eq, and, asc, desc, gte, lte, sql, count as drizzleCount, inArray } from 'drizzle-orm';
@@ -1017,5 +1020,118 @@ export async function getWorkshopFeatureTarget(
     selectionReason: reason,
     destabilizationTier,
     adaptationProfile: adaptProfile,
+  };
+}
+
+// ─── Linguistic Autobiography: Data Aggregation ───
+
+export interface AutobiographyData extends AutobiographyStats {
+  periodStart: Date;
+  periodEnd: Date;
+  hasActivity: boolean;
+}
+
+/**
+ * Aggregates learning data for a 2-week window to power the Linguistic Autobiography.
+ * Pulls from sessions, errors, interventions, proficiency, mystery shelf, and feature exposure.
+ */
+export async function getAutobiographyData(
+  userId: string,
+  periodStart: Date,
+  periodEnd: Date
+): Promise<AutobiographyData> {
+  const [
+    periodSessions,
+    periodErrors,
+    periodInterventions,
+    periodProficiency,
+    periodMystery,
+    periodExposures,
+  ] = await Promise.all([
+    db.select().from(sessions)
+      .where(and(eq(sessions.userId, userId), gte(sessions.startedAt, periodStart), lte(sessions.startedAt, periodEnd))),
+    db.select().from(errorLogs)
+      .where(and(eq(errorLogs.userId, userId), gte(errorLogs.createdAt, periodStart), lte(errorLogs.createdAt, periodEnd))),
+    db.select().from(adaptationInterventions)
+      .where(and(eq(adaptationInterventions.userId, userId), gte(adaptationInterventions.createdAt, periodStart), lte(adaptationInterventions.createdAt, periodEnd))),
+    db.select().from(proficiencyHistory)
+      .where(and(eq(proficiencyHistory.userId, userId), gte(proficiencyHistory.recordedAt, periodStart), lte(proficiencyHistory.recordedAt, periodEnd)))
+      .orderBy(asc(proficiencyHistory.recordedAt)),
+    db.select().from(mysteryItems)
+      .where(and(eq(mysteryItems.userId, userId), gte(mysteryItems.createdAt, periodStart), lte(mysteryItems.createdAt, periodEnd))),
+    db.select({ count: sql<number>`count(distinct ${userFeatureExposure.featureKey})::int` })
+      .from(userFeatureExposure)
+      .where(and(
+        eq(userFeatureExposure.userId, userId),
+        eq(userFeatureExposure.exposureType, 'encountered'),
+        gte(userFeatureExposure.createdAt, periodStart),
+        lte(userFeatureExposure.createdAt, periodEnd)
+      )),
+  ]);
+
+  // Session stats
+  const sessionCount = periodSessions.length;
+  const totalMinutes = Math.round(
+    periodSessions.reduce((sum, s) => sum + (s.durationSeconds || 0), 0) / 60
+  );
+  const sessionsByType: Record<string, number> = {};
+  for (const s of periodSessions) {
+    sessionsByType[s.sessionType] = (sessionsByType[s.sessionType] || 0) + 1;
+  }
+
+  // Error stats
+  const errorCount = periodErrors.length;
+  const errorsByType: Record<string, number> = {};
+  for (const e of periodErrors) {
+    errorsByType[e.errorType] = (errorsByType[e.errorType] || 0) + 1;
+  }
+  const topErrorType = Object.entries(errorsByType)
+    .sort(([, a], [, b]) => b - a)[0]?.[0] || null;
+
+  // Resolved patterns from interventions
+  const resolvedPatterns = periodInterventions.filter(i => i.isResolved).length;
+
+  // Biggest improvement: find intervention with largest frequency drop
+  let biggestImprovement: { pattern: string; before: number; after: number } | null = null;
+  for (const intervention of periodInterventions) {
+    if (intervention.frequencyAfterWindow !== null && intervention.frequencyAfterWindow < intervention.frequencyAtIntervention) {
+      const drop = intervention.frequencyAtIntervention - intervention.frequencyAfterWindow;
+      if (!biggestImprovement || drop > (biggestImprovement.before - biggestImprovement.after)) {
+        biggestImprovement = {
+          pattern: intervention.patternKey.replace('|', ': '),
+          before: intervention.frequencyAtIntervention,
+          after: intervention.frequencyAfterWindow,
+        };
+      }
+    }
+  }
+
+  // Proficiency delta
+  let proficiencyDelta: number | null = null;
+  if (periodProficiency.length >= 2) {
+    const first = parseFloat(periodProficiency[0].overallScore);
+    const last = parseFloat(periodProficiency[periodProficiency.length - 1].overallScore);
+    proficiencyDelta = Math.round((last - first) * 10) / 10;
+  }
+
+  const wordsCollected = periodMystery.length;
+  const featuresDiscovered = periodExposures[0]?.count ?? 0;
+
+  const hasActivity = sessionCount > 0 || errorCount > 0 || wordsCollected > 0;
+
+  return {
+    periodStart,
+    periodEnd,
+    hasActivity,
+    sessionCount,
+    totalMinutes,
+    sessionsByType,
+    errorCount,
+    resolvedPatterns,
+    wordsCollected,
+    featuresDiscovered,
+    proficiencyDelta,
+    topErrorType,
+    biggestImprovement,
   };
 }
