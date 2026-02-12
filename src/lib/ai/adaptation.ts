@@ -29,6 +29,8 @@ export interface AdaptationPriority {
   interventionSuccesses: number; // how many interventions showed improvement
   lastInterventionAt: Date | null;
   examples: Array<{ incorrect: string; correct: string | null }>;
+  primaryModality: 'speech' | 'text' | 'mixed';
+  lastOccurred: Date;
 }
 
 export interface ContentWeights {
@@ -51,6 +53,8 @@ export interface FossilizationAlert {
   pattern: string;
   tier: AdaptationTier;
   examples: Array<{ incorrect: string; correct: string }>;
+  primaryModality: 'speech' | 'text' | 'mixed';
+  lastOccurred: string; // relative, e.g. "2 days ago"
 }
 
 // ─── Constants ───
@@ -142,26 +146,32 @@ export async function getAdaptationProfile(userId: string): Promise<AdaptationPr
     // Determine tier (with exit logic for tier 3)
     let tier: AdaptationTier = 1;
 
-    // Tier 3 exit: if frequency dropped below fossilization threshold after interventions,
-    // or if 2+ successful interventions at tier 3, pattern is resolving — drop to tier 1
-    const tier3Interventions = patternInterventions.filter(i => i.tier === 3);
-    const tier3Successes = tier3Interventions.filter(i =>
-      i.frequencyAfterWindow !== null && i.frequencyAfterWindow < i.frequencyAtIntervention
-    ).length;
-    const hasRecentActivity = lastInterventionAt && (Date.now() - lastInterventionAt.getTime()) < 14 * 24 * 60 * 60 * 1000;
+    // Frequency-based exit: if frequency dropped well below fossilization threshold,
+    // the pattern is resolving regardless of intervention history — stay at tier 1
+    if (frequency < FOSSILIZATION_THRESHOLD - 10) {
+      tier = 1;
+    } else {
+      // Tier 3 exit: if frequency dropped below fossilization threshold after interventions,
+      // or if 2+ successful interventions at tier 3, pattern is resolving — drop to tier 1
+      const tier3Interventions = patternInterventions.filter(i => i.tier === 3);
+      const tier3Successes = tier3Interventions.filter(i =>
+        i.frequencyAfterWindow !== null && i.frequencyAfterWindow < i.frequencyAtIntervention
+      ).length;
+      const hasRecentActivity = lastInterventionAt && (Date.now() - lastInterventionAt.getTime()) < 14 * 24 * 60 * 60 * 1000;
 
-    if (frequency >= FOSSILIZATION_THRESHOLD && interventionCount >= TIER3_INTERVENTION_COUNT && !hasImprovement) {
-      // Tier 3 exit: 2+ successful destabilizations → drop to tier 1 (pattern is yielding)
-      if (tier3Successes >= 2) {
-        tier = 1;
-      // Tier 3 timeout: no activity in 14 days → pattern dormant, reset to tier 1
-      } else if (!hasRecentActivity && interventionCount >= TIER3_INTERVENTION_COUNT) {
-        tier = 1;
-      } else {
-        tier = 3;
+      if (frequency >= FOSSILIZATION_THRESHOLD && interventionCount >= TIER3_INTERVENTION_COUNT && !hasImprovement) {
+        // Tier 3 exit: 2+ successful destabilizations → drop to tier 1 (pattern is yielding)
+        if (tier3Successes >= 2) {
+          tier = 1;
+        // Tier 3 timeout: no activity in 14 days → pattern dormant, reset to tier 1
+        } else if (!hasRecentActivity && interventionCount >= TIER3_INTERVENTION_COUNT) {
+          tier = 1;
+        } else {
+          tier = 3;
+        }
+      } else if (frequency >= FOSSILIZATION_THRESHOLD && interventionCount >= TIER2_INTERVENTION_COUNT && !hasImprovement) {
+        tier = 2;
       }
-    } else if (frequency >= FOSSILIZATION_THRESHOLD && interventionCount >= TIER2_INTERVENTION_COUNT && !hasImprovement) {
-      tier = 2;
     }
 
     // Compute trending
@@ -174,6 +184,14 @@ export async function getAdaptationProfile(userId: string): Promise<AdaptationPr
       correct: log.correction,
     }));
 
+    // Compute primary modality for this pattern
+    const speechCount = logs.filter(l => l.modality === 'speech').length;
+    const textCount = logs.filter(l => l.modality === 'text').length;
+    const primaryModality: 'speech' | 'text' | 'mixed' =
+      speechCount > textCount * 3 ? 'speech'
+      : textCount > speechCount * 3 ? 'text'
+      : 'mixed';
+
     priorities.push({
       patternKey,
       errorType: errorType as ErrorType,
@@ -185,6 +203,8 @@ export async function getAdaptationProfile(userId: string): Promise<AdaptationPr
       interventionSuccesses,
       lastInterventionAt,
       examples,
+      primaryModality,
+      lastOccurred: sortedLogs[0].createdAt,
     });
   }
 
@@ -341,5 +361,18 @@ export function buildFossilizationAlerts(profile: AdaptationProfile): Fossilizat
         .filter(e => e.incorrect && e.correct)
         .slice(0, 2)
         .map(e => ({ incorrect: e.incorrect, correct: e.correct! })),
+      primaryModality: p.primaryModality,
+      lastOccurred: formatRelativeTime(p.lastOccurred),
     }));
+}
+
+function formatRelativeTime(date: Date): string {
+  const diffMs = Date.now() - date.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  if (diffDays === 0) return 'today';
+  if (diffDays === 1) return '1 day ago';
+  if (diffDays < 7) return `${diffDays} days ago`;
+  const diffWeeks = Math.floor(diffDays / 7);
+  if (diffWeeks === 1) return '1 week ago';
+  return `${diffWeeks} weeks ago`;
 }

@@ -294,13 +294,18 @@ function buildFossilizationPromptSection(alerts: FossilizationAlert[]): string {
             .map(e => `"${e.incorrect}" → "${e.correct}"`)
             .join(', ');
 
+        const modalityNote = alert.primaryModality !== 'mixed'
+            ? `, primarily in ${alert.primaryModality.toUpperCase()}`
+            : '';
+        const recencyNote = `, last seen ${alert.lastOccurred}`;
+
         if (alert.tier >= 3) {
             sections.push(
-                `DESTABILIZATION TARGET (${alert.pattern}): Create cognitive disequilibrium — show a case where their wrong form creates confusion or changes meaning entirely. Examples: ${exampleText}`
+                `DESTABILIZATION TARGET (${alert.pattern}${modalityNote}${recencyNote}): Create cognitive disequilibrium — show a case where their wrong form creates confusion or changes meaning entirely.${alert.primaryModality === 'speech' ? ' This error mostly occurs when speaking, so prompt them to say their answer aloud.' : ''} Examples: ${exampleText}`
             );
         } else {
             sections.push(
-                `FOSSILIZATION ALERT (${alert.pattern}): The learner consistently produces the wrong form here. Design your question to require the correct form. Examples: ${exampleText}`
+                `FOSSILIZATION ALERT (${alert.pattern}${modalityNote}${recencyNote}): The learner consistently produces the wrong form here.${alert.primaryModality === 'speech' ? ' This error mostly occurs when speaking — you might say "I noticed when you speak, you tend to..."' : alert.primaryModality === 'text' ? ' This error mostly occurs in writing — you might say "I noticed in your writing, you tend to..."' : ''} Design your question to require the correct form. Examples: ${exampleText}`
             );
         }
     }

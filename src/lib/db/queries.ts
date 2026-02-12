@@ -763,7 +763,16 @@ export async function getSmartContentForUser(
   // Try to find content matching target features
   if (targetFeatures.length > 0) {
     const targetKeys = targetFeatures.map(f => f.featureKey);
-    const content = await findContentByFeatures(targetKeys, difficulty, excludeId);
+
+    // Modality-aware: prefer content type matching where errors occur
+    let preferredType: 'audio' | 'text' | undefined;
+    if (selectionReason === 'fossilizing_pattern') {
+      const topPriority = adaptProfile.fossilizingPatterns[0];
+      if (topPriority?.primaryModality === 'speech') preferredType = 'audio';
+      else if (topPriority?.primaryModality === 'text') preferredType = 'text';
+    }
+
+    const content = await findContentByFeatures(targetKeys, difficulty, excludeId, preferredType);
     if (content) {
       return { content, selectionReason, targetFeatures, isFirstSession, adaptationProfile: adaptProfile };
     }
@@ -795,7 +804,8 @@ export async function getSmartContentForUser(
 async function findContentByFeatures(
   featureKeys: string[],
   difficulty: { min: number; max: number },
-  excludeId?: string
+  excludeId?: string,
+  preferredType?: 'audio' | 'text'
 ): Promise<ContentItem | null> {
   // Build a condition that checks if ANY of the feature keys are in the grammar array
   // Using jsonb @> operator for each key with OR
@@ -803,20 +813,34 @@ async function findContentByFeatures(
     sql`${contentItems.languageFeatures}->'grammar' @> ${JSON.stringify([key])}::jsonb`
   );
 
-  const conditions = [
+  const baseConditions = [
     gte(contentItems.difficultyLevel, difficulty.min.toString()),
     lte(contentItems.difficultyLevel, difficulty.max.toString()),
     sql`(${sql.join(featureConditions, sql` OR `)})`,
   ];
 
   if (excludeId) {
-    conditions.push(sql`${contentItems.id} != ${excludeId}`);
+    baseConditions.push(sql`${contentItems.id} != ${excludeId}`);
+  }
+
+  // If modality preference exists, try matching content type first
+  if (preferredType) {
+    const typedConditions = [...baseConditions, eq(contentItems.type, preferredType)];
+    const typedItems = await db
+      .select()
+      .from(contentItems)
+      .where(and(...typedConditions))
+      .orderBy(sql`RANDOM()`)
+      .limit(1);
+
+    if (typedItems[0]) return typedItems[0];
+    // Fall through to any type if no match
   }
 
   const items = await db
     .select()
     .from(contentItems)
-    .where(and(...conditions))
+    .where(and(...baseConditions))
     .orderBy(sql`RANDOM()`)
     .limit(1);
 
@@ -950,7 +974,16 @@ export async function getWorkshopFeatureTarget(
     selected = noticingGapFeatures[Math.floor(Math.random() * noticingGapFeatures.length)];
     reason = 'noticing_gap';
   } else if (roll < errorThreshold && errorFeatures.length > 0) {
-    selected = errorFeatures[Math.floor(Math.random() * errorFeatures.length)];
+    // Prioritize highest-frequency error patterns (top 3) instead of pure random
+    const sortedPatterns = [...errorPatterns].sort((a, b) => b.frequency - a.frequency);
+    const topFeatureKeys = sortedPatterns
+      .slice(0, 3)
+      .map(p => mapErrorCategoryToFeatureKey(p.errorType as ErrorType, p.category))
+      .filter(Boolean) as string[];
+    const topFeatures = errorFeatures.filter(f => topFeatureKeys.includes(f.featureKey));
+    selected = topFeatures.length > 0
+      ? topFeatures[Math.floor(Math.random() * topFeatures.length)]
+      : errorFeatures[Math.floor(Math.random() * errorFeatures.length)];
     reason = 'error_reinforcement';
   } else if (roll < fossilizingThreshold && fossilizingFeatures.length > 0) {
     // Fossilization drill: pick highest-tier fossilizing pattern's mapped feature
