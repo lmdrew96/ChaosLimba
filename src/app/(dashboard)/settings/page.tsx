@@ -18,7 +18,9 @@ import {
     Palette,
     RotateCcw,
     AlertTriangle,
+    Trash2,
 } from "lucide-react"
+import { Input } from "@/components/ui/input"
 import { useRouter } from "next/navigation"
 import { useClerk, useUser } from "@clerk/nextjs"
 import type { UserPreferences } from "@/lib/db/schema"
@@ -55,6 +57,8 @@ export default function SettingsPage() {
     const [saved, setSaved] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [devActionLoading, setDevActionLoading] = useState<string | null>(null)
+    const [resetErrorsPasscode, setResetErrorsPasscode] = useState("")
+    const [showResetErrorsInput, setShowResetErrorsInput] = useState(false)
 
     // Fetch preferences on mount
     useEffect(() => {
@@ -124,6 +128,36 @@ export default function SettingsPage() {
             // Error handled via toast
             const errorMessage = err instanceof Error ? err.message : "Unknown error"
             toast.error("Failed to reset progress", { description: errorMessage })
+        } finally {
+            setDevActionLoading(null)
+        }
+    }
+
+    const handleResetErrors = async () => {
+        if (!resetErrorsPasscode.trim()) {
+            toast.error("Enter the dev passcode")
+            return
+        }
+        try {
+            setDevActionLoading("reset-errors")
+            const response = await fetch("/api/dev/reset-errors", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ passcode: resetErrorsPasscode }),
+            })
+
+            const data = await response.json()
+
+            if (!response.ok) {
+                throw new Error(data.details || data.error || "Unknown error")
+            }
+
+            toast.success(data.message)
+            setResetErrorsPasscode("")
+            setShowResetErrorsInput(false)
+        } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : "Unknown error"
+            toast.error("Failed to reset errors", { description: errorMessage })
         } finally {
             setDevActionLoading(null)
         }
@@ -358,6 +392,64 @@ export default function SettingsPage() {
                     <CardDescription>Destructive actions that cannot be undone</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
+                    {/* Reset Errors Only */}
+                    <div className="space-y-3">
+                        <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1">
+                                <Label className="text-base flex items-center gap-2">
+                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                    Reset Errors Only
+                                </Label>
+                                <p className="text-sm text-muted-foreground mt-1">
+                                    Clear all error logs and adaptation interventions. Sessions, mystery shelf, and proficiency stay intact.
+                                </p>
+                            </div>
+                            {!showResetErrorsInput ? (
+                                <Button
+                                    variant="destructive"
+                                    className="rounded-xl shrink-0"
+                                    onClick={() => setShowResetErrorsInput(true)}
+                                >
+                                    Reset Errors
+                                </Button>
+                            ) : (
+                                <div className="flex items-center gap-2 shrink-0">
+                                    <Input
+                                        type="password"
+                                        placeholder="Dev passcode"
+                                        value={resetErrorsPasscode}
+                                        onChange={(e) => setResetErrorsPasscode(e.target.value)}
+                                        onKeyDown={(e) => e.key === "Enter" && handleResetErrors()}
+                                        className="w-36 rounded-xl"
+                                        autoFocus
+                                    />
+                                    <Button
+                                        variant="destructive"
+                                        className="rounded-xl"
+                                        disabled={devActionLoading === "reset-errors"}
+                                        onClick={handleResetErrors}
+                                    >
+                                        {devActionLoading === "reset-errors" ? (
+                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                        ) : (
+                                            "Confirm"
+                                        )}
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        className="rounded-xl"
+                                        onClick={() => {
+                                            setShowResetErrorsInput(false)
+                                            setResetErrorsPasscode("")
+                                        }}
+                                    >
+                                        Cancel
+                                    </Button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
                     {/* Reset Progress */}
                     <div className="space-y-3">
                         <div className="flex items-start justify-between gap-4">
