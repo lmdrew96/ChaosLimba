@@ -21,6 +21,7 @@ import {
   Eye,
 } from "lucide-react";
 import { ContentPlayer } from "@/components/features/content-player";
+import { DeepFogQuiz } from "@/components/features/deep-fog/DeepFogQuiz";
 import { ContentItem } from "@/lib/db/schema";
 
 type CEFRLevel = "A1" | "A2" | "B1" | "B2" | "C1" | "C2";
@@ -126,6 +127,11 @@ export default function DeepFogPage() {
   // Session word tracking
   const [sessionWords, setSessionWords] = useState<string[]>([]);
   const [showSessionSummary, setShowSessionSummary] = useState(false);
+
+  // Quiz state
+  const [showQuiz, setShowQuiz] = useState(false);
+  const [quizContent, setQuizContent] = useState<ContentItem | null>(null);
+  const [quizScore, setQuizScore] = useState<{ score: number; total: number } | null>(null);
 
   // Word capture toast state
   const [capturedWord, setCapturedWord] = useState<string | null>(null);
@@ -312,15 +318,42 @@ export default function DeepFogPage() {
   };
 
   const handleCloseModal = () => {
+    const contentForQuiz = selectedContent;
+    setSelectedContent(null);
+
+    // Show quiz if the content has readable text
+    const hasText = contentForQuiz?.textContent || contentForQuiz?.transcript;
+    if (hasText && contentForQuiz) {
+      setQuizContent(contentForQuiz);
+      setShowQuiz(true);
+      return;
+    }
+
+    // Otherwise go straight to summary
     if (sessionWords.length > 0) {
       setShowSessionSummary(true);
     }
-    setSelectedContent(null);
+  };
+
+  const handleQuizComplete = (score: number, total: number) => {
+    setQuizScore({ score, total });
+    setShowQuiz(false);
+    setQuizContent(null);
+    setShowSessionSummary(true);
+  };
+
+  const handleQuizSkip = () => {
+    setShowQuiz(false);
+    setQuizContent(null);
+    if (sessionWords.length > 0) {
+      setShowSessionSummary(true);
+    }
   };
 
   const handleDismissSummary = () => {
     setShowSessionSummary(false);
     setSessionWords([]);
+    setQuizScore(null);
   };
 
   const fogRange = userLevel ? getFogRange(userLevel) : null;
@@ -624,6 +657,16 @@ export default function DeepFogPage() {
         </div>
       )}
 
+      {/* Comprehension quiz */}
+      {showQuiz && quizContent && (
+        <DeepFogQuiz
+          content={quizContent}
+          userLevel={userLevel || "B1"}
+          onComplete={handleQuizComplete}
+          onSkip={handleQuizSkip}
+        />
+      )}
+
       {/* Session summary card */}
       {showSessionSummary && (
         <Card className="rounded-xl border-accent/30 bg-accent/10">
@@ -633,24 +676,48 @@ export default function DeepFogPage() {
                 <h3 className="font-semibold text-accent mb-1">
                   Fog Session Complete
                 </h3>
-                <p className="text-sm text-muted-foreground mb-3">
-                  You collected{" "}
-                  <span className="font-medium text-foreground">
-                    {sessionWords.length}
-                  </span>{" "}
-                  word{sessionWords.length !== 1 ? "s" : ""} from this session
-                </p>
+                <div className="text-sm text-muted-foreground mb-3 space-y-1">
+                  {sessionWords.length > 0 && (
+                    <p>
+                      You collected{" "}
+                      <span className="font-medium text-foreground">
+                        {sessionWords.length}
+                      </span>{" "}
+                      word{sessionWords.length !== 1 ? "s" : ""} from this session
+                    </p>
+                  )}
+                  {quizScore && (
+                    <p>
+                      Comprehension: <span className="font-medium text-foreground">{quizScore.score}/{quizScore.total}</span> correct
+                      {quizScore.score === quizScore.total && " — perfect!"}
+                    </p>
+                  )}
+                </div>
                 <div className="flex gap-2 flex-wrap">
-                  <Button
-                    size="sm"
-                    className="bg-accent hover:bg-accent/50 text-foreground"
-                    onClick={() => {
-                      window.location.href = "/mystery-shelf";
-                    }}
-                  >
-                    <BookOpen className="h-4 w-4 mr-1" /> Explore on Mystery
-                    Shelf
-                  </Button>
+                  {sessionWords.length > 0 && (
+                    <Button
+                      size="sm"
+                      className="bg-accent hover:bg-accent/50 text-foreground"
+                      onClick={() => {
+                        window.location.href = "/mystery-shelf";
+                      }}
+                    >
+                      <BookOpen className="h-4 w-4 mr-1" /> Explore on Mystery
+                      Shelf
+                    </Button>
+                  )}
+                  {quizScore && quizScore.score < quizScore.total && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-border"
+                      onClick={() => {
+                        window.location.href = "/error-garden";
+                      }}
+                    >
+                      Review Errors
+                    </Button>
+                  )}
                   <Button
                     variant="outline"
                     size="sm"
