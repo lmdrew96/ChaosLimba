@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     type: "website",
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "ChaosLimbă",
     description: "AI-powered Romanian language learning for ADHD brains",
   },
