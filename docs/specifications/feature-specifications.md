@@ -1114,9 +1114,9 @@ All of this happens in **real-time** (or near-real-time), providing comprehensiv
   - Specific phoneme errors flagged
   - Prosody score
 
-**3. Grammar Analysis (Fine-Tuned T5/BART)**
+**3. Grammar Analysis (Claude Haiku 4.5)**
 - **Input**: Text transcript from Whisper OR written learner input
-- **Process**: Grammatical error detection using transformer-based NLP models
+- **Process**: Grammatical error detection using LLM-based contextual analysis
 - **Analysis Dimensions**:
   - Morphological errors (case, gender, number agreement)
   - Syntactic errors (word order, clause structure, missing elements)
@@ -1127,9 +1127,9 @@ All of this happens in **real-time** (or near-real-time), providing comprehensiv
   - Specific errors identified with error type labels
   - Suggested corrections (not always shown to learner)
 
-**4. Semantic/Pragmatic Analysis (Romanian BERT)**
+**4. Semantic/Pragmatic Analysis (SPAM-A Sentence Embeddings)**
 - **Input**: Text transcript or written input + context (what content they're responding to)
-- **Process**: Contextual understanding using Romanian language model
+- **Process**: Semantic similarity scoring using multilingual sentence embeddings
 - **Analysis Dimensions**:
   - Meaning accuracy (did learner express intended meaning?)
   - Lexical appropriateness (word choice fits context?)
@@ -1157,8 +1157,8 @@ Learner Produces Output (Speech or Writing)
 Parallel Processing (Simultaneous)
         ├→ Whisper (Speech Recognition) → Transcript + Audio Features
         ├→ Acoustic Analyzer (Pronunciation) → Phonological Score + Errors
-        ├→ T5/BART (Grammar) → Grammatical Score + Errors
-        └→ Romanian BERT (Semantics) → Semantic Score + Errors
+        ├→ Claude Haiku 4.5 (Grammar) → Grammatical Score + Errors
+        └→ SPAM-A Embeddings (Semantics) → Semantic Score + Errors
         ↓
 Feedback Aggregator
         ↓

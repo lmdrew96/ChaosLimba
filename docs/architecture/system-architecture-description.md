@@ -309,7 +309,7 @@ The system integrates established language learning theories:
 The architecture demonstrates sophisticated AI integration with:
 - **Ensemble Design**: 10-component architecture with conditional activation
 - **Dual-Path Routing**: Intelligent input type detection and component selection
-- **Pre-Trained Models**: Minimal fine-tuning requirements (only 1 of 5 ML models)
+- **Pre-Trained Models**: All ML models use pre-trained weights or LLM APIs (no fine-tuning required)
 - **Parallel Processing**: Concurrent execution for efficient multi-dimensional analysis
 - **Rule-Based Systems**: In-app logic for pedagogical consistency and zero-cost operations
 - **Machine Learning**: Pattern recognition and adaptation across input modalities

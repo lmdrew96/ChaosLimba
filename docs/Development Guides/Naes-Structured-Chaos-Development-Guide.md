@@ -923,13 +923,13 @@ And that's exactly what it should be.
 | Layer | Choice | Why |
 |-------|--------|-----|
 | **Frontend** | React + TypeScript + Tailwind + shadcn/ui | Industry standard, best agentic tool support |
-| **State** | Zustand | Simple, lightweight, TypeScript-friendly |
+| **State** | React state + hooks | Simple, built-in, no extra dependencies |
 | **Backend** | Next.js 16 API Routes | Built-in, serverless, Vercel optimized |
 | **Database** | Neon PostgreSQL + Drizzle ORM | Serverless, type-safe, SQL-like |
 | **Auth** | Clerk (Google + Email) | Free 10k MAU, easy setup |
-| **AI Ensemble** | **9 components (7 MVP + 2 Post-MVP)** | **Dual-path orchestration, phased rollout** |
+| **AI Ensemble** | **10 components (9 MVP + 1 Post-MVP)** | **Dual-path orchestration, phased rollout** |
 | **AI - Speech** | Groq API (whisper-large-v3) | **FREE tier** (massive savings!) |
-| **AI - Grammar** | @xenova/transformers (local inference) | **FREE** (runs in browser/server) |
+| **AI - Grammar** | Claude Haiku 4.5 (Anthropic API) | **~$0-5/mo** (LLM-based contextual analysis) |
 | **AI - Pronunciation** | HuggingFace Inference API | **FREE tier** |
 | **AI - Semantic** | HuggingFace Inference API | **FREE tier** |
 | **AI - Tutor** | Groq API (Llama 3.3 70B) | **FREE tier** |

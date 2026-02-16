@@ -89,7 +89,7 @@ This progression aligns with the Output Hypothesis while preventing premature pr
 
 **AI System Role:**
 - Speech Recognition verifies learner's ability to reproduce target phrases
-- Semantic/Pragmatic Analysis (Romanian BERT) begins assessing cultural appropriateness
+- Semantic/Pragmatic Analysis (SPAM-A sentence embeddings) begins assessing cultural appropriateness
 - Error Garden tracks: phonological patterns, high-frequency lexical gaps, formulaic expression usage
 
 **Linguistic Focus:**
@@ -114,7 +114,7 @@ This progression aligns with the Output Hypothesis while preventing premature pr
 
 **AI System Role:**
 - Full Diagnostic Suite activates for writing samples
-- Grammar Analysis (T5/BART) begins tracking case and verb agreement errors
+- Grammar Analysis (Claude Haiku 4.5) begins tracking case and verb agreement errors
 - Error Garden clusters: case confusion patterns, verb conjugation errors, adjective-noun agreement
 - Adaptation Engine begins personalizing content sequencing based on error clusters
 
@@ -218,13 +218,13 @@ Stage 2 intentionally introduces complexity that challenges learners' existing m
 
 **Learning Activities:**
 - 2-3 minute recorded responses to prompts
-- Interactive exchanges where AI (DeepSeek-R1) generates follow-up questions based on Error Garden data
+- Interactive exchanges where AI (Llama 3.3 70B via Groq) generates follow-up questions based on Error Garden data
 - Retelling of podcast/video content
 - Describe-explain-justify tasks
 
 **AI System Role:**
 - Full parallel diagnostic processing: pronunciation + grammar + semantics simultaneously
-- Productive Confusion Responses: DeepSeek-R1 asks questions that force usage of weak structures identified by Error Garden
+- Productive Confusion Responses: Llama 3.3 70B asks questions that force usage of weak structures identified by Error Garden
 - Example: If learner struggles with dative case, AI asks "Cui îi dai cartea?" forcing dative pronoun usage
 - Error Garden tracks: case errors under communicative pressure, verb aspect confusion, lexical retrieval failures
 
@@ -275,7 +275,7 @@ Rather than isolated skill activities, Stage 2 uses **thematic content clusterin
 | Tuesday | Text (Input) | Read article on urban development | Track comprehension via follow-up questions |
 | Wednesday | Speaking (Output) | Record 3-min description of ideal city | Full diagnostic suite grades |
 | Thursday | Writing (Output) | Write 200-word essay on urban vs. rural life | Grammar + semantic analysis |
-| Friday | Interactive (Output) | AI generates targeted questions based on Wed/Thu errors | DeepSeek-R1 productive confusion |
+| Friday | Interactive (Output) | AI generates targeted questions based on Wed/Thu errors | Llama 3.3 70B productive confusion |
 
 **Pedagogical Rationale:**
 - Multiple exposures to same semantic domain through different modalities
@@ -380,7 +380,7 @@ Chaos/complexity theory posits that advanced learners require output pressure to
 - Full diagnostic suite with focus on fluency, lexical sophistication, and structural complexity
 - Error Garden identifies fossilized errors that persist despite knowledge (performance vs. competence gap)
 - Adaptation Engine generates chaos injection: prompts specifically designed to force usage of forms learner systematically avoids
-- DeepSeek-R1 reasoning generates sophisticated follow-ups that maintain cognitive challenge
+- Llama 3.3 70B generates sophisticated follow-ups that maintain cognitive challenge
 
 **Example Chaos Injection:**
 - Error Garden shows learner consistently avoids subjunctive mood in speech despite correct written usage
@@ -539,8 +539,8 @@ By the end of Stage 3, learners should demonstrate:
 **Parallel Processing Components:**
 - **Speech Recognition (Whisper):** Processes all spoken output for transcription and phoneme analysis
 - **Pronunciation Analysis (Acoustic Analyzer):** Evaluates phonological accuracy against native speaker models
-- **Grammar Analysis (T5/BART):** Identifies morphosyntactic errors in transcribed speech and written text
-- **Semantic/Pragmatic Analysis (Romanian BERT):** Assesses meaning accuracy and cultural appropriateness
+- **Grammar Analysis (Claude Haiku 4.5):** Identifies morphosyntactic errors in transcribed speech and written text
+- **Semantic/Pragmatic Analysis (SPAM-A sentence embeddings):** Assesses meaning accuracy and cultural appropriateness
 
 **Data Flow:**
 1. Learner produces output (spoken or written) in response to content-based prompts
@@ -601,7 +601,7 @@ IF accuracy reaches 80%+ over 5 production samples THEN move to next structure
 - **Pedagogical Scaffolding Strategies:** Techniques for supporting learners within ZPD
 - **Cultural/Pragmatic Norms:** Romanian sociolinguistic conventions
 
-**Conversational Core (DeepSeek-R1):**
+**Conversational Core (Llama 3.3 70B via Groq):**
 - **Dynamic Prompt Generation:** Adaptation Engine feeds Error Garden data to reasoning model
 - **Productive Confusion Responses:** AI generates questions that force usage of learner's weak structures
 - **Socratic Questioning:** Guides learners to self-correct rather than providing direct answers
@@ -612,7 +612,7 @@ IF accuracy reaches 80%+ over 5 production samples THEN move to next structure
 2. Grammar Analysis detects accusative-dative case confusion
 3. Error Garden clusters this with previous similar errors
 4. Adaptation Engine flags as priority remediation target
-5. DeepSeek-R1 generates follow-up: "Cui i-ai trimis mesaj?" (To whom did you send a message?) → forces dative
+5. Llama 3.3 70B generates follow-up: "Cui i-ai trimis mesaj?" (To whom did you send a message?) → forces dative
 6. Learner responds, system grades, cycle continues
 
 ---
@@ -656,7 +656,7 @@ IF accuracy reaches 80%+ over 5 production samples THEN move to next structure
 **AI System Development:**
 - Implement Adaptation Engine logic for content sequencing
 - Build content recommendation algorithm based on Error Garden clusters
-- Develop DeepSeek-R1 prompting system for productive confusion responses
+- Develop Llama 3.3 70B prompting system for productive confusion responses
 - Create disequilibrium threshold detection (60-80% accuracy monitoring)
 - Establish fossilization detection criteria
 
@@ -677,7 +677,7 @@ IF accuracy reaches 80%+ over 5 production samples THEN move to next structure
 - Authentic materials without pedagogical modification
 
 **AI System Development:**
-- Refine DeepSeek-R1 prompts for advanced scaffolding and sophisticated questioning
+- Refine Llama 3.3 70B prompts for advanced scaffolding and sophisticated questioning
 - Implement fossilization intervention protocol
 - Develop advanced semantic analysis for style and register assessment
 - Create learner autonomy indicators (when to reduce AI scaffolding)

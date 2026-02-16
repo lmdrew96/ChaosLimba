@@ -16,7 +16,7 @@ flowchart TB
         D1["🔊 Component 1: Speech Recognition<br>Whisper-large-3<br>Groq API - FREE"]
         C1["🧭 Router: Speech Path"]
         D2["🗣️ Component 2: Pronunciation Analysis<br>Wav2Vec2-Romanian<br>HF Inference - FREE"]
-        D3["✍️ Component 3: Grammar Correction<br>Fine-tuned mt5-small<br>Local - FREE"]
+        D3["✍️ Component 3: Grammar Correction<br>Claude Haiku 4.5<br>Anthropic API - ~$0-5/mo"]
         E1["Phonological Score<br>+ Stress Detection"]
         E2["Grammatical Score<br>+ Error Classification"]
         F1["🧠 Component 4: SPAM-A Semantic<br>Sentence Transformers<br>HF Inference - FREE"]
@@ -26,7 +26,7 @@ flowchart TB
   end
  subgraph TextPath["Text Processing Pipeline"]
     direction TB
-        J1["✍️ Component 3: Grammar Correction<br>Fine-tuned mt5-small<br>Local - FREE"]
+        J1["✍️ Component 3: Grammar Correction<br>Claude Haiku 4.5<br>Anthropic API - ~$0-5/mo"]
         C2["🧭 Router: Text Path"]
         J2["Grammatical Score<br>+ Error Classification"]
         K1["🧠 Component 4: SPAM-A Semantic<br>Sentence Transformers<br>HF Inference - FREE"]
@@ -61,13 +61,13 @@ flowchart TB
   end
  subgraph FutureComponents["🔮 Post-MVP Components"]
     direction TB
-        S1["🎯 Component 5: SPAM-B Relevance<br>Text Summarization Model<br>HF Inference - FREE<br>Phase 2: Month 8-9"]
+        S1["🎯 Component 5: SPAM-B Relevance<br>Reuses SPAM-A Embeddings<br>HF Inference - FREE<br>✅ COMPLETE (Jan 27, 2026)"]
         S2["🌍 Component 6: SPAM-C Dialectal<br>Fine-tuned BERT<br>RunPod $2-3/mo<br>Phase 3: Month 10-11"]
   end
  subgraph Metrics["📊 System Metrics"]
     direction LR
-        T3["🎯 MVP Total: $0-5/month<br>8/10 components active"]
-        T4["📈 Full System: $0-10/month<br>10/10 components active"]
+        T3["🎯 MVP Total: $0-5/month<br>10/10 components active"]
+        T4["📈 Full System: $0-8/month<br>11/11 with SPAM-C"]
   end
  subgraph Storage["💾 Storage Systems"]
     direction LR

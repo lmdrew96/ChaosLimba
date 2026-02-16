@@ -560,12 +560,11 @@ Pronunciation and intonation components are **automatically skipped** for text i
 - **Lucide React** (icons)
 
 **State Management:**
-- **Zustand** (lightweight, simple for solo dev)
-- **React Query / TanStack Query** (server state management for AI responses)
+- **React state + hooks** (lightweight, sufficient for current needs)
 
 **Audio/Video Handling:**
-- **Howler.js** (audio playback)
-- **Plyr** (video player with Romanian subtitle support)
+- **Native HTML5 audio/video** (browser-native playback)
+- **YouTube iframe API** (embedded video content)
 - **MediaRecorder API** (browser audio recording for speech exercises)
 
 #### Backend Stack
@@ -2480,9 +2479,9 @@ async function batchGrammarAnalysis(sentences: string[]) {
 | **AI #10 - Conversational AI** | DeepSeek R1 → RunPod | $5-10/mo, Chaos Window productive confusion |
 | **Hosting** | Vercel Pro | Already subscribed ($20/mo baseline) |
 | **Domain** | chaoslimba.adhdesigns.dev | Already owned (adhdesigns.dev) |
-| **State Management** | Zustand | Lightweight, React hooks-based state |
+| **State Management** | React state + hooks | Lightweight, built-in React state management |
 | **Analytics** | Umami (self-hosted) | Privacy-first, opt-in only, open-source |
-| **Video/Audio** | YouTube iframe API + Howler.js | Embedded videos, audio playback |
+| **Video/Audio** | YouTube iframe API + native HTML5 audio | Embedded videos, browser-native audio playback |
 | **Development Tools** | Windsurf + Replit | Agentic coding (Windsurf primary, Replit for prototyping) |
 
 ### Appendix B: Key Milestones & Deadlines

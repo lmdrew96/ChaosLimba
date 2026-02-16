@@ -3,7 +3,7 @@
  * Tests all 8 grading components to ensure they are fully operational:
  * 1. Speech Recognition (Groq Whisper)
  * 2. Pronunciation (Wav2Vec2)
- * 3. Grammar (MT5-small)
+ * 3. Grammar (Claude Haiku 4.5)
  * 4. SPAM-A (Semantic Similarity)
  * 5. SPAM-D/B (Intonation/Stress Analysis) 
  * 6. Aggregator (Feedback Aggregation)
@@ -68,7 +68,7 @@ async function testGrammar(): Promise<ComponentResult> {
         console.log(`Found ${result.errors.length} grammar issues`);
 
         return {
-            name: 'Grammar (MT5-small)',
+            name: 'Grammar (Claude Haiku 4.5)',
             status: hasCorrection && correctResult ? 'PASS' : 'FAIL',
             message: hasCorrection
                 ? `Corrected "${testSentence}" → "${result.correctedText}"`
@@ -82,7 +82,7 @@ async function testGrammar(): Promise<ComponentResult> {
         };
     } catch (error: any) {
         return {
-            name: 'Grammar (MT5-small)',
+            name: 'Grammar (Claude Haiku 4.5)',
             status: 'FAIL',
             message: `Error: ${error.message}`,
             timeMs: Date.now() - start
