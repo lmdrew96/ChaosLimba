@@ -1,8 +1,8 @@
 # ChaosLimbă: Development Documentation
 ## From Inception to MVP and Beyond
 
-**Document Version:** 4.2 - MVP ~99.5% COMPLETE (February 2026 Audit)
-**Last Updated:** February 9, 2026
+**Document Version:** 4.3 - MVP ~99.5% COMPLETE (February 2026 Audit)
+**Last Updated:** February 16, 2026
 **Author:** Nae Drew
 **Status:** Living Document - MVP ~99.5% Complete!
 
@@ -306,13 +306,13 @@ ChaosLimbă implements **constructivist** and **complexity-based** pedagogies:
 │ • Audio Files   │  │       │              │               │
 │ • User Recordings│ │  ┌────▼─────┬───────▼────────┐      │
 └─────────────────┘  │  │ 2. Pronun│ 3. Grammar     │      │
-                     │  │ Analysis │ (mt5-small)    │      │
-                     │  │ (Wav2Vec)│ (RunPod)       │      │
+                     │  │ Analysis │ (Claude Haiku)  │      │
+                     │  │ (Wav2Vec)│ (Anthropic API) │      │
                      │  └────┬─────┴───────┬────────┘      │
                      │       │              │               │
                      │  ┌────▼──────────────▼────────┐      │
                      │  │ 4. SPAM-A: Semantic        │      │
-                     │  │ (Romanian BERT, HF Free)   │      │
+                     │  │ (MiniLM-L12-v2, HF Free)  │      │
                      │  └────┬───────────────────────┘      │
                      │       │                              │
                      │  ┌────▼─────┐  ┌──────────────┐      │
@@ -380,14 +380,14 @@ Each dimension requires different models/techniques and can't be collapsed into 
 
 **Speech Input Path** (5 components active):
 ```
-Audio → Speech Recognition → Grammar + Pronunciation (parallel) → SPAM-A → SPAM-D → Aggregator → DeepSeek R1
-Processing time: 1.0-1.5s | Cost: ~$0.003-0.005/request
+Audio → Speech Recognition → Grammar + Pronunciation (parallel) → SPAM-A → SPAM-D → Aggregator → Llama 3.3 70B (Groq)
+Processing time: 1.0-1.5s | Cost: ~$0.001-0.003/request
 ```
 
 **Text Input Path** (2 components active):
 ```
-Text → Grammar + SPAM-A (parallel) → Aggregator → DeepSeek R1
-Processing time: 0.5-0.8s | Cost: ~$0.001-0.002/request
+Text → Grammar + SPAM-A (parallel) → Aggregator → Llama 3.3 70B (Groq)
+Processing time: 0.5-0.8s | Cost: ~$0.001/request
 ```
 
 Pronunciation and intonation components are **automatically skipped** for text inputs, reducing cost by ~40-50%.
@@ -708,9 +708,9 @@ export async function POST(req: Request) {
   
   // Parallel processing
   const [transcript, grammarResults, conversationalResponse] = await Promise.all([
-    runSpeechRecognition(audioUrl), // Whisper-medium-romanian on RunPod
-    runGrammarAnalysis(transcript), // mt5-small on RunPod
-    runConversationalAI(context, userId) // DeepSeek R1 on RunPod
+    runSpeechRecognition(audioUrl), // Whisper via Groq (FREE)
+    runGrammarAnalysis(transcript), // Claude Haiku 4.5 (Anthropic API)
+    runConversationalAI(context, userId) // Llama 3.3 70B via Groq (FREE)
   ]);
   
   // Aggregate results
@@ -738,113 +738,37 @@ export async function POST(req: Request) {
 }
 ```
 
-**RunPod Configuration:**
+**AI API Configuration (Current Architecture):**
+
+> **Note:** The original plan used self-hosted RunPod models (mt5-small, DeepSeek-R1). The architecture was redesigned to use free/low-cost API services instead. See implementation files for current approach:
+> - Grammar: `src/lib/ai/grammar.ts` (Claude Haiku 4.5 via Anthropic API)
+> - Conversational AI: `src/lib/ai/groq.ts` (Llama 3.3 70B via Groq API, FREE)
+> - Speech: `src/lib/ai/groq.ts` (Whisper via Groq API, FREE)
+> - Pronunciation: `src/lib/ai/pronunciation.ts` (wav2vec2 via HuggingFace, FREE)
 
 ```python
-# Example: Grammar checking now uses Claude Haiku 4.5 via Anthropic API
-# (Previously used RunPod with mt5-small fine-tuned model)
-# Endpoint: grammar-correction-v1
-# GPU: RTX 4090 (24GB VRAM) or RTX A4000 (16GB VRAM)
-# Cold start: ~10s, Warm: <1s
-# Cost: ~$0.29/second active time (RTX 4090), ~$0.19/sec (A4000)
-
-import runpod
-from transformers import T5ForConditionalGeneration, T5Tokenizer
-import torch
-
-model = T5ForConditionalGeneration.from_pretrained("./models/grammar-v1")
-tokenizer = T5Tokenizer.from_pretrained("./models/grammar-v1")
-model.eval()
-
-def handler(event):
-    input_text = event["input"]["text"]
-    
-    inputs = tokenizer(
-        f"correct: {input_text}", 
-        return_tensors="pt", 
-        max_length=512
-    )
-    
-    with torch.no_grad():
-        outputs = model.generate(
-            inputs.input_ids, 
-            max_length=512,
-            num_beams=5,
-            early_stopping=True
-        )
-    
-    corrected = tokenizer.decode(outputs[0], skip_special_tokens=True)
-    
-    return {
-        "corrected_text": corrected,
-        "confidence": calculate_confidence(input_text, corrected)
-    }
-
-runpod.serverless.start({"handler": handler})
+# ARCHIVED: Original RunPod handler examples removed.
+# All AI now uses API services (Groq, Anthropic, HuggingFace).
+# See src/lib/ai/ for current implementations.
 ```
 
-```python
-# Conversational AI endpoint (DeepSeek R1)
+**AI Services Used:**
 
-import runpod
-from transformers import AutoModelForCausalLM, AutoTokenizer
-import torch
-
-model = AutoModelForCausalLM.from_pretrained(
-    "deepseek-ai/DeepSeek-R1",
-    torch_dtype=torch.bfloat16,
-    device_map="auto"
-)
-tokenizer = AutoTokenizer.from_pretrained("deepseek-ai/DeepSeek-R1")
-
-def handler(event):
-    user_input = event["input"]["user_input"]
-    error_patterns = event["input"]["error_patterns"]  # From Error Garden
-    
-    # Craft prompt to force usage of weak structures
-    # DeepSeek R1 excels at reasoning and generating "productive confusion" responses
-    system_prompt = f"""You are a Romanian language tutor. The student struggles with: {', '.join(error_patterns)}.
-Generate a question in Romanian that REQUIRES them to use these structures. Be conversational but strategic.
-Think step-by-step about which grammatical structures to target."""
-    
-    messages = [
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": user_input}
-    ]
-    
-    inputs = tokenizer.apply_chat_template(messages, return_tensors="pt")
-    
-    with torch.no_grad():
-        outputs = model.generate(
-            inputs,
-            max_new_tokens=200,
-            temperature=0.7,
-            do_sample=True
-        )
-    
-    response = tokenizer.decode(outputs[0], skip_special_tokens=True)
-    
-    return {"ai_response": response}
-
-runpod.serverless.start({"handler": handler})
-```
-
-**HuggingFace Model Hosting:**
-
-**All models are open-source from HuggingFace:**
-
-1. **Grammar Correction:** Custom fine-tuned mt5-small (already trained)
-2. **Speech Recognition:** faster-whisper large-v3 or whisper.cpp
-3. **Pronunciation:** wav2vec2-large-xlsr-53-romanian (jonatasgrosman/wav2vec2-large-xlsr-53-romanian)
-4. **Conversational AI:** Llama 3.1 8B Instruct (meta-llama/Llama-3.1-8B-Instruct) OR Mistral 7B Instruct
-5. **Semantic (Post-MVP):** bert-base-romanian-cased-v1 (dumitrescustefan/bert-base-romanian-cased-v1)
+1. **Grammar Correction:** Claude Haiku 4.5 via Anthropic API (~$0-5/month)
+2. **Speech Recognition:** Whisper large-v3 via Groq API (FREE)
+3. **Pronunciation:** wav2vec2-large-xlsr-53-romanian via HuggingFace Inference (FREE)
+4. **Conversational AI:** Llama 3.3 70B Versatile via Groq API (FREE)
+5. **Semantic Similarity:** paraphrase-multilingual-MiniLM-L12-v2 via HuggingFace Inference (FREE)
+6. **Relevance (SPAM-B):** paraphrase-multilingual-MiniLM-L12-v2 via HuggingFace Inference (FREE)
 
 **Cost Estimation (Monthly):**
 
 | Service | Usage | Cost |
 |---------|-------|------|
-| RunPod (All Models) | ~50-100 hrs/month @ $0.29/hr | $15-30 |
-| **Total** | | **$15-30/month** |
+| Anthropic API (Grammar) | ~$0.001/check with caching | $0-5 |
+| Groq API (Speech + Tutor) | FREE tier | $0 |
+| HuggingFace Inference (SPAM-A/B, Pronunciation) | FREE tier | $0 |
+| **Total** | | **$0-5/month** |
 
 #### Authentication & User Management
 
@@ -896,10 +820,10 @@ Month 7: Polish & Launch
 - [x] Create basic user dashboard
 
 **Week 3-4: Database Schema & API Foundation**
-- [ ] Implement full database schema (users, content, sessions, errors)
-- [ ] Create API routes for user CRUD operations
-- [ ] Set up Cloudflare R2 bucket for audio storage
-- [ ] Create content management API endpoints
+- [x] Implement full database schema (users, content, sessions, errors)
+- [x] Create API routes for user CRUD operations
+- [x] Set up Cloudflare R2 bucket for audio storage
+- [x] Create content management API endpoints
 
 **Deliverable:** Working app with auth, database, and file storage
 
@@ -908,14 +832,14 @@ Month 7: Polish & Launch
 **Week 5-6: Content Library**
 - [x] Build content ingestion pipeline
 - [x] Create content tagging system (difficulty, grammar features, type)
-- [ ] Implement content player components (video, audio, text)
-- [ ] Build content browser UI (filter by difficulty, type)
+- [x] Implement content player components (video, audio, text)
+- [x] Build content browser UI (filter by difficulty, type)
 - [x] Add ~20 curated items (5hr video, 10 articles, 5 podcasts)
 
 **Week 7-8: Mystery Shelf MVP**
-- [ ] Implement "collect unknown" button on content items
+- [x] Implement "collect unknown" button on content items
 - [x] Create Mystery Shelf page (list view)
-- [ ] Build quick review UI (word, definition, pronunciation)
+- [x] Build quick review UI (word, definition, pronunciation)
 - [x] Implement "explored" status toggle
 - [x] Basic stats dashboard (items collected, explored)
 
@@ -934,37 +858,37 @@ Month 7: Polish & Launch
 
 #### Month 3: Error Garden Foundation
 
-**Week 9-10: Manual Error Logging**
-- [ ] Build error submission UI (user self-reports errors)
-- [ ] Implement error tagging system (type, category, context)
-- [ ] Create Error Garden dashboard (view patterns)
-- [ ] Build basic frequency calculation (count errors by type)
-- [ ] Implement error timeline view
+**Week 9-10: Error Logging (AI-Automated)**
+- [x] Build error logging (auto-populated from AI ensemble, not manual)
+- [x] Implement error tagging system (type, category, context)
+- [x] Create Error Garden dashboard (view patterns)
+- [x] Build basic frequency calculation (count errors by type)
+- [x] Implement error timeline view
 
 **Week 11-12: Session Tracking**
-- [ ] Build session start/end tracking
-- [ ] Implement Chaos Window timer component
-- [ ] Create session summary UI (time spent, content consumed)
-- [ ] Add session history page
-- [ ] Implement basic proficiency tracker
+- [x] Build session start/end tracking
+- [x] Implement Chaos Window timer component
+- [x] Create session summary UI (time spent, content consumed)
+- [x] Add session history page
+- [x] Implement basic proficiency tracker
 
 **Deliverable:** Users can log learning sessions and track errors manually
 
 #### Month 4: Chaos Window & Deep Fog
 
 **Week 13-14: Chaos Window**
-- [ ] Build randomized content selector (at-level filtering)
-- [ ] Implement timer-based session flow
+- [x] Build randomized content selector (at-level filtering)
+- [x] Implement timer-based session flow
 - [x] Create AI tutor UI
 - [x] Build response submission UI (text input)
-- [ ] Add session end summary
+- [x] Add session end summary
 
 **Week 15-16: Deep Fog Mode**
-- [ ] Implement above-level content filtering
-- [ ] Build reading interface with highlighting
-- [ ] Add "collect to Mystery Shelf" inline buttons
-- [ ] Create Deep Fog session tracker
-- [ ] Add Mystery Shelf integration
+- [x] Implement above-level content filtering
+- [x] Build reading interface with highlighting
+- [x] Add "collect to Mystery Shelf" inline buttons
+- [x] Create Deep Fog session tracker
+- [x] Add Mystery Shelf integration
 
 **Deliverable:** Users can run timed Chaos sessions and Deep Fog reading
 
@@ -993,8 +917,8 @@ Month 7: Polish & Launch
 - [x] Build feedback UI (highlighted errors, suggestions)
 
 **Week 19-20: Pronunciation + SPAM-A (Semantic Similarity)**
-- [ ] Deploy `romanian-wav2vec2` via HuggingFace Inference for pronunciation
-- [ ] Implement phoneme accuracy scoring
+- [x] Deploy `romanian-wav2vec2` via HuggingFace Inference for pronunciation
+- [x] Implement phoneme accuracy scoring
 - [x] Integrate `paraphrase-multilingual-MiniLM-L12-v2` via HuggingFace Inference (FREE!)
 - [x] Build semantic similarity API endpoint
 - [x] Create meaning-match scoring logic
@@ -1007,33 +931,33 @@ Month 7: Polish & Launch
 **Week 21-22: SPAM-D (Intonation Minimal Pairs) + Aggregator**
 - [ ] Research 50-100 Romanian stress-based minimal pairs
 - [x] Build SPAM-D lookup table (rule-based)
-- [ ] Implement intonation warning detection
-- [x] Create feedback aggregator (combines all 7 component outputs)
-- [ ] Build weighted scoring system (adapts to input type)
-- [ ] Integrate Error Garden auto-population
-- [ ] Implement ML clustering (k-means for error patterns)
+- [x] Implement intonation warning detection
+- [x] Create feedback aggregator (combines all 10 component outputs)
+- [x] Build weighted scoring system (adapts to input type)
+- [x] Integrate Error Garden auto-population
+- [x] Implement error pattern detection (frequency-based, replacing planned ML clustering)
 
 **Week 23-24: Llama 3.3 + Error Garden Automation**
 - [x] Deploy Llama 3.3 to RunPod (conversational AI)
 - [x] Create AI tutor prompt engineering system
-- [ ] Implement Error Garden-informed question generation
+- [x] Implement Error Garden-informed question generation (fossilization alerts)
 - [x] Build conversation state management
 - [x] Add formatted AI responses to Chaos Window
-- [ ] Build fossilization detection logic (70% threshold)
-- [ ] Create error frequency tracking + targeted practice recommendations
+- [x] Build fossilization detection logic (3-tier: 40%/70% thresholds)
+- [x] Create error frequency tracking + targeted practice recommendations
 
 **Deliverable:** Full 7-component MVP ensemble deployed (Phase 1 complete!)
 
 **Phase 1 Architecture Deployed:**
 ```
-Components Active: 7
-├─ Core: Speech (Groq FREE), Pronunciation (RunPod), Grammar (RunPod)
-├─ SPAM: SPAM-A (HF FREE), SPAM-D (in-app)
-├─ Integration: Router (in-app), Aggregator (in-app)
-└─ Conversational: DeepSeek R1 (RunPod)
+Components Active: 10
+├─ Core: Speech (Groq FREE), Pronunciation (HF FREE), Grammar (Claude Haiku 4.5)
+├─ SPAM: SPAM-A (HF FREE), SPAM-B (HF FREE), SPAM-D (in-app)
+├─ Integration: Router (in-app), Aggregator (in-app), Conductor (in-app)
+└─ Conversational: Llama 3.3 70B (Groq FREE)
 
-SPAM Coverage: 50% (semantic similarity + intonation only)
-Monthly Cost: $10-18
+SPAM Coverage: 75% (semantic + relevance + intonation)
+Monthly Cost: $0-5
 Response Time: Text 0.5-0.8s, Speech 1.0-1.5s
 ```
 
@@ -1070,20 +994,20 @@ Response Time: Text 0.5-0.8s, Speech 1.0-1.5s
 #### Month 7: Final Polish & Beta Prep
 
 **Week 25-26: Umami Analytics + UX Polish**
-- [ ] Deploy Umami to Railway/Render ($5-10/mo)
-- [ ] Implement opt-in analytics consent dialog
-- [ ] Add analytics toggle to Settings page
-- [ ] Polish Error Garden visualizations
-- [ ] Improve Chaos Window UX (smoother timer, better feedback)
+- [x] Deploy Umami analytics (self-hosted, privacy-first)
+- [x] Implement opt-in analytics consent dialog
+- [x] Add analytics toggle to Settings page
+- [x] Polish Error Garden visualizations
+- [x] Improve Chaos Window UX (smoother timer, better feedback)
 - [ ] Add keyboard shortcuts for power users
-- [ ] Optimize performance (lazy loading, caching)
+- [x] Optimize performance (lazy loading, caching)
 
 **Week 27-28: Content Curation & Beta Launch Prep**
-- [ ] Curate 50+ hours of content (A1-C1 coverage)
-- [ ] Create onboarding flow (initial proficiency test using grammar AI)
-- [ ] Build progress dashboard (proficiency over time)
-- [ ] Implement email notifications (session reminders, milestones via Resend)
-- [ ] Write privacy policy & terms of service
+- [ ] Curate 50+ hours of content (A1-C1 coverage) — currently 15.8hrs / 1080 items
+- [x] Create onboarding flow (initial proficiency test using grammar AI)
+- [x] Build progress dashboard (proficiency over time)
+- [ ] Implement email notifications (session reminders, milestones via Resend) — deferred
+- [x] Write privacy policy & terms of service
 - [x] Create landing page on chaoslimba.adhdesigns.dev
 - [ ] Run internal testing (1 week bug hunting)
 - [ ] Deploy Sentry for error tracking
@@ -1102,8 +1026,8 @@ Response Time: Text 0.5-0.8s, Speech 1.0-1.5s
 
 ### Post-MVP Roadmap (Months 8-12)
 
-**Phase 5: Semantic Analysis & Enhanced AI (Month 8-9)**
-- Deploy Romanian BERT for semantic/pragmatic grading
+**Phase 5: SPAM-C Dialectal Analysis & Enhanced AI (Month 8-9)**
+- Deploy Romanian BERT for SPAM-C dialectal/register detection
 - Implement contextual appropriateness checking
 - Enhance conversational AI with longer context windows
 - Add multi-turn conversation memory improvements
@@ -1285,186 +1209,9 @@ export default async function Dashboard() {
 
 #### Phase 2, Month 3: Grammar Model Integration
 
-**Task 3.1: Deploy Grammar Model to RunPod**
+> **Note:** The original plan below used RunPod + T5 for grammar checking. This was replaced with Claude Haiku 4.5 via Anthropic API. See `src/lib/ai/grammar.ts` and `app/api/grammar-check/route.ts` for the current implementation.
 
-```python
-# grammar_handler.py (Deploy to RunPod)
-import runpod
-import torch
-from transformers import T5ForConditionalGeneration, T5Tokenizer
-
-# Load model (download from HuggingFace or local)
-model = T5ForConditionalGeneration.from_pretrained("./models/grammar-v1")
-tokenizer = T5Tokenizer.from_pretrained("./models/grammar-v1")
-model.eval()
-
-def detect_errors(input_text, corrected_text):
-    """Compare input vs corrected to extract errors"""
-    # Simple diff-based error extraction
-    # TODO: Implement more sophisticated alignment
-    
-    errors = []
-    if input_text != corrected_text:
-        errors.append({
-            'type': 'grammar_error',
-            'learner_production': input_text,
-            'correct_form': corrected_text,
-            'confidence': 0.85  # Placeholder
-        })
-    
-    return errors
-
-def handler(event):
-    input_text = event["input"]["text"]
-    
-    inputs = tokenizer(
-        f"correct: {input_text}", 
-        return_tensors="pt", 
-        max_length=512,
-        truncation=True
-    )
-    
-    with torch.no_grad():
-        outputs = model.generate(
-            inputs.input_ids,
-            max_length=512,
-            num_beams=5,
-            early_stopping=True
-        )
-    
-    corrected = tokenizer.decode(outputs[0], skip_special_tokens=True)
-    errors = detect_errors(input_text, corrected)
-    
-    # Calculate grammar score (0-100)
-    if input_text == corrected:
-        grammar_score = 100
-    else:
-        # Simple heuristic: character-level similarity
-        similarity = 1 - (len(set(input_text) ^ set(corrected)) / max(len(input_text), len(corrected)))
-        grammar_score = similarity * 100
-    
-    return {
-        "corrected_text": corrected,
-        "errors": errors,
-        "grammar_score": round(grammar_score, 2)
-    }
-
-runpod.serverless.start({"handler": handler})
-```
-
-**Task 3.2: Create API Route for Grammar Analysis**
-
-```typescript
-// /app/api/analyze-grammar/route.ts
-import { NextRequest, NextResponse } from 'next/server';
-
-const RUNPOD_ENDPOINT = process.env.RUNPOD_GRAMMAR_ENDPOINT!;
-const RUNPOD_API_KEY = process.env.RUNPOD_API_KEY!;
-
-export async function POST(req: NextRequest) {
-  try {
-    const { text, userId, sessionId } = await req.json();
-    
-    // Call RunPod endpoint
-    const response = await fetch(`${RUNPOD_ENDPOINT}/run`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${RUNPOD_API_KEY}`
-      },
-      body: JSON.stringify({
-        input: { text }
-      })
-    });
-    
-    const result = await response.json();
-    
-    // Save errors to database
-    if (result.errors.length > 0) {
-      // TODO: Insert into errors table
-    }
-    
-    return NextResponse.json({
-      success: true,
-      correctedText: result.corrected_text,
-      grammarScore: result.grammar_score,
-      errors: result.errors
-    });
-    
-  } catch (error) {
-    console.error('Grammar analysis error:', error);
-    return NextResponse.json(
-      { success: false, error: 'Analysis failed' },
-      { status: 500 }
-    );
-  }
-}
-```
-
-**Task 3.3: Build Feedback UI Component**
-
-```typescript
-// /components/GrammarFeedback.tsx
-'use client';
-
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-
-export function GrammarFeedback({ text }: { text: string }) {
-  const [result, setResult] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
-  
-  async function analyzeGrammar() {
-    setLoading(true);
-    
-    const response = await fetch('/api/analyze-grammar', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text })
-    });
-    
-    const data = await response.json();
-    setResult(data);
-    setLoading(false);
-  }
-  
-  return (
-    <div className="space-y-4">
-      <Button onClick={analyzeGrammar} disabled={loading}>
-        {loading ? 'Analyzing...' : 'Check Grammar'}
-      </Button>
-      
-      {result && (
-        <Card className="p-4">
-          <h3 className="font-bold mb-2">Grammar Analysis</h3>
-          <div className="mb-3">
-            <span className="text-sm text-gray-600">Score: </span>
-            <span className="text-2xl font-bold">{result.grammarScore}/100</span>
-          </div>
-          
-          {result.errors.length > 0 && (
-            <div className="space-y-2">
-              <h4 className="font-semibold">Errors Detected:</h4>
-              {result.errors.map((error: any, i: number) => (
-                <div key={i} className="bg-red-50 p-2 rounded">
-                  <p className="text-sm">
-                    <span className="font-mono text-red-600">{error.learner_production}</span>
-                    {' → '}
-                    <span className="font-mono text-green-600">{error.correct_form}</span>
-                  </p>
-                </div>
-              ))}
-            </div>
-          )}
-        </Card>
-      )}
-    </div>
-  );
-}
-```
-
-**Deliverable Checkpoint:** Users can submit Romanian text and receive grammar corrections + score.
+**Deliverable Checkpoint:** Users can submit Romanian text and receive grammar corrections + score. ✅ COMPLETE
 
 ---
 
@@ -2005,103 +1752,87 @@ docker run -d \
 | **AI - Speech Recognition** | Groq API Free Tier | **$0** | **whisper-medium-romanian (FREE!)** |
 | **AI - Pronunciation** | HuggingFace Free Tier | **$0** | **romanian-wav2vec2 (FREE!)** |
 | **AI - Grammar** | Anthropic API | ~$2/mo | Claude Haiku 4.5 (contextual LLM) |
-| **AI - SPAM-A (Semantic)** | HuggingFace Free Tier | **$0** | **Romanian BERT (FREE!)** |
-| **AI - SPAM-D, Router, Aggregator** | In-app logic | **$0** | **Rule-based + integration (FREE!)** |
-| **AI - DeepSeek R1** | RunPod Serverless | $5-10/mo | Chaos Window conversational AI |
-| **Analytics Server** | Railway/Render | $5-10/mo | Self-hosted Umami (opt-in only, Month 7+) |
+| **AI - SPAM-A (Semantic)** | HuggingFace Free Tier | **$0** | **MiniLM-L12-v2 (FREE!)** |
+| **AI - SPAM-B (Relevance)** | HuggingFace Free Tier | **$0** | **MiniLM-L12-v2 (FREE!)** |
+| **AI - SPAM-D, Router, Aggregator, Conductor** | In-app logic | **$0** | **Rule-based + integration (FREE!)** |
+| **AI - Conversational AI** | Groq API Free Tier | **$0** | **Llama 3.3 70B (FREE!)** |
+| **Analytics Server** | Self-hosted Umami | $0 | Self-hosted, privacy-first |
 | **Email** | Resend Free Tier | $0 | 3,000 emails/month |
 | **Monitoring** | Sentry Free Tier (optional) | $0 | 5,000 events/month |
-| **TOTAL NEW COSTS (MVP)** | | **$10-18/mo** | **Phase 1: 7 components, 50% SPAM coverage** |
-| **+ Phase 2 (SPAM-B)** | | **+$0/mo** | **HuggingFace Free Tier** |
+| **TOTAL NEW COSTS (MVP)** | | **$0-5/mo** | **10 components, 75% SPAM coverage** |
 | **+ Phase 3 (SPAM-C)** | | **+$2-3/mo** | **Full 100% SPAM coverage** |
-| **TOTAL FULL ENSEMBLE** | | **$12-21/mo** | **All 9 AI components deployed** |
-| **TOTAL INCLUDING BASELINE** | | **$32-41/mo** | **Vercel Pro already budgeted** |
+| **TOTAL FULL ENSEMBLE** | | **$2-8/mo** | **All 11 AI components deployed** |
+| **TOTAL INCLUDING BASELINE** | | **$22-28/mo** | **Vercel Pro already budgeted** |
 
 ### Open-Source AI Models & Hosting Strategy
 
-**ChaosLimbă uses 100% open-source AI models - NO paid APIs (except Groq free tier)**
+**ChaosLimbă uses free APIs + one low-cost API — total $0-5/month**
 
-**9-Component AI Ensemble (MVP = Phase 1):**
+**10-Component AI Ensemble (ALL DEPLOYED):**
 
 | Component | Model | Hosting | Cost/Month | Status |
 |-----------|-------|---------|------------|--------|
-| **#1 Speech Recognition** | gigant/whisper-medium-romanian | **Groq API FREE** | **$0** | ✅ MVP |
-| **#2 Pronunciation** | gigant/romanian-wav2vec2 | **HF Inference FREE** | **$0** | ✅ MVP |
-| **#3 Grammar** | Claude Haiku 4.5 | Anthropic API | ~$2 | ✅ MVP (LLM-based) |
-| **#4 SPAM-A (Semantic)** | dumitrescustefan/bert-base-romanian-cased-v1 | **HF Inference FREE** | **$0** | ✅ MVP |
-| **#5 SPAM-D (Intonation)** | Rule-based minimal pairs | In-app logic | **$0** | ✅ MVP |
-| **#6 Router** | TypeScript conditional logic | In-app logic | **$0** | ✅ MVP |
-| **#7 Aggregator** | TypeScript integration logic | In-app logic | **$0** | ✅ MVP |
-| **#8 SPAM-B (Relevance)** | readerbench/ro-text-summarization | **HF Inference FREE** | **$0** | 🟡 Post-MVP Phase 2 |
-| **#9 SPAM-C (Dialectal)** | Romanian BERT (fine-tuned) | RunPod | $2-3 | 🟡 Post-MVP Phase 3 |
-| **#10 Conversational AI** | deepseek-ai/DeepSeek-R1 | RunPod | $5-10 | ✅ MVP |
+| **#1 Speech Recognition** | whisper-large-v3 | **Groq API FREE** | **$0** | ✅ Complete |
+| **#2 Pronunciation** | gigant/romanian-wav2vec2 | **HF Inference FREE** | **$0** | ✅ Complete |
+| **#3 Grammar** | Claude Haiku 4.5 | Anthropic API | ~$0-5 | ✅ Complete |
+| **#4 SPAM-A (Semantic)** | paraphrase-multilingual-MiniLM-L12-v2 | **HF Inference FREE** | **$0** | ✅ Complete |
+| **#5 SPAM-B (Relevance)** | paraphrase-multilingual-MiniLM-L12-v2 | **HF Inference FREE** | **$0** | ✅ Complete |
+| **#6 SPAM-D (Intonation)** | Rule-based minimal pairs | In-app logic | **$0** | ✅ Complete |
+| **#7 Router** | TypeScript conditional logic | In-app logic | **$0** | ✅ Complete |
+| **#8 Aggregator** | TypeScript integration logic | In-app logic | **$0** | ✅ Complete |
+| **#9 Conductor** | TypeScript orchestration | In-app logic | **$0** | ✅ Complete |
+| **#10 Conversational AI** | Llama 3.3 70B Versatile | **Groq API FREE** | **$0** | ✅ Complete |
+| **#11 SPAM-C (Dialectal)** | Romanian BERT (fine-tuned) | TBD | $2-3 | 🟡 Post-MVP |
 
-**MVP Total (Phase 1):** $10-18/month  
-**Full Ensemble (Phase 3):** $12-21/month
+**Current Total:** $0-5/month
+**Full Ensemble (with SPAM-C):** $2-8/month
 
 **Key Cost Savings:**
-- **Groq API:** Speech recognition is FREE (was $5-8/mo on RunPod!)
-- **HuggingFace Inference:** SPAM-A and SPAM-B are FREE
-- **In-app logic:** Router, Aggregator, SPAM-D cost $0
+- **Groq API:** Speech + Conversational AI are FREE (was $10-18/mo on RunPod!)
+- **HuggingFace Inference:** SPAM-A, SPAM-B, and Pronunciation are FREE
+- **In-app logic:** Router, Aggregator, Conductor, SPAM-D cost $0
 
 **Hosting Breakdown:**
 
-**RunPod Serverless (pay-per-use):**
-```yaml
-GPU: RTX 4090 (24GB VRAM) or RTX A4000 (16GB VRAM)
-Pricing: ~$0.29/hr for RTX 4090, ~$0.19/hr for A4000
-Cold Start: ~10-15 seconds (acceptable for MVP)
-Warm Inference: <1 second
-
-Models Hosted:
-- Pronunciation (romanian-wav2vec2)
-- Grammar (mt5-small fine-tuned)
-- DeepSeek R1 (conversational AI)
-- SPAM-C (post-MVP, if added)
-
-Cost Optimization:
-- Aggressive caching (same input = cached response)
-- Batch processing where possible
-- Auto-pause when idle (no idle charges)
-- Scale to zero when no usage
-```
-
 **Groq API (free tier):**
 ```yaml
-Model: whisper-medium-romanian
-Pricing: FREE (generous free tier)
-Performance: 0.5-1.0s transcription time
-WER: 10-15% for Romanian
+Models:
+- whisper-large-v3 (speech recognition)
+- llama-3.3-70b-versatile (conversational AI + workshop)
 
-Why Groq:
-- Optimized inference hardware
-- Free tier covers MVP + early growth
-- No vendor lock-in (can move to RunPod if needed)
-- Better performance than self-hosted
+Pricing: FREE (generous free tier)
+Performance: 0.5-1.0s transcription, 1-2s generation
+Why Groq: Optimized inference, free tier covers MVP + growth, no vendor lock-in
 ```
 
 **HuggingFace Inference API (free tier):**
 ```yaml
 Models:
-- bert-base-romanian-cased-v1 (SPAM-A semantic similarity)
-- readerbench/ro-text-summarization (SPAM-B relevance, post-MVP)
+- paraphrase-multilingual-MiniLM-L12-v2 (SPAM-A semantic + SPAM-B relevance)
+- gigant/romanian-wav2vec2 (pronunciation analysis)
 
 Pricing: FREE
 Rate Limits: Generous for MVP usage
 Performance: 0.2-0.4s for embeddings
 ```
 
-**Estimated Monthly Usage (MVP Phase 1):**
+**Anthropic API:**
+```yaml
+Model: Claude Haiku 4.5 (grammar correction)
+Pricing: ~$0.001/check with caching
+Performance: 0.3-0.5s response time
+Caching: Aggressive, 40%+ hit rate target
+```
 
-| Users | Sessions/User/Month | Total Inference Time | RunPod Cost | Groq Cost | HF Cost | Total Cost |
-|-------|---------------------|---------------------|-------------|-----------|---------|------------|
-| **10 beta** | 12 sessions | ~6 hrs RunPod | $1.74 | $0 | $0 | **$1.74** |
-| **50 users** | 10 sessions | ~25 hrs RunPod | $7.25 | $0 | $0 | **$7.25** |
-| **100 users** | 8 sessions | ~40 hrs RunPod | $11.60 | $0 | $0 | **$11.60** |
+**Estimated Monthly Cost (Current Architecture):**
 
-**Add DeepSeek R1 (conversational AI):** +$5-10/month
+| Users | Sessions/User/Month | Groq Cost | HF Cost | Anthropic Cost | Total Cost |
+|-------|---------------------|-----------|---------|----------------|------------|
+| **10 beta** | 12 sessions | $0 | $0 | ~$0.50 | **~$0.50** |
+| **50 users** | 10 sessions | $0 | $0 | ~$2 | **~$2** |
+| **100 users** | 8 sessions | $0 | $0 | ~$4 | **~$4** |
 
-**Realistic MVP Cost:** $10-18/month for full 7-component ensemble
+**Realistic MVP Cost:** $0-5/month for full 10-component ensemble
 
 ### Cost Optimization Strategies
 
@@ -2328,17 +2059,17 @@ async function batchGrammarAnalysis(sentences: string[]) {
 
 ### Post-MVP Expansion (Months 8-24)
 
-**Version 1.1: Conversational AI (Months 8-9)**
+**Version 1.1: Enhanced Conversational AI (Months 8-9)**
 
 **Features:**
-- Full DeepSeek-R1 integration for dynamic AI tutoring
+- Enhanced Llama 3.3 70B tutoring (already deployed via Groq)
 - Multi-turn conversation memory (context retention)
-- Productive Confusion Responses (based on Error Garden)
+- Productive Confusion Responses (based on Error Garden + Adaptation Engine)
 
 **Implementation:**
-- Deploy DeepSeek-R1 on RunPod or use API
-- Create conversation state manager
-- Integrate with Chaos Window for real-time feedback
+- Extend tutor prompt engineering with deeper Error Garden integration
+- Create persistent conversation state across sessions
+- Improve fossilization-informed question targeting
 
 **Version 1.2: Adaptive Content Sequencing (Months 10-11)**
 
@@ -2466,17 +2197,18 @@ async function batchGrammarAnalysis(sentences: string[]) {
 | **Object Storage** | Cloudflare R2 | Free 10GB, zero egress fees (audio recordings only) |
 | **Video Content** | YouTube Embeds | ToS-compliant, no storage costs, full videos available |
 | **Authentication** | Clerk | Easy setup, free 10k MAU |
-| **AI Ensemble** | **9-Component System (7 MVP + 2 Post-MVP)** | **Dual-path routing, phased rollout** |
-| **AI #1 - Speech Recognition** | whisper-medium-romanian → Groq API | **FREE tier**, Romanian-optimized |
-| **AI #2 - Pronunciation** | romanian-wav2vec2 → HF Inference | **FREE tier**, phoneme + stress detection |
-| **AI #3 - Grammar** | Claude Haiku 4.5 → Anthropic API | ~$2/mo, LLM-based contextual analysis ✅ |
-| **AI #4 - SPAM-A (Semantic)** | bert-base-romanian → HF Inference | **FREE tier**, meaning matching (MVP) |
-| **AI #5 - SPAM-D (Intonation)** | Rule-based minimal pairs → In-app | **FREE**, stress-meaning shifts (MVP) |
-| **AI #6 - Router** | Conditional logic → In-app | **FREE**, speech vs text routing (MVP) |
-| **AI #7 - Aggregator** | Integration logic → In-app | **FREE**, combines analyses (MVP) |
-| **AI #8 - SPAM-B (Relevance)** | ro-text-summarization → HF Inference | **FREE**, on-topic detection (Post-MVP Phase 2) |
-| **AI #9 - SPAM-C (Dialectal)** | Fine-tuned Romanian BERT → RunPod | $2-3/mo, regional variants (Post-MVP Phase 3) |
-| **AI #10 - Conversational AI** | DeepSeek R1 → RunPod | $5-10/mo, Chaos Window productive confusion |
+| **AI Ensemble** | **10-Component System (ALL deployed) + 1 Post-MVP** | **Dual-path routing, $0-5/month total** |
+| **AI #1 - Speech Recognition** | whisper-large-v3 → Groq API | **FREE tier**, Romanian-optimized ✅ |
+| **AI #2 - Pronunciation** | romanian-wav2vec2 → HF Inference | **FREE tier**, phoneme + stress detection ✅ |
+| **AI #3 - Grammar** | Claude Haiku 4.5 → Anthropic API | ~$0-5/mo, LLM-based contextual analysis ✅ |
+| **AI #4 - SPAM-A (Semantic)** | MiniLM-L12-v2 → HF Inference | **FREE tier**, meaning matching ✅ |
+| **AI #5 - SPAM-B (Relevance)** | MiniLM-L12-v2 → HF Inference | **FREE tier**, on-topic detection ✅ |
+| **AI #6 - SPAM-D (Intonation)** | Rule-based minimal pairs → In-app | **FREE**, stress-meaning shifts ✅ |
+| **AI #7 - Router** | Conditional logic → In-app | **FREE**, speech vs text routing ✅ |
+| **AI #8 - Aggregator** | Integration logic → In-app | **FREE**, combines analyses ✅ |
+| **AI #9 - Conductor** | Orchestration logic → In-app | **FREE**, request orchestration ✅ |
+| **AI #10 - Conversational AI** | Llama 3.3 70B → Groq API | **FREE tier**, Chaos Window productive confusion ✅ |
+| **AI #11 - SPAM-C (Dialectal)** | Fine-tuned Romanian BERT → TBD | $2-3/mo, regional variants (Post-MVP) |
 | **Hosting** | Vercel Pro | Already subscribed ($20/mo baseline) |
 | **Domain** | chaoslimba.adhdesigns.dev | Already owned (adhdesigns.dev) |
 | **State Management** | React state + hooks | Lightweight, built-in React state management |

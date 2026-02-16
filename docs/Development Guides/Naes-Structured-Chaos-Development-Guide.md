@@ -1,8 +1,8 @@
 # ChaosLimbă: Nae's Structured Chaos Development Guide
 ## *Your brain works differently. This guide does too.*
 
-**Document Version:** 4.2 - MVP ~99.5% COMPLETE! 🎉
-**Last Updated:** February 9, 2026
+**Document Version:** 4.3 - MVP ~99.5% COMPLETE! 🎉
+**Last Updated:** February 16, 2026
 **For:** Nae Drew (and anyone else who codes in beautiful, productive chaos)
 
 ---
@@ -807,12 +807,12 @@ You're not "cheating" by using Windsurf, Claude Code, Cline. You're **working wi
 
 **If it wouldn't work for YOUR ADHD brain, it won't work for your users.**
 
-### 4. Open-Source > Paid APIs
+### 4. Free/Open-Source > Paid APIs
 
-**Good:** DeepSeek R1 on RunPod ($0.29/hr only when used)  
+**Good:** Llama 3.3 70B via Groq (FREE), HuggingFace Inference (FREE)
 **Bad:** OpenAI GPT-4 ($0.03/1k tokens adds up fast)
 
-**Sustainability matters.** Open-source keeps costs near-zero forever.
+**Sustainability matters.** Free APIs and open-source models keep costs at $0-5/month.
 
 ### 5. Privacy Is Non-Negotiable
 
