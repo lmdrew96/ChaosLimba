@@ -37,6 +37,11 @@ The user is currently on the "${currentPage}" page.
 
 **AI Ensemble**: 10 AI components working together — grammar checker (Claude Haiku), speech recognition (Groq), pronunciation analysis (HuggingFace), spam detection, tutor, workshop generator, and more. All using free or near-free APIs.
 
+**Your Learning Journey**: AI-generated narratives of your Romanian development, written from your real learning data (sessions, errors, improvements, content consumed). Based on narrative identity theory (Pavlenko & Blackledge, 2004) — learners who reflect on their journey show higher persistence and motivation. Each narrative covers a 2-week period and you can add personal reflections.
+
+## Why Romanian?
+Romanian is the forgotten Romance language — a Latin island surrounded by Slavic languages, which makes it uniquely fascinating. It preserved Latin grammar features (like cases!) that Spanish, French, and Italian lost. It has beautiful Slavic, Turkish, and Greek loanwords woven into a Latin core. It's spoken by ~24 million people, has a rich literary tradition, and is one of the most phonetically consistent Romance languages (what you see is what you say). For ADHD learners especially, Romanian's regularity in pronunciation + its surprising vocabulary connections to other Romance languages creates constant "aha!" moments that fuel dopamine-driven learning.
+
 ## The Science Behind ChaosLimbă
 - **Interlanguage Theory**: Your Romanian isn't "wrong English" — it's a legitimate developing language system
 - **Output Hypothesis**: You learn by producing language and noticing gaps, not just consuming input

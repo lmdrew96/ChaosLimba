@@ -92,6 +92,16 @@ const guideConfig: Record<string, PageGuideConfig> = {
       "Does the tutor remember our conversations?",
     ],
   },
+  "/journey": {
+    pageName: "Your Learning Journey",
+    pageDescription: "AI-generated narratives of your Romanian progress — reflect on your story and understand your growth.",
+    suggestedQuestions: [
+      "Why Romanian?",
+      "How are my learning narratives generated?",
+      "Why does reflecting on my journey help me learn?",
+      "What data goes into my story?",
+    ],
+  },
   "/settings": {
     pageName: "Settings",
     pageDescription: "Customize your ChaosLimbă experience — themes, preferences, and more.",

@@ -15,17 +15,8 @@ import {
     Clock,
     BarChart3,
     AlertCircle,
-    GraduationCap,
 } from "lucide-react"
-import Link from "next/link"
 import type { LearningNarrative, AutobiographyStats } from "@/lib/db/schema"
-
-const TUTOR_RECS = [
-    { label: "Why Romanian?", question: "Why should someone learn Romanian? What makes it special among Romance languages?" },
-    { label: "What should I focus on next?", question: "Based on what you know about Romanian learning, what should a learner focus on after getting the basics down?" },
-    { label: "How does Romanian compare to other Romance languages?", question: "How does Romanian compare to Spanish, French, and Italian? What surprises most learners?" },
-    { label: "Tell me something cool about Romanian", question: "Tell me something fascinating or surprising about the Romanian language that most people don't know" },
-]
 
 export default function JourneyPage() {
     const [narratives, setNarratives] = useState<LearningNarrative[]>([])
@@ -210,28 +201,6 @@ export default function JourneyPage() {
                     isSaving={savingReflection === narrative.id}
                 />
             ))}
-
-            {/* Tutor Chat Recommendations */}
-            <Card className="border-border/50">
-                <CardContent className="pt-5 space-y-3">
-                    <div className="flex items-center gap-2">
-                        <GraduationCap className="h-4 w-4 text-primary" />
-                        <span className="text-sm font-medium">Ask the Tutor</span>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                        {TUTOR_RECS.map((rec) => (
-                            <Link
-                                key={rec.label}
-                                href={`/ask-tutor?q=${encodeURIComponent(rec.question)}`}
-                            >
-                                <button className="px-3 py-1.5 text-xs rounded-full bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-colors">
-                                    {rec.label}
-                                </button>
-                            </Link>
-                        ))}
-                    </div>
-                </CardContent>
-            </Card>
 
             {/* Empty state */}
             {narratives.length === 0 && !generating && (
