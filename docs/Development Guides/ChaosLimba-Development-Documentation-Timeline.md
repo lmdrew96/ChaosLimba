@@ -478,7 +478,7 @@ Pronunciation and intonation components are **automatically skipped** for text i
 - **When to Add:** If user base expands to multiple regions OR formality errors common
 
 ##### Component 7: SPAM-D (Intonation Mapper) - MVP ✅
-- **Model:** Rule-based lookup table (50-100 minimal pairs)
+- **Model:** Rule-based lookup table (10 stress-based minimal pairs; expandable to 50-100)
 - **Hosting:** In-app logic (no external hosting)
 - **Function:** Detects when stress pattern changes word meaning
 - **Activation:** Speech path only

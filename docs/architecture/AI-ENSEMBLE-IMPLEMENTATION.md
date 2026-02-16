@@ -114,7 +114,7 @@ console.log('Similarity:', result.similarity);
 
 ### 5. SPAM-D: Intonation Mapper
 - **File:** `/src/lib/ai/spamD.ts`
-- **Model:** Rule-based lookup table (50-100 minimal pairs)
+- **Model:** Rule-based lookup table (10 stress-based minimal pairs; expandable to 50-100)
 - **Hosting:** In-app logic
 - **Cost:** FREE
 - **Performance:** >90% accuracy on known pairs

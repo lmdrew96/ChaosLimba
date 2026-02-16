@@ -143,24 +143,20 @@ async function analyzeGrammar(text, userId) {
 ### Database Operations
 - Use Drizzle ORM (typed queries)
 - Never raw SQL unless absolutely necessary
-- Always use transactions for multi-step operations
+- **Note:** neon-http driver does NOT support transactions — use sequential plain inserts
 - Include proper error handling
 
 ```typescript
-// ✅ GOOD
-const result = await db.transaction(async (tx) => {
-  const session = await tx.insert(sessions).values({
-    userId,
-    sessionType: 'chaos_window',
-    startedAt: new Date()
-  }).returning();
-  
-  await tx.insert(errors).values(
-    errorData.map(e => ({ ...e, sessionId: session[0].id }))
-  );
-  
-  return session[0];
-});
+// ✅ GOOD: Sequential inserts (neon-http compatible)
+const session = await db.insert(sessions).values({
+  userId,
+  sessionType: 'chaos_window',
+  startedAt: new Date()
+}).returning();
+
+await db.insert(errors).values(
+  errorData.map(e => ({ ...e, sessionId: session[0].id }))
+);
 ```
 
 ---

@@ -3,8 +3,9 @@
 **Component:** #5 - SPAM-D (Semantic/Pragmatic Analysis Module - Dialectal/Intonation)
 **Type:** Rule-based lookup system
 **Purpose:** Detect stress pattern shifts that change word meaning in Romanian
-**Target:** 50-100 stress-based minimal pairs
-**Status:** ✅ COMPLETE (Implemented January 24, 2026)
+**Current:** 10 stress-based minimal pairs implemented
+**Target:** 50-100 pairs (post-MVP expansion)
+**Status:** ✅ CORE COMPLETE (Implemented January 24, 2026) — pair count expansion pending
 
 ---
 

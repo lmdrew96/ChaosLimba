@@ -142,7 +142,7 @@ This ensemble diagnostic system employs 7 specialized components for comprehensi
 - **Training Time Estimate**: 4-6 days (dataset prep + fine-tuning)
 
 #### Component 7: SPAM-D (Intonation-Meaning Mapper) ✅ DEPLOYED
-- **Model**: Rule-based lookup table (50-100 stress-based minimal pairs)
+- **Model**: Rule-based lookup table (10 stress-based minimal pairs; expandable to 50-100)
 - **Hosting**: In-app logic (no external API)
 - **Implementation**: `/src/lib/ai/spamD.ts`
 - **Function**: Detects stress pattern changes that alter word meaning
@@ -475,7 +475,7 @@ CREATE TABLE grading_reports (
 **Speech Path (Days 5-10)**
 - Day 5: Deploy Whisper on Groq, test transcription
 - Day 6: Deploy Wav2Vec2 on RunPod, test pronunciation
-- Day 7-8: Build SPAM-D intonation mapper (research + implement 50-100 minimal pairs)
+- Day 7-8: Build SPAM-D intonation mapper (10 minimal pairs implemented; expand to 50-100 post-MVP)
 - Day 9: Extend router to handle speech branch
 - Day 10: Extend aggregator to handle speech data
 
