@@ -661,14 +661,18 @@ export default function DeepFogPage() {
         </div>
       )}
 
-      {/* Comprehension quiz */}
+      {/* Comprehension quiz overlay */}
       {showQuiz && quizContent && (
-        <DeepFogQuiz
-          content={quizContent}
-          userLevel={userLevel || "B1"}
-          onComplete={handleQuizComplete}
-          onSkip={handleQuizSkip}
-        />
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="max-w-2xl w-full">
+            <DeepFogQuiz
+              content={quizContent}
+              userLevel={userLevel || "B1"}
+              onComplete={handleQuizComplete}
+              onSkip={handleQuizSkip}
+            />
+          </div>
+        </div>
       )}
 
       {/* Session summary card */}
