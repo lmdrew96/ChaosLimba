@@ -17,6 +17,7 @@ import { ChallengeCard } from "@/components/features/workshop/ChallengeCard"
 import { WorkshopFeedback } from "@/components/features/workshop/WorkshopFeedback"
 import { FeatureProgress } from "@/components/features/workshop/FeatureProgress"
 import type { WorkshopChallenge, WorkshopEvaluation, WorkshopChallengeType } from "@/lib/ai/workshop"
+import { useNavigationGuard } from "@/hooks/useNavigationGuard"
 
 interface FeatureExplored {
   featureKey: string
@@ -55,6 +56,9 @@ export default function WorkshopPage() {
   const [error, setError] = useState<string | null>(null)
   const [showingFeedback, setShowingFeedback] = useState(false)
   const [userLevel, setUserLevel] = useState<string | null>(null)
+
+  // Warn before navigating away during active session
+  useNavigationGuard(isActive && !!sessionId)
 
   // Timer countdown
   useEffect(() => {

@@ -26,6 +26,7 @@ import { AudioPlayer } from "@/components/features/content-player/AudioPlayer"
 import { PronunciationPractice } from "@/components/features/chaos-window/PronunciationPractice"
 import { PronunciationResult } from "@/lib/ai/pronunciation"
 import type { FossilizationAlert } from "@/lib/ai/adaptation"
+import { useNavigationGuard } from "@/hooks/useNavigationGuard"
 
 type Modality = "text" | "speech"
 
@@ -98,6 +99,9 @@ export default function ChaosWindowPage() {
 
   // Transcript toggle state (for text content — audio uses AudioPlayer's built-in toggle)
   const [showTextTranscript, setShowTextTranscript] = useState(false)
+
+  // Warn before navigating away during active session
+  useNavigationGuard(isActive && !!sessionId)
 
   // Smart Chaos: feature targeting state
   const [targetFeatures, setTargetFeatures] = useState<Array<{ featureKey: string; featureName: string; description: string }>>([])

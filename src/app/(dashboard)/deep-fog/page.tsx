@@ -23,6 +23,7 @@ import {
 import { ContentPlayer } from "@/components/features/content-player";
 import { DeepFogQuiz } from "@/components/features/deep-fog/DeepFogQuiz";
 import { ContentItem } from "@/lib/db/schema";
+import { useNavigationGuard } from "@/hooks/useNavigationGuard";
 
 type CEFRLevel = "A1" | "A2" | "B1" | "B2" | "C1" | "C2";
 
@@ -138,6 +139,9 @@ export default function DeepFogPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [savedWord, setSavedWord] = useState<string | null>(null);
+
+  // Warn before navigating away while viewing content or taking quiz
+  useNavigationGuard(!!selectedContent || showQuiz);
 
   // Fetch user CEFR level on mount
   useEffect(() => {
