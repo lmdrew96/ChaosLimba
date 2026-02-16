@@ -71,7 +71,7 @@ npx tsx scripts/curate.ts batch content.json
 npx tsx scripts/curate.ts batch content.json --dry-run
 ```
 
-**Batch JSON format:**
+**Batch JSON format** (see `scripts/sample-batch.json` for a complete example):
 ```json
 [
   {
@@ -105,6 +105,19 @@ npm run db:studio
 
 ---
 
+### Run SQL Migration
+**Script:** `scripts/run-migration.js`
+
+Run raw SQL migration files against the database. Splits multi-statement SQL files and executes each statement sequentially.
+
+```bash
+node scripts/run-migration.js path/to/migration.sql
+```
+
+**Note:** Prefer `npm run db:push` for schema changes. Use this only for custom SQL migrations.
+
+---
+
 ### Seed Scripts
 
 ```bash
@@ -133,6 +146,17 @@ npm run generate:podcasts
 npx tsx scripts/generate-podcast-audio.ts
 ```
 
+### Generate ElevenLabs Audio Content
+**Script:** `scripts/generate-elevenlabs-content.ts`
+
+Generates A1-A2 audio content using ElevenLabs TTS API with word-level timestamps. Outputs audio files to `generated-audio/` directory.
+
+```bash
+npx tsx scripts/generate-elevenlabs-content.ts
+```
+
+**Requires:** `ELEVENLABS_API_KEY` in `.env.local`
+
 ### Upload to R2
 **Script:** `scripts/upload-to-r2-s3.ts`
 
@@ -149,6 +173,24 @@ Migrate audio URLs to R2 storage.
 npx tsx scripts/update-audio-urls-to-r2.ts
 ```
 
+### Update Audio Titles
+**Script:** `scripts/update-audio-titles.ts`
+
+Replaces generic audio titles with Romanian question-based titles (e.g., "Despre ce vorbește?", "Ce auzi?") for ElevenLabs audio items.
+
+```bash
+npx tsx scripts/update-audio-titles.ts
+```
+
+### Update Content Titles
+**Script:** `scripts/update-content-titles.ts`
+
+Uses Groq AI (Llama 3.3 70B) to generate descriptive English titles for content items based on their text and topic.
+
+```bash
+npx tsx scripts/update-content-titles.ts
+```
+
 ### Check Audio URLs
 **Script:** `scripts/check-audio-urls.ts`
 
@@ -158,6 +200,19 @@ Verify all audio URLs are accessible.
 npx tsx scripts/check-audio-urls.ts
 ```
 
+### TTS Text Generators (Python)
+**Directory:** `scripts/tts/`
+
+Python scripts that generate Romanian text content organized by CEFR level, used as input for TTS generation pipelines.
+
+```bash
+# Generate CSV from all level scripts
+python scripts/tts/generate_csv.py
+
+# Individual level scripts (imported by generate_csv.py)
+# a1_texts.py, a2_texts.py, b1_texts.py, b2_c1_texts.py
+```
+
 ---
 
 ## AI Component Verification
@@ -165,7 +220,7 @@ npx tsx scripts/check-audio-urls.ts
 ### Verify All AI Components
 **Script:** `scripts/verify-all-components.ts`
 
-Tests all 7 AI ensemble components.
+Tests all 10 AI ensemble components.
 
 ```bash
 npx tsx scripts/verify-all-components.ts
@@ -176,6 +231,39 @@ npx tsx scripts/verify-all-components.ts
 
 ```bash
 npx tsx scripts/verify-spam-b.ts
+```
+
+### Test SPAM-B with Real API
+**Script:** `scripts/test-spam-b-with-api.ts`
+
+Tests SPAM-B relevance analysis with live HuggingFace API calls (off-topic detection, on-topic validation, edge cases).
+
+```bash
+npx tsx scripts/test-spam-b-with-api.ts
+```
+
+**Requires:** `HUGGINGFACE_API_KEY` or `HUGGINGFACE_API_TOKEN` in `.env.local`
+
+---
+
+## Manual Tests
+
+**Directory:** `scripts/manual-tests/`
+
+Quick verification scripts for individual components.
+
+```bash
+# Test grammar checking (Claude Haiku 4.5)
+npx tsx scripts/manual-tests/test-grammar.ts
+
+# Test Groq speech recognition (Whisper)
+node scripts/manual-tests/test-groq-speech.js
+
+# Test R2 upload
+node scripts/manual-tests/test-r2-upload.js
+
+# Test Google Cloud TTS (Romanian)
+node scripts/test-tts.js
 ```
 
 ---
@@ -210,6 +298,20 @@ npm run lint
 
 ---
 
+## Other Resources
+
+### Common Voice Import
+**Directory:** `scripts/CV upload/`
+
+Contains reference material (screenshot) for importing Common Voice audio data into the content system.
+
+### Sample Batch Import
+**File:** `scripts/sample-batch.json`
+
+Example JSON file demonstrating the batch import format for `curate.ts batch` command.
+
+---
+
 ## Quick Reference Table
 
 | Task | Command |
@@ -221,6 +323,11 @@ npm run lint
 | Push DB changes | `npm run db:push` |
 | Open DB GUI | `npm run db:studio` |
 | Verify AI components | `npx tsx scripts/verify-all-components.ts` |
+| Run SQL migration | `node scripts/run-migration.js path/to/file.sql` |
+| Generate ElevenLabs audio | `npx tsx scripts/generate-elevenlabs-content.ts` |
+| Update content titles (AI) | `npx tsx scripts/update-content-titles.ts` |
+| Test SPAM-B live | `npx tsx scripts/test-spam-b-with-api.ts` |
+| Test grammar checker | `npx tsx scripts/manual-tests/test-grammar.ts` |
 
 ---
 
@@ -239,6 +346,15 @@ GROQ_API_KEY=gsk_...
 GOOGLE_APPLICATION_CREDENTIALS=/path/to/credentials.json
 # OR
 GOOGLE_TTS_CREDENTIALS_JSON={"type":"service_account",...}
+
+# HuggingFace (SPAM-A/B, pronunciation)
+HUGGINGFACE_API_KEY=hf_...
+
+# ElevenLabs (audio generation)
+ELEVENLABS_API_KEY=sk_...
+
+# Anthropic (grammar checking)
+ANTHROPIC_API_KEY=sk-ant-...
 
 # Cloudflare R2
 R2_ENDPOINT=https://...
@@ -275,4 +391,4 @@ npx tsx scripts/generate-content.ts batch --level C2 --count 25
 
 ---
 
-*Last updated: February 13, 2026*
+*Last updated: February 16, 2026*
