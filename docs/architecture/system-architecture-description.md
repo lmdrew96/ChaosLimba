@@ -1,6 +1,6 @@
 # ChaosLimbă Complete Ensemble Architecture: System Overview
-**Document Version:** 5.2 - MVP ~99.5% COMPLETE (February 2026 Audit)
-**Last Updated:** February 9, 2026
+**Document Version:** 5.3 - MVP ~99.5% COMPLETE (February 2026 Audit)
+**Last Updated:** February 13, 2026
 **Architecture Type:** 10-Component Ensemble with Dual-Path Routing + 3-Tier Adaptation Engine (ALL FREE APIS)
 
 ## System Overview
@@ -112,7 +112,7 @@ This ensemble diagnostic system employs 7 specialized components for comprehensi
 #### Component 4: SPAM-A (Semantic Similarity Engine) ✅ DEPLOYED
 - **Model**: `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2`
 - **Hosting**: HuggingFace Inference API (FREE tier)
-- **Implementation**: `/src/lib/ai/spamA.ts` + `/api/spam-a`
+- **Implementation**: `/src/lib/ai/spamA.ts` (standalone API endpoint removed Feb 7; called internally by aggregator)
 - **Function**: Semantic similarity scoring via sentence embeddings
 - **Activation**: Both speech and text paths
 - **Performance**: 80-85% accuracy, 0.2-0.4 second response time
@@ -122,7 +122,7 @@ This ensemble diagnostic system employs 7 specialized components for comprehensi
 #### Component 5: SPAM-B (Relevance Scorer) ✅ DEPLOYED
 - **Model**: Reuses SPAM-A embeddings (smart optimization!)
 - **Hosting**: HuggingFace Inference API (FREE tier)
-- **Implementation**: `/src/lib/ai/spamB.ts` + `/api/spam-b`
+- **Implementation**: `/src/lib/ai/spamB.ts` (standalone API endpoint removed Feb 7; called internally by aggregator)
 - **Function**: Determines if user's response is on-topic relative to content
 - **Activation**: Both speech and text paths
 - **Performance**: Semantic embedding-based relevance detection, 0.2-0.4s response
@@ -597,7 +597,7 @@ CREATE TABLE grading_reports (
 - Common Voice integration for pronunciation practice
 - Audio content generation pipeline (scripts in `/scripts`)
 
-**API Endpoints:** 40 production API routes deployed
+**API Endpoints:** 46 production API routes deployed
 
 ### 🟡 POST-MVP FEATURES
 
@@ -636,6 +636,6 @@ This system represents a cutting-edge approach to adaptive language learning, co
 - ✅ 72-100% cost reduction from original budget ($0-5/month)
 - ✅ All MVP features functional and tested
 - ✅ 8 color themes with light/dark modes (16 variants)
-- ✅ 40 production API routes, 16 pages, 15 DB tables
+- ✅ 46 production API routes, 18 pages, 16 DB tables
 - ✅ Scalable architecture ready for user growth
 - 🎯 Ready for beta testing and user feedback

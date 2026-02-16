@@ -1,6 +1,6 @@
 # ChaosLimbă - Adaptive Romanian Language Learning Platform
 
-**Version:** 3.0
+**Version:** 3.1
 **Architecture:** 10-Component AI Ensemble with Dual-Path Routing + Adaptation Engine
 **Status:** MVP Development (99.5% Complete)
 
@@ -55,7 +55,7 @@ The text path skips pronunciation and intonation analysis, reducing processing t
 ## Tech Stack
 
 ### Frontend
-- **Framework**: Next.js 15 (App Router)
+- **Framework**: Next.js 16 (App Router)
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS
 - **UI Components**: shadcn/ui
@@ -120,7 +120,7 @@ Analyzes user input (speech or text) and returns comprehensive grading report.
 
 ### Prerequisites
 
-- Node.js 18+ and npm/yarn/pnpm/bun
+- Node.js 20+ and npm/yarn/pnpm/bun
 - PostgreSQL database
 - API keys:
   - Anthropic API key (for Claude Haiku 4.5 grammar checking)
@@ -171,7 +171,7 @@ bun install
 ChaosLimbă requires the following system dependencies:
 
 #### Required
-- **Node.js 20+** (for Next.js)
+- **Node.js 20+** (for Next.js 16)
 - **FFmpeg** (for audio processing)
   ```bash
   # macOS
@@ -223,11 +223,16 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 ### Database Setup
 
 ```bash
-# Run migrations
-npm run db:migrate
+# Push schema changes to database
+npm run db:push
+
+# Open Drizzle Studio (database GUI)
+npm run db:studio
 
 # Seed initial data (optional)
-npm run db:seed
+npx tsx scripts/seed-content.ts
+npx tsx scripts/seed-grammar-features.ts
+npx tsx scripts/seed-curated-content.ts
 ```
 
 ## Project Structure
@@ -236,20 +241,26 @@ npm run db:seed
 chaoslimba/
 ├── src/
 │   ├── app/                     # Next.js app router
-│   │   ├── (dashboard)/         # Dashboard layout group
+│   │   ├── (dashboard)/         # Dashboard layout group (12 pages)
+│   │   │   ├── ask-tutor/       # On-demand linguistic explanations
+│   │   │   ├── ce-inseamna/     # Word meaning lookup
 │   │   │   ├── chaos-window/    # Interactive AI tutor sessions
+│   │   │   ├── cum-se-pronunta/ # Pronunciation lookup
 │   │   │   ├── deep-fog/        # Passive immersion mode
 │   │   │   ├── error-garden/    # Error pattern visualization
+│   │   │   ├── journey/         # Linguistic autobiography
 │   │   │   ├── mystery-shelf/   # Unknown word collection
-│   │   │   ├── workshop/        # Grammar/vocab micro-challenges
-│   │   │   └── proficiency-tracker/
-│   │   └── api/                 # API routes
+│   │   │   ├── proficiency-tracker/
+│   │   │   ├── settings/        # User preferences + themes
+│   │   │   └── workshop/        # Grammar/vocab micro-challenges
+│   │   └── api/                 # 46 API routes
 │   │       ├── speech-to-text/
 │   │       ├── analyze-pronunciation/
-│   │       ├── spam-a/
 │   │       ├── aggregate-feedback/
 │   │       ├── chaos-window/
-│   │       └── workshop/        # Challenge + evaluation endpoints
+│   │       ├── workshop/        # Challenge + evaluation endpoints
+│   │       ├── journey/         # Linguistic autobiography
+│   │       └── generated-content/ # AI content generation
 │   ├── components/              # React components
 │   │   ├── ui/                  # shadcn/ui components
 │   │   └── features/            # Feature-specific components

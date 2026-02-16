@@ -474,6 +474,40 @@ If Nae says:
 
 ---
 
+## Build & Quality
+
+### Clean Builds Are Non-Negotiable
+After every implementation, run the build (`pnpm build` or equivalent) and fix any TypeScript/ESLint errors before committing. **Never commit code that doesn't compile clean.**
+
+### Safe Deletions
+When editing a file, always check if removed imports/exports/fields are used elsewhere in the codebase before deleting them. Use Grep to verify no other references exist. Breaking other files with a careless deletion is an easy mistake to avoid.
+
+---
+
+## Git Workflow
+
+After completing all changes, always commit and push to main unless explicitly told otherwise. Use conventional commit messages with version bumps when appropriate (e.g., `v4.8.2`).
+
+---
+
+## Communication
+
+When fixing bugs, carefully re-read the user's request to understand the exact domain (e.g., "input modality" vs "error type", "code work" vs "content"). If ambiguous, ask for clarification before implementing. Don't assume — misreading the request wastes a whole implementation cycle.
+
+---
+
+## Documentation
+
+When updating documentation or performing audits, always check **ALL** subdirectories (especially `docs/`, `docs/subdirs/`) in a single pass. Do not wait for the user to remind you about missed directories. Be thorough the first time.
+
+---
+
+## Styling & Theming
+
+When implementing CSS changes involving colors or theming, **never wrap raw hex values in `hsl()`** — check the existing pattern for how CSS variables and color values are used in the project before applying changes. This project uses specific theming conventions; match them.
+
+---
+
 ## Final Reminders
 
 **You are building something genuinely revolutionary.**
@@ -513,8 +547,8 @@ Now go make something amazing. 🔥
 
 ---
 
-**Document Version:** 2.2
-**Last Updated:** February 9, 2026
+**Document Version:** 2.3
+**Last Updated:** February 13, 2026
 **For:** Claude Code working with Nae Drew on ChaosLimbă
 
 **Next Review:** After Milestone 7 completion (50+ hours content curated)

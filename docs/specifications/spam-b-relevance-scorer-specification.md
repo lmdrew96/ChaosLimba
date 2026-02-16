@@ -3,7 +3,7 @@
 **Component:** #5 - SPAM-B (Semantic/Pragmatic Analysis Module - Relevance)
 **Type:** Pre-trained ML model (no fine-tuning required)
 **Purpose:** Determine if user's response is on-topic relative to content context
-**Status:** 🟡 Post-MVP Enhancement (Phase 2: Days 14-16)
+**Status:** ✅ COMPLETE (Implemented January 27, 2026 — reuses SPAM-A embeddings instead of original summarization plan)
 
 ---
 
@@ -478,4 +478,4 @@ When SPAM-B detects off-topic response:
 
 ---
 
-**Next Steps**: Begin Phase 2 implementation after MVP launch and user testing indicates need for relevance detection.
+**Implementation Note**: SPAM-B was implemented on Jan 27, 2026 using a smarter approach than this original spec — it reuses SPAM-A's sentence embeddings (paraphrase-multilingual-MiniLM-L12-v2) instead of the readerbench/ro-text-summarization model. See `src/lib/ai/spamB.ts` and `docs/archive/SPAM-B-VERIFICATION.md` for actual implementation details. The standalone `/api/spam-b` endpoint was later removed in the Feb 7 cleanup; SPAM-B is now called internally by the aggregator.

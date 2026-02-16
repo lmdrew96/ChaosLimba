@@ -1,3 +1,5 @@
+> **ARCHIVED** — This was the Replit-era README (January 2026). The project has since migrated off Replit. See the root `/README.md` for current documentation.
+
 # ChaosLimbă
 
 ## Overview

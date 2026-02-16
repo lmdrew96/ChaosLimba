@@ -597,7 +597,7 @@ Without content, the app is useless. This is the **manual labor milestone**.
 - ✅ 8 color themes + light/dark modes (16 variants)
 - ✅ Mystery Shelf with AI exploration, TTS review, search/sort/filter, stats, duplicate detection
 - ✅ Deep Fog with CEFR filtering, fog depth, search/sort, session summary
-- ✅ 40 API routes, 16 pages, 15 DB tables, ~45 components
+- ✅ 46 API routes, 18 pages, 16 DB tables, ~48 components
 
 **Cost Achievement:** $0-5/month (72-100% under budget!)
 
@@ -924,7 +924,7 @@ And that's exactly what it should be.
 |-------|--------|-----|
 | **Frontend** | React + TypeScript + Tailwind + shadcn/ui | Industry standard, best agentic tool support |
 | **State** | Zustand | Simple, lightweight, TypeScript-friendly |
-| **Backend** | Next.js 14 API Routes | Built-in, serverless, Vercel optimized |
+| **Backend** | Next.js 16 API Routes | Built-in, serverless, Vercel optimized |
 | **Database** | Neon PostgreSQL + Drizzle ORM | Serverless, type-safe, SQL-like |
 | **Auth** | Clerk (Google + Email) | Free 10k MAU, easy setup |
 | **AI Ensemble** | **9 components (7 MVP + 2 Post-MVP)** | **Dual-path orchestration, phased rollout** |

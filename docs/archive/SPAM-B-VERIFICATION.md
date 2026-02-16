@@ -1,3 +1,5 @@
+> **ARCHIVED** — Verification notes from initial SPAM-B implementation (Jan 27, 2026). Note: the standalone `/api/spam-b` endpoint was removed in the Feb 7 cleanup; SPAM-B is now called internally by the aggregator. Core implementation in `src/lib/ai/spamB.ts` is still active.
+
 # SPAM-B Implementation Verification ✅
 
 **Date:** January 27, 2026

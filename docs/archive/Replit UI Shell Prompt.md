@@ -1,3 +1,5 @@
+> **ARCHIVED** — This was the initial Replit UI prompt used to scaffold the app (January 2026). References Next.js 14 and old project structure. Kept for historical reference only.
+
 I'm building ChaosLimbă - an AI-powered Romanian language learning platform for ADHD brains.
 
 CONTEXT:

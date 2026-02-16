@@ -1,7 +1,7 @@
 # AI Ensemble Implementation Guide
 
-**Version:** 2.1
-**Last Updated:** February 7, 2026
+**Version:** 2.2
+**Last Updated:** February 13, 2026
 **Purpose:** Single source of truth for AI ensemble technical details
 
 ---
@@ -472,7 +472,10 @@ src/app/api/
 ## Environment Variables Required
 
 ```bash
-# Groq API (Speech + Tutor)
+# Anthropic API (Grammar - Claude Haiku 4.5)
+ANTHROPIC_API_KEY=sk-ant-...
+
+# Groq API (Speech + Tutor + Workshop)
 GROQ_API_KEY=your_groq_api_key
 
 # HuggingFace (Pronunciation + Semantic)
@@ -480,9 +483,6 @@ HUGGINGFACE_API_KEY=your_hf_token
 
 # Database (for storing results)
 DATABASE_URL=postgresql://...
-
-# Optional: Sentry for error tracking
-SENTRY_DSN=your_sentry_dsn
 ```
 
 ## Deployment Notes

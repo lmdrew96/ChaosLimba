@@ -547,7 +547,7 @@ Pronunciation and intonation components are **automatically skipped** for text i
 | **Vite + React** | Fastest dev experience, lightweight, flexible | No SSR out-of-box, manual API setup | Good for pure SPA |
 | **Remix** | Excellent data loading, nested routes, web standards | Smaller ecosystem, newer | Future consideration |
 
-**Recommendation: Next.js 14+ (App Router)**
+**Recommendation: Next.js 16+ (App Router)**
 - Seamless Vercel deployment
 - Built-in API routes for AI pipeline orchestration
 - SSR benefits for SEO (future marketing)
@@ -889,7 +889,7 @@ Month 7: Polish & Launch
 #### Month 1: Infrastructure & Authentication
 
 **Week 1-2: Project Setup**
-- [x] Initialize Next.js 14 project
+- [x] Initialize Next.js project
 - [x] Configure Tailwind CSS + shadcn/ui
 - [x] Set up Vercel deployment pipeline
 - [x] Connect Neon database
@@ -2460,7 +2460,7 @@ async function batchGrammarAnalysis(sentences: string[]) {
 
 | Layer | Technology | Justification |
 |-------|-----------|---------------|
-| **Frontend** | Next.js 14 + React | SSR, Vercel optimization, built-in API routes |
+| **Frontend** | Next.js 16 + React 19 | SSR, Vercel optimization, built-in API routes |
 | **UI** | Tailwind CSS + shadcn/ui | Rapid prototyping, accessible components |
 | **Backend** | Next.js API Routes | Serverless, no separate backend needed |
 | **Database** | Neon (PostgreSQL) | Serverless, generous free tier, SQL familiarity |

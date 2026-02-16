@@ -185,7 +185,7 @@ npx tsx scripts/verify-spam-b.ts
 ### Start Development Server
 
 ```bash
-npm run dev          # Starts on http://localhost:5001
+pnpm dev             # Starts on http://localhost:5001
 ```
 
 ### Build & Start Production
@@ -255,8 +255,8 @@ R2_PUBLIC_URL=https://...
 To reach 50 hours of content:
 
 ```bash
-# Current: ~7 hours (mostly A1/A2)
-# Needed: ~43 more hours
+# Current: ~15.8 hours (1080 items across all CEFR levels)
+# Needed: ~34 more hours
 
 # Fill B1 gap (~5 hours needed)
 npx tsx scripts/generate-content.ts batch --level B1 --count 50
@@ -275,4 +275,4 @@ npx tsx scripts/generate-content.ts batch --level C2 --count 25
 
 ---
 
-*Last updated: February 2026*
+*Last updated: February 13, 2026*

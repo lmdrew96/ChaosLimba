@@ -1,3 +1,5 @@
+> **ARCHIVED** — This document describes the v1.0 → v2.0 migration (January 2026). The architecture is now at v4.0 (10-component ensemble). Kept for historical reference only.
+
 # ChaosLimbă Architecture Migration Guide: v1.0 → v2.0
 
 **Migration Date:** January 19, 2026

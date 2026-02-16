@@ -1,3 +1,5 @@
+> **ARCHIVED** — Early philosophy document using old name "ChaosLingua". Core principles remain valid but the project is now called "ChaosLimbă" and all features described here have been implemented. See `docs/pedagogy/` for current pedagogical documentation.
+
 # ChaosLingua: Philosophy & Goal Synthesis
 
 ## 🧭 Core Philosophy: Structured Chaos

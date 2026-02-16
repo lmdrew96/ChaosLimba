@@ -1,40 +1,56 @@
 # Romanian NLP Datasets & Models - Categorized by Machine Learning Applications
 
-**Last Updated:** January 19, 2026
-**Architecture Version:** 2.0 (7-Component Ensemble)
+**Last Updated:** February 13, 2026
+**Architecture Version:** 4.0 (10-Component Ensemble + Adaptation Engine)
 
 ---
 
-## ChaosLimbă Architecture v2.0 Models (Currently Used) **NEEDS UPDATE AS OF JAN 25, 2026**
+## ChaosLimbă Architecture v4.0 Models (Currently Used)
 
 ### Speech Recognition
-- **[gigant/whisper-medium-romanian](https://huggingface.co/gigant/whisper-medium-romanian)** - Pre-trained Whisper model for Romanian ASR
+- **[whisper-large-v3](https://console.groq.com/)** - Whisper large-v3 via Groq API
   - Used in: Component 1 (Speech Recognition)
-  - Hosting: Groq API (free tier)
-  - Performance: 10-15% WER expected
+  - Hosting: Groq API (FREE tier)
+  - Performance: 10-15% WER
 
 ### Pronunciation Analysis
 - **[gigant/romanian-wav2vec2](https://huggingface.co/gigant/romanian-wav2vec2)** - Pre-trained Wav2Vec2 for Romanian phoneme recognition
   - Used in: Component 2 (Pronunciation Analysis)
-  - Hosting: RunPod (~$2-3/month)
+  - Hosting: HuggingFace Inference API (FREE tier — migrated from RunPod)
   - Performance: 75-85% phoneme accuracy
 
 ### Grammar Correction
-- **[google/mt5-small](https://huggingface.co/google/mt5-small)** - Fine-tuned for Romanian grammar correction
+- **[Claude Haiku 4.5](https://www.anthropic.com/api)** (`claude-haiku-4-5-20251001`) - LLM-based grammar analysis
   - Used in: Component 3 (Grammar Correction)
-  - Status: ✅ TRAINED (BLEU 68.92)
-  - Hosting: RunPod (~$3-5/month)
-  - Training Datasets:
-    - `upb-nlp/gec-ro-texts` (2.1M rows)
-    - `upb-nlp/gec_ro_cna` (5K rows)
-    - `upb-nlp/gec_ro_comments`
+  - Hosting: Anthropic API (~$0.001 per check)
+  - Note: Replaced fine-tuned mt5-small for better contextual understanding
 
-### Semantic Similarity
-- **[dumitrescustefan/bert-base-romanian-cased-v1](https://huggingface.co/dumitrescustefan/bert-base-romanian-cased-v1)** - Base Romanian BERT for semantic similarity
+### Semantic Similarity (SPAM-A)
+- **[sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2](https://huggingface.co/sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2)** - Multilingual sentence embeddings
   - Used in: Component 4 (SPAM-A Semantic Similarity)
-  - Status: ✅ Pre-trained (no fine-tuning required)
-  - Hosting: HuggingFace Inference API (free tier)
-  - Performance: 80-85% accuracy expected
+  - Hosting: HuggingFace Inference API (FREE tier)
+  - Performance: 80-85% accuracy
+
+### Relevance Scoring (SPAM-B)
+- **Reuses SPAM-A embeddings** — smart optimization, no separate model needed
+  - Used in: Component 5 (SPAM-B Relevance Scorer)
+  - Hosting: HuggingFace Inference API (FREE tier)
+  - Status: ✅ COMPLETE
+
+### Intonation Mapping (SPAM-D)
+- **Rule-based lookup table** (10+ stress minimal pairs)
+  - Used in: Component 6 (SPAM-D Intonation Mapper)
+  - Hosting: In-app logic (FREE)
+  - Status: ✅ COMPLETE
+
+### AI Tutor + Workshop
+- **[Llama 3.3 70B](https://console.groq.com/)** (`llama-3.3-70b-versatile`) via Groq API
+  - Used in: Component 9 (AI Tutor) + Workshop Challenge Generator
+  - Hosting: Groq API (FREE tier)
+  - Status: ✅ COMPLETE
+
+### Planned (Post-MVP)
+- **[dumitrescustefan/bert-base-romanian-cased-v1](https://huggingface.co/dumitrescustefan/bert-base-romanian-cased-v1)** - For SPAM-C Dialectal/Pragmatic analysis
 
 ---
 

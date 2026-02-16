@@ -1,3 +1,5 @@
+> **ARCHIVED** — Integration notes from Jan 27, 2026. References port 3000 (now 5001) and standalone `/api/spam-b` endpoint (removed Feb 7). The SPAM-B integration itself is still active — called internally by the aggregator.
+
 # SPAM-B Chaos Window Integration ✅
 
 **Date:** January 27, 2026

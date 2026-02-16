@@ -1,3 +1,5 @@
+> **ARCHIVED** — These recommendations were for the original self-hosted model training approach. The current v4.0 architecture uses Groq (Whisper), HuggingFace Inference (wav2vec2, MiniLM), and Claude Haiku 4.5 instead of fine-tuned models. Kept for reference only.
+
 # Grading Panel Dataset Recommendations
 
 ## Overview

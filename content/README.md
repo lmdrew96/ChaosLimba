@@ -117,9 +117,9 @@ If adding files manually, you must:
 
 **MVP Target:** 50+ hours of curated Romanian content across proficiency levels
 
-**Current Status:** ~1 hour curated (~5 text items)
+**Current Status:** ~15.8 hours curated (1080 items across text + audio)
 
-**Remaining:** ~49 hours needed
+**Remaining:** ~34 hours needed to reach 50hr target
 
 **Distribution Target:**
 - A1-A2 (Beginner): 30% (~15 hours)
@@ -163,6 +163,6 @@ All text files must use **UTF-8 encoding** to support Romanian diacritics:
 
 ---
 
-**Last Updated:** January 24, 2026
+**Last Updated:** February 13, 2026
 **Maintained By:** Nae Drew
 **Related Scripts:** `/scripts/curate.ts`
