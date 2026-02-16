@@ -76,9 +76,10 @@ export default function TermsOfServicePage() {
                     <section>
                         <h2 className="text-2xl font-semibold text-foreground mb-4">👤 Eligibility</h2>
                         <p className="text-muted-foreground leading-relaxed">
-                            You must be at least <strong className="text-primary">13 years of age</strong> to use ChaosLimbă.
-                            If you are under 18, you should review these terms with a parent or guardian.
+                            You must be at least <strong className="text-primary">16 years of age</strong> to use ChaosLimbă.
+                            If you are under 18, we recommend reviewing these terms with a parent or guardian.
                             By creating an account, you confirm that you meet this age requirement.
+                            This threshold complies with the EU General Data Protection Regulation (GDPR) Article 8.
                         </p>
                     </section>
 
