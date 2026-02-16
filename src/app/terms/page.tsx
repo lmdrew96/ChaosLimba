@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 };
 
 export default function TermsOfServicePage() {
-    const lastUpdated = "January 27, 2026";
+    const lastUpdated = "February 16, 2026";
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900">
@@ -71,6 +71,15 @@ export default function TermsOfServicePage() {
                                 We appreciate your patience and feedback as we build this together!
                             </p>
                         </div>
+                    </section>
+
+                    <section>
+                        <h2 className="text-2xl font-semibold text-foreground mb-4">👤 Eligibility</h2>
+                        <p className="text-muted-foreground leading-relaxed">
+                            You must be at least <strong className="text-primary">13 years of age</strong> to use ChaosLimbă.
+                            If you are under 18, you should review these terms with a parent or guardian.
+                            By creating an account, you confirm that you meet this age requirement.
+                        </p>
                     </section>
 
                     <section>

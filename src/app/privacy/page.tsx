@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 };
 
 export default function PrivacyPolicyPage() {
-    const lastUpdated = "January 27, 2026";
+    const lastUpdated = "February 16, 2026";
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900">
@@ -91,6 +91,32 @@ export default function PrivacyPolicyPage() {
                     </section>
 
                     <section>
+                        <h2 className="text-2xl font-semibold text-foreground mb-4">📈 Analytics & Consent Controls</h2>
+                        <p className="text-muted-foreground leading-relaxed mb-4">
+                            ChaosLimbă uses <strong className="text-primary">Umami</strong>, a privacy-focused, open-source analytics tool.
+                            Analytics are <strong className="text-primary">opt-in only</strong> — no tracking occurs unless you explicitly enable it in your Settings.
+                        </p>
+                        <p className="text-muted-foreground leading-relaxed mb-4">
+                            When analytics are enabled, we collect:
+                        </p>
+                        <ul className="list-disc list-inside text-muted-foreground space-y-2">
+                            <li>Page views and navigation patterns (no personal data)</li>
+                            <li>General device/browser type</li>
+                            <li>Country-level location (no IP addresses are stored)</li>
+                        </ul>
+                        <p className="text-muted-foreground leading-relaxed mt-4 mb-4">
+                            You have two separate consent toggles in Settings:
+                        </p>
+                        <ul className="list-disc list-inside text-muted-foreground space-y-2">
+                            <li><strong className="text-primary">Anonymous Analytics:</strong> Controls whether Umami tracks your page views. Off by default.</li>
+                            <li><strong className="text-primary">Contribute to Research:</strong> Controls whether your anonymized error patterns can be used for language learning research. Off by default.</li>
+                        </ul>
+                        <p className="text-muted-foreground leading-relaxed mt-4">
+                            Both can be toggled on or off at any time from your Settings page. Disabling takes effect immediately.
+                        </p>
+                    </section>
+
+                    <section>
                         <h2 className="text-2xl font-semibold text-foreground mb-4">🔐 Data Security</h2>
                         <p className="text-muted-foreground leading-relaxed">
                             We use industry-standard security measures including:
@@ -104,17 +130,25 @@ export default function PrivacyPolicyPage() {
                     </section>
 
                     <section>
-                        <h2 className="text-2xl font-semibold text-foreground mb-4">🤝 Third-Party Services</h2>
+                        <h2 className="text-2xl font-semibold text-foreground mb-4">🤝 Third-Party Services & AI Data Processing</h2>
                         <p className="text-muted-foreground leading-relaxed mb-4">
                             We use the following third-party services to provide ChaosLimbă:
                         </p>
                         <ul className="list-disc list-inside text-muted-foreground space-y-2">
                             <li><strong className="text-primary">Clerk:</strong> Authentication and user management</li>
                             <li><strong className="text-primary">Vercel:</strong> Hosting and deployment</li>
-                            <li><strong className="text-primary">Neon:</strong> Database hosting</li>
+                            <li><strong className="text-primary">Neon:</strong> Database hosting (encrypted at rest)</li>
                             <li><strong className="text-primary">Cloudflare R2:</strong> Audio file storage</li>
-                            <li><strong className="text-primary">RunPod:</strong> AI model inference</li>
+                            <li><strong className="text-primary">Groq:</strong> Speech recognition and conversational AI (your audio and text are sent to Groq for processing)</li>
+                            <li><strong className="text-primary">Anthropic:</strong> Grammar analysis (your text is sent to Anthropic&apos;s Claude for grammar correction)</li>
+                            <li><strong className="text-primary">HuggingFace:</strong> Semantic analysis and pronunciation assessment (text and audio data sent for inference)</li>
                         </ul>
+                        <p className="text-muted-foreground leading-relaxed mt-4">
+                            <strong className="text-primary">Important:</strong> When you use AI features (grammar checking, speech recognition, tutoring),
+                            your text and audio inputs are sent to the above AI providers for processing. These providers process your data according to their
+                            own privacy policies. We do not use your inputs to train AI models — they are processed in real-time and not retained by these services
+                            beyond what is necessary to deliver results.
+                        </p>
                         <p className="text-muted-foreground leading-relaxed mt-4">
                             Each of these services has their own privacy policies. We encourage you to review them.
                         </p>
