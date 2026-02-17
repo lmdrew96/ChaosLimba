@@ -19,6 +19,8 @@ import {
     RotateCcw,
     AlertTriangle,
     Trash2,
+    Download,
+    Database,
 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { useRouter } from "next/navigation"
@@ -128,6 +130,31 @@ export default function SettingsPage() {
             // Error handled via toast
             const errorMessage = err instanceof Error ? err.message : "Unknown error"
             toast.error("Failed to reset progress", { description: errorMessage })
+        } finally {
+            setDevActionLoading(null)
+        }
+    }
+
+    const handleExportData = async () => {
+        try {
+            setDevActionLoading("export")
+            const response = await fetch("/api/user/data-export")
+            if (!response.ok) throw new Error("Failed to export data")
+
+            const data = await response.json()
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" })
+            const url = URL.createObjectURL(blob)
+            const a = document.createElement("a")
+            a.href = url
+            a.download = `chaoslimba-data-export-${new Date().toISOString().split("T")[0]}.json`
+            document.body.appendChild(a)
+            a.click()
+            document.body.removeChild(a)
+            URL.revokeObjectURL(url)
+
+            toast.success("Data exported successfully!")
+        } catch {
+            toast.error("Failed to export data")
         } finally {
             setDevActionLoading(null)
         }
@@ -340,6 +367,46 @@ export default function SettingsPage() {
                         <p className="text-sm text-primary">
                             <strong className="text-primary">Privacy Promise:</strong> We never track your text or audio inputs.
                             Only error patterns and usage statistics are collected, and only with your <strong>explicit</strong> consent. Your personal information is <em>yours</em>; we never sell it, share it, or use it for anything other than improving your learning experience.
+                        </p>
+                    </div>
+                </CardContent>
+            </Card>
+
+            {/* Your Data (GDPR) */}
+            <Card className="rounded-2xl border-border/40 bg-card/50 backdrop-blur">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                        <Database className="h-5 w-5 text-primary" />
+                        Your Data
+                    </CardTitle>
+                    <CardDescription>Export or manage your personal data</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    <div className="flex items-center justify-between">
+                        <div className="space-y-1 flex-1 pr-4">
+                            <Label className="text-base">Export My Data</Label>
+                            <p className="text-sm text-muted-foreground">
+                                Download all your learning data as a JSON file (sessions, errors, mystery shelf, proficiency history, and more)
+                            </p>
+                        </div>
+                        <Button
+                            variant="outline"
+                            className="rounded-xl border-primary/30 hover:bg-primary/10 gap-2"
+                            onClick={handleExportData}
+                            disabled={devActionLoading === "export"}
+                        >
+                            {devActionLoading === "export" ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                                <Download className="h-4 w-4" />
+                            )}
+                            Export
+                        </Button>
+                    </div>
+
+                    <div className="rounded-xl bg-primary/5 border border-primary/20 p-4">
+                        <p className="text-sm text-muted-foreground">
+                            To delete your account and all associated data, use the <strong className="text-primary">Manage Account</strong> button above. All your data will be permanently removed within 30 days of account deletion.
                         </p>
                     </div>
                 </CardContent>

@@ -83,6 +83,7 @@ export async function POST(req: NextRequest) {
                 userId,
                 languageLevel: level,
                 onboardingCompleted: true,
+                consentGivenAt: new Date(),
                 updatedAt: new Date(),
             })
             .onConflictDoUpdate({
@@ -90,6 +91,7 @@ export async function POST(req: NextRequest) {
                 set: {
                     languageLevel: level,
                     onboardingCompleted: true,
+                    consentGivenAt: new Date(),
                     updatedAt: new Date(),
                 },
             });

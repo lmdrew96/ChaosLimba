@@ -18,6 +18,8 @@ import {
   proficiencyHistory,
   adaptationInterventions,
   learningNarratives,
+  ttsUsage,
+  generatedContent,
   type CEFRLevelEnum,
   type ContentItem,
   type GrammarFeature,
@@ -1134,4 +1136,31 @@ export async function getAutobiographyData(
     topErrorType,
     biggestImprovement,
   };
+}
+
+/**
+ * Deletes ALL user data from all user-linked tables.
+ * Used by reset-progress and Clerk webhook (account deletion).
+ * Does NOT recreate userPreferences — callers handle that differently.
+ *
+ * Order matters: delete tables with FK references to sessions before sessions.
+ */
+export async function deleteAllUserData(userId: string): Promise<void> {
+  // Tables with FK references to sessions — delete first
+  await db.delete(errorLogs).where(eq(errorLogs.userId, userId));
+  await db.delete(generatedContent).where(eq(generatedContent.userId, userId));
+  await db.delete(userFeatureExposure).where(eq(userFeatureExposure.userId, userId));
+
+  // Then sessions (now safe, no FK dependents remain)
+  await db.delete(sessions).where(eq(sessions.userId, userId));
+
+  // Independent user tables
+  await db.delete(mysteryItems).where(eq(mysteryItems.userId, userId));
+  await db.delete(proficiencyHistory).where(eq(proficiencyHistory.userId, userId));
+  await db.delete(ttsUsage).where(eq(ttsUsage.userId, userId));
+  await db.delete(learningNarratives).where(eq(learningNarratives.userId, userId));
+  await db.delete(adaptationInterventions).where(eq(adaptationInterventions.userId, userId));
+
+  // User preferences last
+  await db.delete(userPreferences).where(eq(userPreferences.userId, userId));
 }

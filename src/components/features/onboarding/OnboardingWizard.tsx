@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { ConsentStep } from "./ConsentStep";
 import { WelcomeStep, type WelcomeData } from "./WelcomeStep";
 import { TutorOnboardingStep, type TutorOnboardingResult } from "./TutorOnboardingStep";
 import { ResultsStep } from "./ResultsStep";
@@ -11,8 +12,9 @@ import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { CEFRLevel } from "@/lib/proficiency";
 
-// Simplified steps - Welcome → Tutor Chat → Results
+// Steps: Consent → Welcome → Tutor Chat → Results
 const STEPS = [
+    { id: "consent", label: "Terms", icon: "📋" },
     { id: "welcome", label: "Welcome", icon: "👋" },
     { id: "tutor", label: "Chat", icon: "💬" },
     { id: "results", label: "Results", icon: "🎉" },
@@ -22,6 +24,7 @@ type StepId = (typeof STEPS)[number]["id"];
 
 // Types for collected data
 export interface OnboardingData {
+    consentAccepted?: boolean;
     welcome?: WelcomeData;
     tutor?: TutorOnboardingResult;
     calculatedLevel?: CEFRLevel;
@@ -29,7 +32,7 @@ export interface OnboardingData {
 
 export function OnboardingWizard() {
     const router = useRouter();
-    const [currentStep, setCurrentStep] = useState<StepId>("welcome");
+    const [currentStep, setCurrentStep] = useState<StepId>("consent");
     const [data, setData] = useState<OnboardingData>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -105,6 +108,8 @@ export function OnboardingWizard() {
     // Check if current step is complete enough to proceed
     const canProceed = useCallback(() => {
         switch (currentStep) {
+            case "consent":
+                return !!data.consentAccepted;
             case "welcome":
                 return !!data.welcome?.selfAssessment;
             case "tutor":
@@ -187,6 +192,12 @@ export function OnboardingWizard() {
                     exit={{ opacity: 0, x: -20 }}
                     transition={{ duration: 0.3 }}
                 >
+                    {currentStep === "consent" && (
+                        <ConsentStep
+                            accepted={data.consentAccepted || false}
+                            onUpdate={(accepted) => updateStepData("consentAccepted", accepted)}
+                        />
+                    )}
                     {currentStep === "welcome" && (
                         <WelcomeStep
                             data={data.welcome}

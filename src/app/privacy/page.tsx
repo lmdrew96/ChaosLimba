@@ -117,6 +117,72 @@ export default function PrivacyPolicyPage() {
                     </section>
 
                     <section>
+                        <h2 className="text-2xl font-semibold text-foreground mb-4">⚖️ Legal Basis for Processing (GDPR Art. 6)</h2>
+                        <p className="text-muted-foreground leading-relaxed mb-4">
+                            We process your personal data under the following legal bases:
+                        </p>
+                        <ul className="list-disc list-inside text-muted-foreground space-y-2">
+                            <li><strong className="text-primary">Contract performance (Art. 6(1)(b)):</strong> Processing necessary to provide the language learning service you signed up for — storing your sessions, errors, proficiency data, and Mystery Shelf items.</li>
+                            <li><strong className="text-primary">Legitimate interest (Art. 6(1)(f)):</strong> Security measures, bug fixing, and service improvements. We balance our interests against your rights and only process what is necessary.</li>
+                            <li><strong className="text-primary">Consent (Art. 6(1)(a)):</strong> Anonymous analytics (Umami) and research contribution are opt-in only. You can withdraw consent at any time from your Settings page, and withdrawal takes effect immediately.</li>
+                        </ul>
+                    </section>
+
+                    <section>
+                        <h2 className="text-2xl font-semibold text-foreground mb-4">⏱️ Data Retention</h2>
+                        <p className="text-muted-foreground leading-relaxed mb-4">
+                            We retain your data for the following periods:
+                        </p>
+                        <ul className="list-disc list-inside text-muted-foreground space-y-2">
+                            <li><strong className="text-primary">Learning data</strong> (sessions, errors, proficiency, Mystery Shelf): Retained while your account is active. Deleted within 30 days of account deletion.</li>
+                            <li><strong className="text-primary">Account information</strong> (email, preferences): Retained while your account is active. Deleted within 30 days of account deletion.</li>
+                            <li><strong className="text-primary">Analytics data</strong> (if opted in): Anonymized and aggregated — cannot be traced back to you. May be retained indefinitely.</li>
+                            <li><strong className="text-primary">Audio recordings:</strong> Processed in real-time for speech recognition. Not permanently stored on our servers after processing.</li>
+                        </ul>
+                    </section>
+
+                    <section>
+                        <h2 className="text-2xl font-semibold text-foreground mb-4">🤖 Automated Decision-Making (GDPR Art. 22)</h2>
+                        <p className="text-muted-foreground leading-relaxed mb-4">
+                            ChaosLimbă uses an <strong className="text-primary">Adaptation Engine</strong> that automatically adjusts your learning experience based on your error patterns. Here&apos;s how it works:
+                        </p>
+                        <ul className="list-disc list-inside text-muted-foreground space-y-2">
+                            <li>The system monitors the frequency of specific error types (e.g., verb conjugation, noun cases) across your sessions.</li>
+                            <li>When an error pattern becomes persistent (fossilization), the system assigns a priority tier (1–3) and adjusts which content and exercises are shown to you.</li>
+                            <li>Higher tiers mean more targeted practice on those specific patterns.</li>
+                        </ul>
+                        <p className="text-muted-foreground leading-relaxed mt-4">
+                            <strong className="text-primary">Purpose:</strong> This is purely pedagogical — it helps you learn more effectively by focusing on areas where you need the most practice.
+                            It does not produce legal effects or similarly significantly affect you.
+                        </p>
+                        <p className="text-muted-foreground leading-relaxed mt-4">
+                            <strong className="text-primary">Your rights:</strong> You can request manual review of how the Adaptation Engine has categorized your errors, or ask us to reset it, by contacting us at{" "}
+                            <a href="mailto:nae@adhdesigns.dev" className="text-primary hover:text-primary/80 underline">
+                                nae@adhdesigns.dev
+                            </a>.
+                        </p>
+                    </section>
+
+                    <section>
+                        <h2 className="text-2xl font-semibold text-foreground mb-4">📦 Data Portability (GDPR Art. 20)</h2>
+                        <p className="text-muted-foreground leading-relaxed">
+                            You can export all your personal data at any time from the <strong className="text-primary">Settings</strong> page
+                            using the &quot;Export My Data&quot; button. Your data is provided in a structured, commonly used, machine-readable
+                            format (JSON).
+                        </p>
+                    </section>
+
+                    <section>
+                        <h2 className="text-2xl font-semibold text-foreground mb-4">🏛️ Right to Lodge a Complaint (GDPR Art. 77)</h2>
+                        <p className="text-muted-foreground leading-relaxed">
+                            If you believe your data protection rights have been violated, you have the right to lodge a complaint
+                            with a supervisory authority (data protection authority) in the EU/EEA member state where you reside,
+                            work, or where the alleged violation occurred. We encourage you to contact us first so we can try to
+                            resolve the issue directly.
+                        </p>
+                    </section>
+
+                    <section>
                         <h2 className="text-2xl font-semibold text-foreground mb-4">🔐 Data Security</h2>
                         <p className="text-muted-foreground leading-relaxed">
                             We use industry-standard security measures including:
@@ -163,8 +229,10 @@ export default function PrivacyPolicyPage() {
                             <li>Access your personal data</li>
                             <li>Request correction of inaccurate data</li>
                             <li>Request deletion of your account and data</li>
-                            <li>Export your learning data</li>
+                            <li>Export your learning data (via Settings → Export My Data)</li>
                             <li>Opt out of non-essential data collection</li>
+                            <li>Object to automated decision-making</li>
+                            <li>Lodge a complaint with a supervisory authority</li>
                         </ul>
                         <p className="text-muted-foreground leading-relaxed mt-4">
                             To exercise these rights, contact us at{" "}

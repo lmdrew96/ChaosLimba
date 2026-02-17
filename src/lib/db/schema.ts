@@ -150,6 +150,7 @@ export const userPreferences = pgTable('user_preferences', {
   emailNotifications: pgBoolean('email_notifications').default(false).notNull(), // Opt-in weekly summaries
   analyticsEnabled: pgBoolean('analytics_enabled').default(false).notNull(), // Anonymous usage tracking
   dataCollectionEnabled: pgBoolean('data_collection_enabled').default(false).notNull(), // Error patterns for research
+  consentGivenAt: timestamp('consent_given_at'), // GDPR: when user accepted Privacy Policy + Terms
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });

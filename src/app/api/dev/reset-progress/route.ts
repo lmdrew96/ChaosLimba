@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server"
 import { auth } from "@clerk/nextjs/server"
 import { db } from "@/lib/db"
-import { errorLogs, sessions, mysteryItems, userPreferences, proficiencyHistory } from "@/lib/db/schema"
-import { eq } from "drizzle-orm"
+import { userPreferences } from "@/lib/db/schema"
+import { deleteAllUserData } from "@/lib/db/queries"
 
 export async function POST() {
   try {
@@ -11,12 +11,8 @@ export async function POST() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // Delete all user data (no transaction support in neon-http driver)
-    await db.delete(errorLogs).where(eq(errorLogs.userId, userId))
-    await db.delete(sessions).where(eq(sessions.userId, userId))
-    await db.delete(mysteryItems).where(eq(mysteryItems.userId, userId))
-    await db.delete(proficiencyHistory).where(eq(proficiencyHistory.userId, userId))
-    await db.delete(userPreferences).where(eq(userPreferences.userId, userId))
+    // Delete all user data from all 9 user-linked tables
+    await deleteAllUserData(userId)
 
     // Create fresh preferences with defaults
     await db.insert(userPreferences).values({
