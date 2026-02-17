@@ -1,10 +1,10 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Check, Palette } from "lucide-react"
+import { Check, Palette, Sun, Moon } from "lucide-react"
+import { useTheme } from "next-themes"
 
 type Theme = "default" | "forest" | "nostalgia" | "wild-runes" | "bathhouse" | "vinyl" | "neon-circuit" | "soft-bloom"
-type Mode = "light" | "dark"
 
 interface ThemeOption {
   id: Theme
@@ -74,6 +74,9 @@ const THEMES: ThemeOption[] = [
 ]
 
 export default function ThemeSelector() {
+  const { resolvedTheme, setTheme: setMode } = useTheme()
+  const [mounted, setMounted] = useState(false)
+
   const [selectedTheme, setSelectedTheme] = useState<Theme>(() => {
     if (typeof window !== 'undefined') {
       return (localStorage.getItem("chaoslimba-theme") as Theme) || "default"
@@ -81,19 +84,17 @@ export default function ThemeSelector() {
     return "default"
   })
 
-  const [mode, setMode] = useState<Mode>(() => {
-    if (typeof window !== 'undefined') {
-      return (localStorage.getItem("chaoslimba-mode") as Mode) || "dark"
-    }
-    return "dark"
-  })
+  // Prevent hydration mismatch — resolvedTheme is undefined on server
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
-  // Apply theme to document
+  // Apply custom theme class to document (dark/light handled by next-themes)
   useEffect(() => {
     const html = document.documentElement
 
-    // Remove all theme classes
-    html.classList.remove("theme-forest", "theme-nostalgia", "theme-wild-runes", "theme-bathhouse", "theme-vinyl", "theme-neon-circuit", "theme-soft-bloom", "dark")
+    // Remove all custom theme classes (NOT "dark" — next-themes owns that)
+    html.classList.remove("theme-forest", "theme-nostalgia", "theme-wild-runes", "theme-bathhouse", "theme-vinyl", "theme-neon-circuit", "theme-soft-bloom")
 
     // Apply selected theme
     const themeClassMap: Record<string, string> = {
@@ -110,80 +111,107 @@ export default function ThemeSelector() {
       html.classList.add(themeClass)
     }
 
-    // Apply mode
-    if (mode === "dark") {
-      html.classList.add("dark")
-    }
-
-    // Save to localStorage
+    // Save theme choice to localStorage
     localStorage.setItem("chaoslimba-theme", selectedTheme)
-    localStorage.setItem("chaoslimba-mode", mode)
-  }, [selectedTheme, mode])
+  }, [selectedTheme])
 
-  const handleThemeSelect = (theme: Theme) => {
-    setSelectedTheme(theme)
-  }
-
+  const currentMode = mounted ? resolvedTheme : "dark"
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+      {/* Mode Toggle */}
+      <div className="space-y-2">
+        <label className="text-sm font-medium text-foreground">Appearance</label>
+        <div className="inline-flex rounded-xl border border-border/40 p-1 bg-muted/30">
+          <button
+            onClick={() => setMode("light")}
+            className={`
+              flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200
+              ${currentMode === "light"
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+              }
+            `}
+          >
+            <Sun className="h-4 w-4" />
+            Light
+          </button>
+          <button
+            onClick={() => setMode("dark")}
+            className={`
+              flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200
+              ${currentMode === "dark"
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+              }
+            `}
+          >
+            <Moon className="h-4 w-4" />
+            Dark
+          </button>
+        </div>
+      </div>
+
       {/* Theme Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {THEMES.map((theme) => {
-          const isSelected = selectedTheme === theme.id
-          const colors = mode === "light" ? theme.lightColors : theme.darkColors
+      <div className="space-y-2">
+        <label className="text-sm font-medium text-foreground">Color Theme</label>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {THEMES.map((theme) => {
+            const isSelected = selectedTheme === theme.id
+            const colors = currentMode === "light" ? theme.lightColors : theme.darkColors
 
-          return (
-            <button
-              key={theme.id}
-              onClick={() => handleThemeSelect(theme.id)}
-              className={`
-                relative text-left rounded-2xl border-2 transition-all duration-200
-                hover:scale-[1.02] hover:shadow-lg
-                ${
-                  isSelected
-                    ? "border-primary shadow-lg ring-4 ring-primary/20"
-                    : "border-border/40 hover:border-primary/50"
-                }
-              `}
-            >
-              <div className="p-4 space-y-3">
-                {/* Theme Name */}
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h3 className="font-semibold text-base">{theme.name}</h3>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {theme.description}
-                    </p>
-                  </div>
-                  {isSelected && (
-                    <div className="flex-shrink-0 h-6 w-6 rounded-full bg-primary flex items-center justify-center">
-                      <Check className="h-4 w-4 text-primary-foreground" />
+            return (
+              <button
+                key={theme.id}
+                onClick={() => setSelectedTheme(theme.id)}
+                className={`
+                  relative text-left rounded-2xl border-2 transition-all duration-200
+                  hover:scale-[1.02] hover:shadow-lg
+                  ${
+                    isSelected
+                      ? "border-primary shadow-lg ring-4 ring-primary/20"
+                      : "border-border/40 hover:border-primary/50"
+                  }
+                `}
+              >
+                <div className="p-4 space-y-3">
+                  {/* Theme Name */}
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h3 className="font-semibold text-base">{theme.name}</h3>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {theme.description}
+                      </p>
                     </div>
-                  )}
-                </div>
+                    {isSelected && (
+                      <div className="flex-shrink-0 h-6 w-6 rounded-full bg-primary flex items-center justify-center">
+                        <Check className="h-4 w-4 text-primary-foreground" />
+                      </div>
+                    )}
+                  </div>
 
-                {/* Color Preview */}
-                <div className="flex gap-1.5">
-                  {colors.map((color, idx) => (
-                    <div
-                      key={idx}
-                      className="h-8 flex-1 rounded-lg border border-border/20 shadow-sm"
-                      style={{ backgroundColor: color }}
-                    />
-                  ))}
+                  {/* Color Preview */}
+                  <div className="flex gap-1.5">
+                    {colors.map((color, idx) => (
+                      <div
+                        key={idx}
+                        className="h-8 flex-1 rounded-lg border border-border/20 shadow-sm"
+                        style={{ backgroundColor: color }}
+                      />
+                    ))}
+                  </div>
                 </div>
-              </div>
-            </button>
-          )
-        })}
+              </button>
+            )
+          })}
+        </div>
       </div>
 
       {/* Current Theme Info */}
       <div className="flex items-center gap-2 text-sm text-muted-foreground italic">
         <Palette className="h-4 w-4" />
         <span>
-          Currently using: <strong className="text-foreground">{THEMES.find(t => t.id === selectedTheme)?.name}</strong> ({mode} mode)
+          Currently using: <strong className="text-foreground">{THEMES.find(t => t.id === selectedTheme)?.name}</strong> ({currentMode} mode)
         </span>
       </div>
     </div>
