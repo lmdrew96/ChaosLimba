@@ -54,6 +54,7 @@
     "react-dom": "19.2.3",
     "react-markdown": "^10.1.0",
     "recharts": "^3.7.0",
+    "resend": "^6.9.2",
     "sonner": "^2.0.7",
     "svix": "^1.85.0",
     "tailwind-merge": "^3.4.0"

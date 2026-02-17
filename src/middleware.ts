@@ -6,6 +6,7 @@ const isPublicRoute = createRouteMatcher([
   "/privacy",
   "/terms",
   "/api/webhooks(.*)",
+  "/api/cron(.*)",
   "/api/speech-to-text",
   "/api/audio(.*)",
   "/api/chaos-window/initial-question",

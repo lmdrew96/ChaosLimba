@@ -1164,3 +1164,15 @@ export async function deleteAllUserData(userId: string): Promise<void> {
   // User preferences last
   await db.delete(userPreferences).where(eq(userPreferences.userId, userId));
 }
+
+/**
+ * Returns all user IDs that have opted in to weekly email summaries.
+ */
+export async function getWeeklySummaryUsers(): Promise<string[]> {
+  const users = await db
+    .select({ userId: userPreferences.userId })
+    .from(userPreferences)
+    .where(eq(userPreferences.emailNotifications, true));
+
+  return users.map((u) => u.userId);
+}
