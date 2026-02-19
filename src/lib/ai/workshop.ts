@@ -142,7 +142,7 @@ CRITICAL GRAMMAR — Your Romanian MUST be correct:
 
 CRITICAL CONSTRAINT — MATCH THE TARGET FEATURE:
 - The challenge MUST test the EXACT grammar feature specified, not a different one.
-- If the target feature is "Regular -a Verbs", every verb tested MUST be a regular Group I (-a) verb like: a lucra, a cânta, a mânca (mănâncă), a culca, a visa, a parca, etc.
+- If the target feature is "Regular -a Verbs", every verb tested MUST be a truly regular Group I verb that follows the -ez/-ează pattern: a lucra (lucrează), a visa (visează), a dansa (dansează), a parca (parchează). Do NOT use irregular -a verbs like "a cânta" (cântă), "a mânca" (mănâncă), "a da" (dă), or "a sta" (stă) — these have irregular present tense forms and do NOT conjugate with -ez/-ează.
 - Do NOT substitute irregular verbs, reflexive verbs, or verbs from other conjugation groups.
 - The answer the learner needs to produce MUST directly demonstrate the target feature.
 
@@ -341,12 +341,19 @@ Evaluation criteria:
 IMPORTANT:
 - Be lenient with minor spelling differences (e.g., missing diacritics is a warning, not an error)
 - Accept valid alternative phrasings
-- Score 80-100 for correct with minor issues, 50-79 for partially correct, 0-49 for incorrect`;
+- Score 80-100 for correct with minor issues, 50-79 for partially correct, 0-49 for incorrect
+
+CRITICAL — LINGUISTIC ACCURACY:
+- Your ruleExplanation MUST be linguistically accurate. Use the authoritative feature description as your primary reference for grammar rules.
+- If a verb has irregular present tense forms (e.g., "a cânta" → "cântă", not "cântează"), do NOT claim it follows a regular conjugation pattern.
+- Verify that any example verbs you cite actually follow the conjugation pattern you describe.
+- The correction and ruleExplanation must be consistent — never give a correct form that contradicts your rule explanation.`;
 
 function buildEvaluationPrompt(
   challenge: WorkshopChallenge,
   response: string,
-  userLevel: CEFRLevelEnum
+  userLevel: CEFRLevelEnum,
+  featureDescription?: string
 ): string {
   return `Evaluate this ${userLevel} learner's response to a Romanian ${challenge.type} challenge.
 
@@ -355,6 +362,7 @@ ${challenge.targetSentence ? `Target sentence: "${challenge.targetSentence}"` : 
 Expected answers: ${JSON.stringify(challenge.expectedAnswers)}
 Grammar rule being tested: "${challenge.grammarRule}"
 Feature: "${challenge.featureName}" (${challenge.featureKey})
+${featureDescription ? `Authoritative feature description: "${featureDescription}"` : ''}
 
 Learner's response: "${response}"
 
@@ -364,7 +372,7 @@ Respond with this exact JSON:
   "score": 0-100,
   "feedback": "Encouraging feedback about their answer",
   "correction": "The correct form if wrong (null if correct)",
-  "ruleExplanation": "Brief explanation of the grammar rule and how it applies",
+  "ruleExplanation": "Brief explanation of the grammar rule and how it applies — use the authoritative feature description as your primary reference",
   "usedTargetStructure": true/false
 }`;
 }
@@ -372,7 +380,8 @@ Respond with this exact JSON:
 export async function evaluateWorkshopResponse(
   challenge: WorkshopChallenge,
   response: string,
-  userLevel: CEFRLevelEnum
+  userLevel: CEFRLevelEnum,
+  featureDescription?: string
 ): Promise<WorkshopEvaluation> {
   // Step 1: Grammar analysis via existing Claude Haiku (cached)
   let grammarResult: GrammarResult | null = null;
@@ -385,7 +394,7 @@ export async function evaluateWorkshopResponse(
   // Step 2: Semantic evaluation via Groq
   const messages: ChatMessage[] = [
     { role: 'system', content: EVALUATION_SYSTEM_PROMPT },
-    { role: 'user', content: buildEvaluationPrompt(challenge, response, userLevel) },
+    { role: 'user', content: buildEvaluationPrompt(challenge, response, userLevel, featureDescription) },
   ];
 
   const output = await callGroq(messages, 0.3); // Low temperature for consistent evaluation

@@ -33,7 +33,7 @@ const features: NewGrammarFeature[] = [
     featureName: 'Present Tense: Regular -a Verbs',
     cefrLevel: 'A1',
     category: 'grammar',
-    description: 'Regular first conjugation verbs ending in -a: a lucra (to work), a mânca (to eat), a cânta (to sing). Pattern: -ez, -ezi, -ează, -ăm, -ați, -ează.',
+    description: 'Regular first conjugation verbs ending in -a that follow the -ez/-ează pattern: a lucra (lucrează), a visa (visează), a parca (parchează), a dansa (dansează). Pattern: -ez, -ezi, -ează, -ăm, -ați, -ează. NOTE: Some -a verbs like "a cânta" (cântă) and "a mânca" (mănâncă) have irregular present tense forms and do NOT follow this pattern.',
     prerequisites: ['present_tense_a_fi'],
     sortOrder: 3,
   },
@@ -312,12 +312,15 @@ async function seedGrammarFeatures() {
   console.log(`   ${features.length} total features\n`);
 
   try {
-    // Upsert: insert or skip if feature_key already exists
+    // Upsert: insert or update description if feature_key already exists
     for (const feature of features) {
       await db
         .insert(grammarFeatureMap)
         .values(feature)
-        .onConflictDoNothing({ target: grammarFeatureMap.featureKey });
+        .onConflictDoUpdate({
+          target: grammarFeatureMap.featureKey,
+          set: { description: feature.description },
+        });
     }
 
     console.log('✅ Grammar feature map seeded successfully!');

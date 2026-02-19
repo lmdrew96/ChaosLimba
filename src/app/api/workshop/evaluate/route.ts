@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { db } from '@/lib/db';
-import { userPreferences } from '@/lib/db/schema';
+import { userPreferences, grammarFeatureMap } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { saveErrorPatternsToGarden, getWorkshopFeatureTarget } from '@/lib/db/queries';
 import { evaluateWorkshopResponse, generateWorkshopChallenge } from '@/lib/ai/workshop';
@@ -41,8 +41,16 @@ export async function POST(req: NextRequest) {
 
     const userLevel = (prefs[0]?.languageLevel || 'A1') as CEFRLevelEnum;
 
+    // Look up authoritative feature description from DB
+    const featureRow = await db
+      .select({ description: grammarFeatureMap.description })
+      .from(grammarFeatureMap)
+      .where(eq(grammarFeatureMap.featureKey, challenge.featureKey))
+      .limit(1);
+    const featureDescription = featureRow[0]?.description || undefined;
+
     // Evaluate response
-    const evaluation = await evaluateWorkshopResponse(challenge, response.trim(), userLevel);
+    const evaluation = await evaluateWorkshopResponse(challenge, response.trim(), userLevel, featureDescription);
 
     // Track errors to Error Garden (fire-and-forget)
     {
