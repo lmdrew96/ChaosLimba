@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
 
     const now = new Date();
     const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://chaoslimba.vercel.app";
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://chaoslimba.adhdesigns.dev";
 
     let sent = 0;
     let skipped = 0;
