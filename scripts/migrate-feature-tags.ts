@@ -9,7 +9,7 @@ dotenv.config({ path: resolve(process.cwd(), '.env.local') });
 
 // ─── Config ────────────────────────────────────────────────────────────────────
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
-const MODEL = 'claude-sonnet-4-6';
+const MODEL = 'claude-sonnet-4-5';
 const BATCH_SIZE = 8;
 const DELAY_MS = 1500;
 const MAX_RETRIES = 3;
@@ -115,14 +115,28 @@ function buildBatchPrompt(
     )
     .join('\n\n');
 
-  return `You are a Romanian language teaching expert. Given short Romanian texts and a list of grammar/vocabulary features, identify which features are clearly demonstrated in each text.
+  return `You are a Romanian linguistics expert. For each Romanian text provided, identify which grammar features from the provided feature map are DEMONSTRABLY PRESENT in the text.
 
 RULES:
-- Only tag a feature if it is CLEARLY present — not just tangentially related
-- A verb conjugation feature requires the actual conjugated form to appear
-- A vocabulary domain feature requires 2+ words from that domain
-- Be conservative — false negatives are better than false positives
-- Return ONLY the matching feature_key values
+- Only tag features where clear evidence exists in the text
+- A feature is present if the text contains at least one clear instance of that grammatical structure
+- Be CONSERVATIVE: false negatives are better than false positives
+- For vocabulary_domain features, tag only if 2+ domain-specific words appear
+- Return a JSON array of matching feature_key strings for each item
+
+For B1+ features specifically:
+- subjunctive_sa: Look for "să" + conjugated verb (not just "să" alone)
+- conditional_present: Look for aș/ai/ar/am/ați/ar + infinitive
+- passive_voice: Look for "este/a fost/sunt" + past participle with agreement
+- genitive_dative_case: Look for modified noun forms (băiatului, fetei, etc.)
+- imperfect_tense: Look for -eam/-eai/-ea verb endings
+- reported_speech: Look for "a spus că", "a zis că" patterns
+- presumptive_mood: Look for "o fi" + gerund patterns
+- literary_tenses: Look for perfect simplu forms (merse, făcu, veni)
+- clitic_doubling: Look for "pe" + noun with resumptive clitic (Îl văd pe Ion)
+- gerund_gerunziu: Look for -ând/-ind forms (mergând, făcând, citind)
+- relative_clauses_care: Look for "care" or "pe care" introducing a clause
+- advanced_connectors: Look for deși, totuși, cu toate că, prin urmare, în schimb
 
 FEATURES:
 ${featureList}
@@ -131,7 +145,7 @@ TEXTS TO ANALYZE:
 ${itemsList}
 
 Return a JSON object where each key is the content item id and the value is an array of matching feature_keys.
-Example: {"uuid-1": ["present_tense_a_fi", "vocab_food"], "uuid-2": ["basic_negation"]}
+Example: {"uuid-1": ["present_tense_a_fi", "vocab_food"], "uuid-2": ["basic_negation", "subjunctive_sa"]}
 
 Return ONLY the JSON object, no markdown code blocks, no extra text.`;
 }
