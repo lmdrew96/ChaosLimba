@@ -4,6 +4,7 @@ import { mysteryItems, sessions, userPreferences } from "@/lib/db/schema";
 import { callGroq } from "@/lib/ai/groq";
 import { saveErrorPatternsToGarden } from "@/lib/db/queries";
 import { recordSessionProficiency } from "@/lib/proficiency";
+import { trackFeatureExposure, extractFeaturesFromErrors } from "@/lib/ai/exposure-tracker";
 import type { ExtractedErrorPattern } from "@/types/aggregator";
 import { and, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
@@ -95,6 +96,18 @@ Grade this practice attempt.
                 .catch(err => {
                     console.error('[Mystery Practice] Failed to save errors/update proficiency:', err);
                 });
+
+            // Track corrected features from grammar errors
+            const { corrected } = extractFeaturesFromErrors(errorPatterns);
+            if (corrected.length > 0) {
+                trackFeatureExposure({
+                    userId,
+                    sessionId: session.id,
+                    contentFeatures: [],
+                    producedFeatures: [],
+                    correctedFeatures: corrected,
+                }).catch(() => {});
+            }
         }
 
         // Update mystery item - mark as having been practiced
