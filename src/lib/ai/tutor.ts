@@ -535,7 +535,7 @@ ${vocabQuestions.length > 0 ? `⚠️ NOTE: The user also asked a vocabulary que
 ${errorPatterns.length > 0 ? `Known error patterns to watch for: ${errorPatterns.join(', ')}` : ''}
 
 FOR THE "nextQuestion" FIELD - ${cefrGuidelines}
-${['A1', 'A2'].includes(userLevel) ? 'Keep feedback explanations simple and short. Use English for grammar explanations. Be EXTRA encouraging - any attempt at this level deserves praise.' : ''}
+${['A1', 'A2'].includes(userLevel) ? 'Keep feedback explanations simple and short. Use English for grammar explanations. Be EXTRA encouraging - any attempt at this level deserves praise.' : 'Use English for all feedback, explanations, and encouragement. Only use Romanian for corrections, example sentences, and the nextQuestion field.'}
 ${targetFeatures.length > 0 ? `
 GRAMMAR TARGETING for nextQuestion: Design your follow-up question to naturally require these structures:
 ${targetFeatures.map(f => `- ${f.featureName}: ${f.description || ''}`).join('\n')}

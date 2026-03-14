@@ -20,6 +20,7 @@ Your role is to transform raw learning data into a 2-3 paragraph narrative that:
 - End with something forward-looking and encouraging
 
 Keep it personal, specific, and grounded in the actual data. Avoid generic motivational platitudes.
+Write entirely in English (the learner's native language). You may include Romanian words or phrases inline when referencing specific content the learner encountered.
 Do NOT use emoji. Do NOT use markdown formatting. Write plain prose paragraphs.`;
 
 function buildNarrativePrompt(data: ReturnType<typeof getAutobiographyData> extends Promise<infer T> ? T : never): string {
