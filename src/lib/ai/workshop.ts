@@ -339,6 +339,7 @@ Evaluation criteria:
 4. Be encouraging — errors are learning opportunities, not failures.
 
 IMPORTANT:
+- ALL feedback, explanations, and rule descriptions MUST be written in English — the learner's native language. Only use Romanian for corrections, example sentences, and grammatical forms.
 - Be lenient with minor spelling differences (e.g., missing diacritics is a warning, not an error)
 - Accept valid alternative phrasings
 - Score 80-100 for correct with minor issues, 50-79 for partially correct, 0-49 for incorrect
