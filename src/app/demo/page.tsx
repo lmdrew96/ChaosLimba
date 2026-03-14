@@ -36,6 +36,7 @@ import {
   Timer,
   Shield,
   RefreshCw,
+  Loader2,
 } from "lucide-react"
 
 // ─── DEMO CHALLENGE DATA ───────────────────────────────────────────────────────
@@ -44,11 +45,12 @@ interface DemoChallenge {
   type: string
   prompt: string
   targetSentence?: string
-  hint?: string
+  hint: string
   options?: string[]
-  correctAnswer: string
+  expectedAnswers: string[]
+  featureKey: string
   featureName: string
-  explanation: string
+  grammarRule: string
 }
 
 const DEMO_CHALLENGES: DemoChallenge[] = [
@@ -57,30 +59,30 @@ const DEMO_CHALLENGES: DemoChallenge[] = [
     prompt: "Find the grammar error and rewrite the sentence correctly.",
     targetSentence: "Eu **merg** la magazin ieri.",
     hint: "Think about verb tense — does the time expression match the verb form?",
-    correctAnswer: "Eu am mers la magazin ieri.",
+    expectedAnswers: ["Eu am mers la magazin ieri.", "Am mers la magazin ieri."],
+    featureKey: "past_tense_perfect_compus",
     featureName: "Past Tense (Perfectul compus)",
-    explanation:
-      "\"Ieri\" (yesterday) requires past tense. \"Merg\" is present tense → should be \"am mers\" (perfect compus). This is one of the most common errors for Romanian learners!",
+    grammarRule: "\"Ieri\" (yesterday) requires perfectul compus. Present tense \"merg\" must become \"am mers\".",
   },
   {
     type: "transform",
     prompt: "Change this sentence from **informal** to **formal** (use the polite form).",
     targetSentence: "Tu **vrei** un ceai?",
     hint: "Romanian uses \"dumneavoastră\" for formal address, and verbs change to match.",
-    correctAnswer: "Dumneavoastră vreți un ceai?",
+    expectedAnswers: ["Dumneavoastră vreți un ceai?", "Dvs. vreți un ceai?"],
+    featureKey: "formal_informal_address",
     featureName: "Formal vs. Informal Address",
-    explanation:
-      "Romanian distinguishes between \"tu\" (informal) and \"dumneavoastră\" (formal). The verb conjugates differently: vrei → vreți. Getting formality right is essential for real-world Romanian conversations.",
+    grammarRule: "Romanian uses \"dumneavoastră\" for formal address. The verb conjugates to 2nd person plural: vrei → vreți.",
   },
   {
     type: "complete",
-    prompt: "Fill in the blank with the correct form of the definite article.",
+    prompt: "Fill in the blank with the correct form of the article.",
     targetSentence: "Am cumpărat _____ carte interesantă.",
-    hint: "\"Carte\" is feminine. What's the feminine accusative article?",
-    correctAnswer: "o",
+    hint: "\"Carte\" is feminine. What's the feminine indefinite article?",
+    expectedAnswers: ["o"],
+    featureKey: "definite_article",
     featureName: "Romanian Articles",
-    explanation:
-      "\"Carte\" is feminine, and here it needs the indefinite article \"o\" (a/an for feminine nouns). Romanian articles are tricky — the definite article is a suffix (-a), but the indefinite one is a separate word.",
+    grammarRule: "\"Carte\" is feminine and needs the indefinite article \"o\". The definite article is a suffix (-a), the indefinite is a separate word.",
   },
   {
     type: "which_one",
@@ -91,30 +93,31 @@ const DEMO_CHALLENGES: DemoChallenge[] = [
       "Vreau de merg acasă.",
       "Vreau la merg acasă.",
     ],
-    correctAnswer: "Vreau să merg acasă.",
+    hint: "After verbs of wanting, Romanian uses a special particle before the verb.",
+    expectedAnswers: ["Vreau să merg acasă."],
+    featureKey: "subjunctive_sa",
     featureName: "Subjunctive Mood (Conjunctivul)",
-    explanation:
-      "After verbs of wanting/wishing, Romanian uses \"să\" + subjunctive, not \"că\" (which introduces declarative clauses). This is a classic L1 transfer error for English speakers who want to use \"that\" (că) instead of \"să\".",
+    grammarRule: "After verbs of wanting/wishing, Romanian uses \"să\" + subjunctive, not \"că\".",
   },
   {
     type: "rewrite",
     prompt: "Translate this into Romanian using the **dative** case.",
     targetSentence: "I gave the book **to Maria**.",
     hint: "In Romanian, feminine names take the dative form with \"-ei\" suffix.",
-    correctAnswer: "I-am dat cartea Mariei.",
+    expectedAnswers: ["I-am dat cartea Mariei.", "Am dat cartea Mariei."],
+    featureKey: "dative_case",
     featureName: "Dative Case",
-    explanation:
-      "Romanian marks indirect objects with the dative case. For feminine proper nouns like Maria, the dative is formed by adding \"-ei\" → \"Mariei\". The clitic pronoun \"i-\" is also required (pronominal doubling).",
+    grammarRule: "Romanian marks indirect objects with the dative case. Feminine proper nouns like Maria → Mariei. Pronominal doubling with clitic \"i-\" is required.",
   },
   {
     type: "spot_the_trap",
     prompt: "This sentence looks correct but has a subtle error. Find it and fix it.",
     targetSentence: "Copiii **meu** sunt la școală.",
     hint: "Check if the possessive adjective agrees with the noun it modifies.",
-    correctAnswer: "Copiii mei sunt la școală.",
+    expectedAnswers: ["Copiii mei sunt la școală."],
+    featureKey: "possessive_agreement",
     featureName: "Possessive Agreement",
-    explanation:
-      "\"Copiii\" is masculine plural, so the possessive must also be masculine plural: \"mei\" (not \"meu\" which is masculine singular). Agreement errors are sneaky because the sentence still *sounds* almost right.",
+    grammarRule: "Possessive adjectives must agree in gender and number with the noun. Copiii (masc. pl.) requires \"mei\" not \"meu\" (masc. sg.).",
   },
 ]
 
@@ -280,7 +283,14 @@ export default function DemoPage() {
   const [selectedOption, setSelectedOption] = useState<string | null>(null)
   const [showHint, setShowHint] = useState(false)
   const [submitted, setSubmitted] = useState(false)
-  const [showExplanation, setShowExplanation] = useState(false)
+  const [isEvaluating, setIsEvaluating] = useState(false)
+  const [evaluation, setEvaluation] = useState<{
+    isCorrect: boolean
+    score: number
+    feedback: string
+    correction?: string
+    ruleExplanation: string
+  } | null>(null)
 
   const challenge = DEMO_CHALLENGES[challengeIndex]
   const isMultipleChoice = challenge.type === "which_one" && (challenge.options?.length ?? 0) > 0
@@ -303,36 +313,86 @@ export default function DemoPage() {
     localStorage.setItem("chaoslimba-theme", selectedTheme)
   }, [selectedTheme, mounted])
 
-  const nextChallenge = useCallback(() => {
-    setChallengeIndex((i) => (i + 1) % DEMO_CHALLENGES.length)
+  const resetChallengeState = useCallback(() => {
     setResponse("")
     setSelectedOption(null)
     setShowHint(false)
     setSubmitted(false)
-    setShowExplanation(false)
+    setIsEvaluating(false)
+    setEvaluation(null)
   }, [])
+
+  const nextChallenge = useCallback(() => {
+    setChallengeIndex((i) => (i + 1) % DEMO_CHALLENGES.length)
+    resetChallengeState()
+  }, [resetChallengeState])
 
   const shuffleChallenge = useCallback(() => {
     let next: number
     do { next = Math.floor(Math.random() * DEMO_CHALLENGES.length) } while (next === challengeIndex && DEMO_CHALLENGES.length > 1)
     setChallengeIndex(next)
-    setResponse("")
-    setSelectedOption(null)
-    setShowHint(false)
-    setSubmitted(false)
-    setShowExplanation(false)
-  }, [challengeIndex])
+    resetChallengeState()
+  }, [challengeIndex, resetChallengeState])
 
-  const handleSubmit = () => {
-    setSubmitted(true)
-    setShowExplanation(true)
-  }
-
-  const isCorrect = (() => {
-    if (!submitted) return false
+  const handleSubmit = async () => {
     const answer = isMultipleChoice ? selectedOption : response.trim()
-    return answer?.toLowerCase() === challenge.correctAnswer.toLowerCase()
-  })()
+    if (!answer) return
+
+    setSubmitted(true)
+    setIsEvaluating(true)
+
+    try {
+      const res = await fetch("/api/demo/evaluate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          challenge: {
+            type: challenge.type,
+            prompt: challenge.prompt,
+            targetSentence: challenge.targetSentence,
+            expectedAnswers: challenge.expectedAnswers,
+            options: challenge.options,
+            hint: challenge.hint,
+            grammarRule: challenge.grammarRule,
+            featureKey: challenge.featureKey,
+            featureName: challenge.featureName,
+          },
+          response: answer,
+        }),
+      })
+
+      if (res.ok) {
+        const data = await res.json()
+        setEvaluation(data.evaluation)
+      } else {
+        // Fallback to simple comparison if API fails
+        const isRight = challenge.expectedAnswers.some(
+          (ea) => ea.toLowerCase() === answer.toLowerCase()
+        )
+        setEvaluation({
+          isCorrect: isRight,
+          score: isRight ? 100 : 0,
+          feedback: isRight ? "Correct!" : "Not quite right.",
+          correction: isRight ? undefined : challenge.expectedAnswers[0],
+          ruleExplanation: challenge.grammarRule,
+        })
+      }
+    } catch {
+      // Fallback to simple comparison on network error
+      const isRight = challenge.expectedAnswers.some(
+        (ea) => ea.toLowerCase() === answer.toLowerCase()
+      )
+      setEvaluation({
+        isCorrect: isRight,
+        score: isRight ? 100 : 0,
+        feedback: isRight ? "Correct!" : "Not quite right.",
+        correction: isRight ? undefined : challenge.expectedAnswers[0],
+        ruleExplanation: challenge.grammarRule,
+      })
+    } finally {
+      setIsEvaluating(false)
+    }
+  }
 
   const currentMode = mounted ? resolvedTheme : "dark"
 
@@ -587,39 +647,59 @@ export default function DemoPage() {
                   </>
                 )}
 
+                {/* Evaluating spinner */}
+                {submitted && isEvaluating && (
+                  <div className="flex items-center justify-center gap-3 py-6">
+                    <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                    <span className="text-sm text-muted-foreground">AI is evaluating your answer...</span>
+                  </div>
+                )}
+
                 {/* Result */}
-                {submitted && (
+                {submitted && evaluation && !isEvaluating && (
                   <div className="space-y-4">
-                    <div className={`rounded-xl p-4 border ${isCorrect ? "bg-chart-3/10 border-chart-3/30" : "bg-chart-4/10 border-chart-4/30"}`}>
-                      <div className="flex items-center gap-2 mb-2">
-                        {isCorrect ? (
-                          <Check className="h-5 w-5 text-chart-3" />
-                        ) : (
-                          <ArrowRight className="h-5 w-5 text-chart-4" />
-                        )}
-                        <span className={`font-semibold ${isCorrect ? "text-chart-3" : "text-chart-4"}`}>
-                          {isCorrect ? "Correct!" : "Not quite — here's the answer:"}
-                        </span>
+                    {/* Score + feedback */}
+                    <div className={`rounded-xl p-4 border ${evaluation.isCorrect ? "bg-chart-3/10 border-chart-3/30" : evaluation.score >= 50 ? "bg-chart-4/10 border-chart-4/30" : "bg-destructive/10 border-destructive/30"}`}>
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          {evaluation.isCorrect ? (
+                            <Check className="h-5 w-5 text-chart-3" />
+                          ) : (
+                            <ArrowRight className="h-5 w-5 text-chart-4" />
+                          )}
+                          <span className={`font-semibold ${evaluation.isCorrect ? "text-chart-3" : "text-chart-4"}`}>
+                            {evaluation.isCorrect ? "Correct!" : "Not quite"}
+                          </span>
+                        </div>
+                        <Badge className={`text-xs ${
+                          evaluation.score >= 80 ? "bg-chart-3/20 text-chart-3 border-chart-3/30"
+                          : evaluation.score >= 50 ? "bg-chart-4/20 text-chart-4 border-chart-4/30"
+                          : "bg-destructive/20 text-destructive border-destructive/30"
+                        }`}>
+                          {evaluation.score}/100
+                        </Badge>
                       </div>
-                      {!isCorrect && (
-                        <p className="text-sm font-medium mb-2">
-                          {challenge.correctAnswer}
-                        </p>
+                      <p className="text-sm text-muted-foreground leading-relaxed">{evaluation.feedback}</p>
+                      {evaluation.correction && (
+                        <div className="mt-3 pt-3 border-t border-border/40">
+                          <span className="text-xs text-muted-foreground uppercase tracking-wider">Correct form</span>
+                          <p className="text-sm font-medium mt-0.5">{evaluation.correction}</p>
+                        </div>
                       )}
                     </div>
 
-                    {showExplanation && (
-                      <div className="rounded-xl bg-muted/30 border border-border/40 p-4">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Brain className="h-4 w-4 text-primary" />
-                          <span className="text-sm font-semibold text-primary">Linguistic Context</span>
-                        </div>
-                        <p className="text-sm text-muted-foreground leading-relaxed">{challenge.explanation}</p>
-                        <p className="text-xs text-muted-foreground/60 mt-3 italic">
-                          In the full app, the AI tutor adapts explanations to your learning history and error patterns.
-                        </p>
+                    {/* Rule explanation from AI */}
+                    <div className="rounded-xl bg-muted/30 border border-border/40 p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Brain className="h-4 w-4 text-primary" />
+                        <span className="text-sm font-semibold text-primary">Grammar Rule</span>
                       </div>
-                    )}
+                      <p className="text-sm text-muted-foreground leading-relaxed">{evaluation.ruleExplanation}</p>
+                      <div className="flex items-center gap-1.5 mt-3 text-xs text-primary/60">
+                        <Sparkles className="h-3 w-3" />
+                        <span>Evaluated by ChaosLimba AI — same engine used in the full app</span>
+                      </div>
+                    </div>
 
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-muted-foreground">
