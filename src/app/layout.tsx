@@ -46,14 +46,12 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en" suppressHydrationWarning>
-        <head>
-          <script
-            dangerouslySetInnerHTML={{ __html: themeInitScript }}
-          />
-        </head>
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >
+          <script
+            dangerouslySetInnerHTML={{ __html: themeInitScript }}
+          />
           <ThemeProvider
             attribute="class"
             defaultTheme="dark"

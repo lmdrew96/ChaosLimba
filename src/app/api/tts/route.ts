@@ -108,10 +108,14 @@ export async function POST(req: Request) {
     });
   } catch (error) {
     if (error instanceof TTSValidationError) {
+      console.error("[TTS_VALIDATION_ERROR]", error.message);
       return new NextResponse(error.message, { status: 400 });
     }
-    console.error("[TTS]", error);
-    return new NextResponse("TTS generation failed", { status: 500 });
+    console.error("[TTS_ERROR]", error instanceof Error ? error.message : String(error), error);
+    return new NextResponse(
+      `TTS generation failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+      { status: 500 }
+    );
   }
 }
 
