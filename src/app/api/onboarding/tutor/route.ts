@@ -27,6 +27,7 @@ YOUR GOAL: Determine the user's Romanian proficiency level (A1, A2, B1, B2, C1, 
 
 GUIDELINES:
 - Be warm, encouraging, and conversational - NOT like a formal test
+- ALL your conversational responses must be in English. You may include Romanian words/phrases as examples, but your feedback and questions should be in English.
 - Adapt your language to their comfort level:
   - For beginners: Mostly English, sprinkle in basic Romanian (bună, mulțumesc, da/nu)
   - For intermediate: Mix of Romanian and English, increase Romanian gradually
@@ -36,12 +37,14 @@ GUIDELINES:
 - Watch for: vocabulary range, grammar accuracy, comprehension, confidence
 
 ASSESSMENT CRITERIA:
-- A1: Knows basic greetings, numbers, simple phrases. Mostly responds in English.
-- A2: Can handle simple exchanges about familiar topics. Makes basic sentences.
+- A1: Cannot produce Romanian beyond memorized words/phrases (bună, mulțumesc, da/nu). Responds entirely or almost entirely in English. If the user never attempts Romanian or only knows isolated words, they are A1 — no exceptions.
+- A2: Can construct basic ORIGINAL sentences in Romanian (not just repeat memorized phrases). Attempts Romanian even if full of errors. Must have produced at least one original Romanian sentence to qualify.
 - B1: Can discuss familiar topics with some complexity. Noticeable but manageable errors.
 - B2: Discusses abstract topics, expresses opinions. Good grammar with occasional errors.
 - C1: Near-native fluency, complex grammar, nuanced vocabulary.
 - C2: Essentially native-level in all areas.
+
+CRITICAL RULE: If the user has NOT produced at least one original Romanian sentence during the conversation, the maximum level is A1 regardless of other signals (knowledge about Romania, understanding Romanian, etc.). Receptive knowledge alone does not qualify for A2+.
 
 After 4-6 exchanges, you should have enough data to assess confidently.
 
@@ -73,7 +76,7 @@ export async function POST(req: NextRequest) {
             // Add context about self-assessment
             {
                 role: "user",
-                content: `[CONTEXT: User self-assessed as "${selfAssessment}" (${SELF_ASSESSMENT_LEVELS[selfAssessment] || "A1"} starting point). This is exchange ${Math.floor(conversationHistory.length / 2) + 1}]`,
+                content: `[CONTEXT: User self-assessed as "${selfAssessment}". Use this as a STARTING HYPOTHESIS, not a floor — adjust downward or upward based solely on their demonstrated Romanian ability. Exchange ${Math.floor(conversationHistory.length / 2) + 1} of the conversation.]`,
             },
         ];
 
@@ -112,10 +115,32 @@ export async function POST(req: NextRequest) {
             });
         }
 
+        let inferredLevel: CEFRLevel = parsed.inferredLevel || SELF_ASSESSMENT_LEVELS[selfAssessment] || "A1";
+
+        // Hard-floor: if user self-assessed as complete beginner and produced no Romanian, cap at A1
+        if (selfAssessment === "complete_beginner" && inferredLevel !== "A1") {
+            const userMessages = conversationHistory
+                .filter((msg) => msg.role === "user")
+                .map((msg) => msg.content);
+
+            const romanianIndicators = /[ăâîșț]|(?:^|\s)(?:sunt|este|eu|tu|el|ea|noi|voi|ei|ele|cum|unde|care|acest|această|pot|vreau|trebuie|am|avem|aveți|nu\s+\w{3,}|mă\s+numesc|îmi\s+place|aș\s+vrea|nu\s+știu|da,?\s+\w{3,})(?:\s|$|[.,!?])/im;
+
+            const hasRomanianProduction = userMessages.some((msg) =>
+                romanianIndicators.test(msg)
+            );
+
+            if (!hasRomanianProduction) {
+                console.log(
+                    `[Onboarding Tutor] Hard-floor override: ${inferredLevel} → A1 (complete_beginner with no Romanian production)`
+                );
+                inferredLevel = "A1";
+            }
+        }
+
         // Validate and return
         return NextResponse.json({
             response: parsed.response || "Could you tell me more?",
-            inferredLevel: parsed.inferredLevel || SELF_ASSESSMENT_LEVELS[selfAssessment] || "A1",
+            inferredLevel,
             confidence: parsed.confidence || 0.5,
             reasoning: parsed.reasoning || "",
             assessmentComplete: parsed.assessmentComplete || false,
