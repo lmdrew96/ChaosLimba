@@ -3,7 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import { generateTutorResponse } from "@/lib/ai/tutor";
 import { formatFeedback } from "@/lib/ai/formatter";
 import { trackFeatureExposure, extractFeaturesFromErrors } from "@/lib/ai/exposure-tracker";
-import { saveErrorPatternsToGarden } from "@/lib/db/queries";
+import { saveErrorPatternsToGarden, saveBeautifulMistake } from "@/lib/db/queries";
 import { runFeedbackPipeline } from "@/lib/ai/aggregator";
 import type { ExtractedErrorPattern } from "@/types/aggregator";
 import type { FossilizationAlert } from "@/lib/ai/adaptation";
@@ -159,6 +159,20 @@ export async function POST(req: NextRequest) {
         'chaos_window',
         modality
       );
+
+      // Save Beautiful Mistake if AI flagged one (fire-and-forget)
+      const bm = pipelineResult.report.grammar.beautifulMistake;
+      if (bm?.isBeautiful && bm.note && userId) {
+        saveBeautifulMistake({
+          userId,
+          fullText: userResponse.trim(),
+          note: bm.note,
+          source: 'chaos_window',
+          sessionId,
+        }).catch(err => {
+          console.error('[Chaos Window] Failed to save beautiful mistake:', err);
+        });
+      }
 
       aggregatedFeedback = {
         overallScore: pipelineResult.overallScore,

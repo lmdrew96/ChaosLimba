@@ -3,7 +3,7 @@ import { auth } from '@clerk/nextjs/server';
 import { db } from '@/lib/db';
 import { userPreferences, grammarFeatureMap } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
-import { saveErrorPatternsToGarden, getWorkshopFeatureTarget } from '@/lib/db/queries';
+import { saveErrorPatternsToGarden, getWorkshopFeatureTarget, saveBeautifulMistake } from '@/lib/db/queries';
 import { evaluateWorkshopResponse, generateWorkshopChallenge } from '@/lib/ai/workshop';
 import { trackFeatureExposure } from '@/lib/ai/exposure-tracker';
 import type { WorkshopChallenge, WorkshopChallengeType } from '@/lib/ai/workshop';
@@ -94,6 +94,20 @@ export async function POST(req: NextRequest) {
       if (errorPatterns.length > 0) {
         saveErrorPatternsToGarden(errorPatterns, userId, sessionId, 'workshop', 'text').catch(err => {
           console.error('[Workshop Evaluate] Failed to save errors:', err);
+        });
+      }
+
+      // Save Beautiful Mistake if AI flagged one (fire-and-forget)
+      const bm = evaluation.beautifulMistake;
+      if (bm?.isBeautiful && bm.note) {
+        saveBeautifulMistake({
+          userId,
+          fullText: response.trim(),
+          note: bm.note,
+          source: 'workshop',
+          sessionId,
+        }).catch(err => {
+          console.error('[Workshop Evaluate] Failed to save beautiful mistake:', err);
         });
       }
     }

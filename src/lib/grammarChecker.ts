@@ -15,6 +15,10 @@ export interface GrammarCheckResult {
   originalText: string;
   correctedText: string;
   errors: GrammarCheckError[];
+  beautifulMistake?: {
+    isBeautiful: boolean;
+    note: string;
+  };
 }
 
 /**
@@ -51,6 +55,14 @@ async function checkWithClaude(text: string): Promise<GrammarCheckResult> {
    - Register mismatches (overly formal vs colloquial)
    - Awkward phrasing that doesn't violate grammar rules
 
+Also check for a "Beautiful Mistake" — a rare flag for attempts that are wrong but reveal creativity, genuine engagement, or a uniquely human attempt at Romanian. Examples:
+- Inventing a word using correct Romanian morphology (e.g., a nonexistent but perfectly formed derivation)
+- An accidentally poetic or vivid phrasing that misses the mark linguistically
+- A charming literal L1 transfer that shows the learner was truly thinking in Romanian
+- A mistake that reveals deep structural understanding even if wrong
+
+Be SELECTIVE. Most attempts will NOT qualify. Set isBeautiful to false unless genuinely struck. The note should be warm and specific — 1–2 sentences max.
+
 Return JSON with:
 {
   "originalText": "...",
@@ -64,7 +76,11 @@ Return JSON with:
       "category": "specific_category",
       "feedbackType": "error" | "suggestion"
     }
-  ]
+  ],
+  "beautifulMistake": {
+    "isBeautiful": false,
+    "note": ""
+  }
 }
 
 If no issues, return empty errors array.
@@ -81,7 +97,7 @@ Text to check: ${text}`;
       },
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 500,
+        max_tokens: 700,
         messages: [
           {
             role: 'user',
@@ -131,6 +147,11 @@ function parseClaudeResponse(text: string): Partial<GrammarCheckResult> {
     const parsed = JSON.parse(jsonText.trim());
 
     // Normalize the structure to match our interface
+    const bm = parsed.beautifulMistake;
+    const beautifulMistake = bm?.isBeautiful === true && bm?.note
+      ? { isBeautiful: true, note: bm.note }
+      : { isBeautiful: false, note: '' };
+
     return {
       originalText: parsed.originalText || parsed.original_text || parsed.original,
       correctedText: parsed.correctedText || parsed.corrected_text || parsed.corrected,
@@ -140,8 +161,9 @@ function parseClaudeResponse(text: string): Partial<GrammarCheckResult> {
         correction: error.correction || error.correct_form,
         explanation: error.explanation || error.message || '',
         category: error.category,
-        feedbackType: error.feedbackType || 'error', // Default to error if LLM doesn't specify
+        feedbackType: error.feedbackType || 'error',
       })),
+      beautifulMistake,
     };
   } catch (error) {
     console.error('Failed to parse Claude response:', text);

@@ -32,6 +32,10 @@ export interface WorkshopEvaluation {
   ruleExplanation: string;
   grammarErrors: GrammarError[];
   usedTargetStructure: boolean;
+  beautifulMistake?: {
+    isBeautiful: boolean;
+    note: string;
+  };
 }
 
 // ─── Challenge Type Selection ───
@@ -414,6 +418,7 @@ export async function evaluateWorkshopResponse(
       ruleExplanation: challenge.grammarRule,
       grammarErrors: grammarResult?.errors || [],
       usedTargetStructure: false,
+      beautifulMistake: grammarResult?.beautifulMistake,
     };
   }
 
@@ -425,5 +430,6 @@ export async function evaluateWorkshopResponse(
     ruleExplanation: (parsed.ruleExplanation as string) || challenge.grammarRule,
     grammarErrors: grammarResult?.errors || [],
     usedTargetStructure: parsed.usedTargetStructure as boolean ?? false,
+    beautifulMistake: grammarResult?.beautifulMistake,
   };
 }

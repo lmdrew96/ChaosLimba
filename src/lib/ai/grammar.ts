@@ -15,6 +15,10 @@ export interface GrammarResult {
   correctedText: string;
   errors: GrammarError[];
   grammarScore: number;
+  beautifulMistake?: {
+    isBeautiful: boolean;
+    note: string;
+  };
 }
 
 import { checkGrammar as checkGrammarWithProvider, GrammarCheckError, GrammarCheckResult } from '@/lib/grammarChecker';
@@ -76,6 +80,7 @@ export async function analyzeGrammar(text: string): Promise<GrammarResult> {
       correctedText: providerResult.correctedText,
       errors,
       grammarScore,
+      beautifulMistake: providerResult.beautifulMistake,
     };
 
     setCache(cacheKey, result);

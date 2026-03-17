@@ -399,3 +399,16 @@ export const adaptationInterventions = pgTable('adaptation_interventions', {
 export type AdaptationIntervention = typeof adaptationInterventions.$inferSelect;
 export type NewAdaptationIntervention = typeof adaptationInterventions.$inferInsert;
 
+// Beautiful Mistakes table - celebrates uniquely creative/charming learner errors
+export const beautifulMistakes = pgTable('beautiful_mistakes', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: text('user_id').notNull(),
+  fullText: text('full_text').notNull(),      // The learner's full production
+  note: text('note').notNull(),               // AI's note on why it's beautiful
+  source: text('source').$type<ErrorSource>().notNull(),
+  sessionId: uuid('session_id').references(() => sessions.id),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export type BeautifulMistake = typeof beautifulMistakes.$inferSelect;
+export type NewBeautifulMistake = typeof beautifulMistakes.$inferInsert;

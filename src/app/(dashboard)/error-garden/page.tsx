@@ -3,8 +3,9 @@
 import { useEffect, useState, useCallback, useMemo } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Flower2, AlertTriangle, TrendingUp, TrendingDown, Minus, Lightbulb, Sparkles, Loader2, LayoutGrid, List as ListIcon, Info, Filter, X, Zap, Mic, Type, ArrowUp, ArrowDown } from "lucide-react"
+import { Flower2, AlertTriangle, TrendingUp, TrendingDown, Minus, Lightbulb, Sparkles, Loader2, LayoutGrid, List as ListIcon, Info, Filter, X, Zap, Mic, Type, ArrowUp, ArrowDown, Heart } from "lucide-react"
 import type { ErrorPattern } from "@/app/api/errors/patterns/route"
+import type { BeautifulMistake } from "@/lib/db/schema"
 import { PatternModal } from "@/components/features/error-garden/PatternModal"
 import { cn } from "@/lib/utils"
 
@@ -52,6 +53,7 @@ export default function ErrorGardenPage() {
   const [data, setData] = useState<PatternData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [beautifulMistakes, setBeautifulMistakes] = useState<BeautifulMistake[]>([])
 
   // UI State
   const [selectedPattern, setSelectedPattern] = useState<ErrorPattern | null>(null)
@@ -88,16 +90,27 @@ export default function ErrorGardenPage() {
       setData(result)
       setError(null)
     } catch {
-      // Error handled via state
       setError("Failed to load error patterns")
     } finally {
       setLoading(false)
     }
   }, [])
 
+  const fetchBeautifulMistakes = useCallback(async () => {
+    try {
+      const res = await fetch("/api/errors/beautiful", { credentials: "include" })
+      if (!res.ok) return
+      const result = await res.json()
+      setBeautifulMistakes(result.mistakes || [])
+    } catch {
+      // Non-critical — silently skip
+    }
+  }, [])
+
   useEffect(() => {
     fetchPatterns()
-  }, [fetchPatterns])
+    fetchBeautifulMistakes()
+  }, [fetchPatterns, fetchBeautifulMistakes])
 
   const sortedPatterns = useMemo(() => {
     if (!data?.patterns) return []
@@ -412,6 +425,24 @@ export default function ErrorGardenPage() {
         </div>
       </div>
 
+      {/* Beautiful Mistakes */}
+      {beautifulMistakes.length > 0 && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <Heart className="h-6 w-6 text-chart-2" />
+            <div>
+              <h2 className="text-2xl font-bold text-chart-2">Beautiful Mistakes</h2>
+              <p className="text-sm text-muted-foreground">The ones that were wrong in exactly the right way</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {beautifulMistakes.map((mistake) => (
+              <BeautifulMistakeCard key={mistake.id} mistake={mistake} />
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Footer / Theory */}
       <Card className="rounded-2xl border-chart-4/20 bg-gradient-to-br from-chart-4/10 to-chart-4/5 backdrop-blur-sm">
         <CardContent className="p-8">
@@ -574,6 +605,39 @@ function PatternCard({ pattern, onClick }: { pattern: ErrorPattern, onClick: () 
       <div className="flex items-center gap-2 text-xs text-muted-foreground/80 bg-muted/30 p-2 rounded-lg">
         <Info className="h-3 w-3" />
         <span className="truncate italic">"{pattern.interlanguageRule}"</span>
+      </div>
+    </div>
+  )
+}
+
+function BeautifulMistakeCard({ mistake }: { mistake: BeautifulMistake }) {
+  const sourceLabels: Record<string, string> = {
+    chaos_window: "Chaos Window",
+    workshop: "Workshop",
+    content_player: "Content",
+    deep_fog: "Deep Fog",
+    mystery_shelf: "Mystery Shelf",
+    manual: "Manual",
+  }
+
+  return (
+    <div className="group bg-muted/30 backdrop-blur-sm rounded-xl p-5 border border-chart-2/20 hover:border-chart-2/40 transition-all">
+      <div className="flex items-start justify-between gap-3 mb-3">
+        <Heart className="h-4 w-4 text-chart-2 mt-0.5 shrink-0" />
+        <div className="flex-1 min-w-0">
+          <p className="text-base font-medium text-foreground leading-snug italic">
+            &ldquo;{mistake.fullText}&rdquo;
+          </p>
+        </div>
+      </div>
+      <p className="text-sm text-muted-foreground leading-relaxed mb-3 ml-7">
+        {mistake.note}
+      </p>
+      <div className="flex items-center gap-3 ml-7 text-xs text-muted-foreground/60">
+        <span className="px-2 py-0.5 rounded-full bg-chart-2/10 text-chart-2/80 border border-chart-2/20">
+          {sourceLabels[mistake.source] ?? mistake.source}
+        </span>
+        <span>{new Date(mistake.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
       </div>
     </div>
   )

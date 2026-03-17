@@ -20,6 +20,8 @@ import {
   learningNarratives,
   ttsUsage,
   generatedContent,
+  beautifulMistakes,
+  type NewBeautifulMistake,
   type CEFRLevelEnum,
   type ContentItem,
   type GrammarFeature,
@@ -143,6 +145,22 @@ export async function saveErrorPatternsToGarden(
     console.error('[saveErrorPatternsToGarden] Failed to save error patterns:', error);
     throw new Error('Failed to save error patterns to Error Garden');
   }
+}
+
+/**
+ * Saves a Beautiful Mistake to the database.
+ * Called when the AI grader flags a learner's attempt as uniquely creative or charming.
+ */
+export async function saveBeautifulMistake(params: {
+  userId: string;
+  fullText: string;
+  note: string;
+  source: ErrorSource;
+  sessionId: string;
+}): Promise<void> {
+  const { userId, fullText, note, source, sessionId } = params;
+  const newMistake: NewBeautifulMistake = { userId, fullText, note, source, sessionId };
+  await db.insert(beautifulMistakes).values(newMistake);
 }
 
 /**
