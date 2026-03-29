@@ -18,18 +18,20 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: {
-    template: "%s | ChaosLimbă",
-    default: "ChaosLimbă - Romanian Language Learning for ADHD Brains",
-  },
+  title: "ChaosLimbă",
   description:
-    "AI-powered Romanian language learning through productive confusion and structured chaos",
+      "AI-powered Romanian language learning through productive confusion and structured chaos",
+  icons: {
+    icon: '/logo.svg',
+    apple: '/logo.svg',
+  },
   openGraph: {
     title: "ChaosLimbă",
     description: "AI-powered Romanian language learning through productive confusion and structured chaos",
     siteName: "ChaosLimbă",
     locale: "en_US",
     type: "website",
+    url: "https://chaoslimba.adhdesigns.dev",
   },
   twitter: {
     card: "summary_large_image",
