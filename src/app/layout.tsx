@@ -44,14 +44,14 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <ClerkProvider>
-      <html lang="en" suppressHydrationWarning>
-        <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-        >
-          <script
-            dangerouslySetInnerHTML={{ __html: themeInitScript }}
-          />
+    <html lang="en" suppressHydrationWarning>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
+        <script
+          dangerouslySetInnerHTML={{ __html: themeInitScript }}
+        />
+        <ClerkProvider>
           <ThemeProvider
             attribute="class"
             defaultTheme="dark"
@@ -64,8 +64,8 @@ export default function RootLayout({
             </div>
             <Toaster richColors closeButton position="bottom-right" />
           </ThemeProvider>
-        </body>
-      </html>
-    </ClerkProvider>
+        </ClerkProvider>
+      </body>
+    </html>
   );
 }
