@@ -17,7 +17,7 @@ import {
   Moon,
   ScrollText,
 } from "lucide-react"
-import { useState } from "react"
+import { useState, useSyncExternalStore } from "react"
 import { useTheme } from "next-themes"
 import { Button } from "@/components/ui/button"
 
@@ -72,14 +72,18 @@ const navItems = [
   },
 ]
 
+const emptySubscribe = () => () => {}
 
 export function Sidebar() {
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
   const { resolvedTheme, setTheme } = useTheme()
 
+  const isClient = useSyncExternalStore(emptySubscribe, () => true, () => false)
+  const currentTheme = isClient ? (resolvedTheme ?? "dark") : "dark"
+
   const toggleMode = () => {
-    setTheme(resolvedTheme === "dark" ? "light" : "dark")
+    setTheme(currentTheme === "dark" ? "light" : "dark")
   }
 
   return (
@@ -141,9 +145,9 @@ export function Sidebar() {
             <button
               onClick={toggleMode}
               className="ml-auto p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
-              aria-label={resolvedTheme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+              aria-label={currentTheme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
             >
-              {resolvedTheme === "dark" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+              {currentTheme === "dark" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
             </button>
           </div>
 
@@ -192,9 +196,9 @@ export function Sidebar() {
           <div className="p-4 border-t border-border/40">
             <div className="rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 p-4 text-center">
               <p className="text-xs text-muted-foreground italic">
-                "We provide the method.
+                &quot;We provide the method.
                 <br />
-                You provide the mess."
+                You provide the mess.&quot;
               </p>
             </div>
           </div>
