@@ -13,6 +13,15 @@ const DEFAULT_VOICE_ID = "PoHUWWWMHFrA8z7Q88pu";
 const MAX_TEXT_LENGTH = 200;
 
 export class TTSValidationError extends Error {}
+export class TTSProviderError extends Error {
+  statusCode: number;
+
+  constructor(message: string, statusCode: number) {
+    super(message);
+    this.name = "TTSProviderError";
+    this.statusCode = statusCode;
+  }
+}
 
 export interface TTSOptions {
   speed?: number; // 0.5-2.0, default 1.0
@@ -43,30 +52,38 @@ export async function generateSpeech(
   const voiceId = options.voiceId || DEFAULT_VOICE_ID;
   const speed = options.speed ?? 1.0;
 
-  const response = await fetch(
-    `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
-    {
-      method: "POST",
-      headers: {
-        "xi-api-key": ELEVENLABS_API_KEY,
-        "Content-Type": "application/json",
-        Accept: "audio/mpeg",
-      },
-      body: JSON.stringify({
-        text: trimmed,
-        model_id: MODEL_ID,
-        voice_settings: {
-          stability: 0.5,
-          similarity_boost: 0.75,
-          speed,
+  let response: Response;
+  try {
+    response = await fetch(
+      `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
+      {
+        method: "POST",
+        headers: {
+          "xi-api-key": ELEVENLABS_API_KEY,
+          "Content-Type": "application/json",
+          Accept: "audio/mpeg",
         },
-      }),
-    }
-  );
+        body: JSON.stringify({
+          text: trimmed,
+          model_id: MODEL_ID,
+          voice_settings: {
+            stability: 0.5,
+            similarity_boost: 0.75,
+            speed,
+          },
+        }),
+      }
+    );
+  } catch (error) {
+    throw new TTSProviderError(
+      `Failed to reach ElevenLabs: ${error instanceof Error ? error.message : "Network error"}`,
+      503
+    );
+  }
 
   if (!response.ok) {
     const err = await response.text();
-    throw new Error(`ElevenLabs API error: ${response.status} ${err}`);
+    throw new TTSProviderError(`ElevenLabs API error (${response.status}): ${err}`, response.status);
   }
 
   return response.arrayBuffer();

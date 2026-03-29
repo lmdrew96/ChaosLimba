@@ -3,10 +3,14 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { ttsUsage } from "@/lib/db/schema";
 import { eq, and, gte, sql } from "drizzle-orm";
-import { generateSpeech, TTSValidationError } from "@/lib/ai/elevenlabs";
+import { generateSpeech, TTSProviderError, TTSValidationError } from "@/lib/ai/elevenlabs";
 
 const DAILY_CHAR_LIMIT = 2000;
 const MAX_TEXT_LENGTH = 200;
+
+function isUsageTrackingConfigured(): boolean {
+  return Boolean(process.env.DATABASE_URL);
+}
 
 function getStartOfDay(): Date {
   const now = new Date();
@@ -60,32 +64,43 @@ export async function POST(req: Request) {
       });
     }
 
-    // Check daily usage
-    const currentUsage = await getDailyUsage(userId);
-    const remaining = DAILY_CHAR_LIMIT - currentUsage;
+    let usageTrackingEnabled = isUsageTrackingConfigured();
+    let currentUsage = 0;
+    let remaining = DAILY_CHAR_LIMIT;
 
-    if (remaining <= 0) {
-      return NextResponse.json(
-        {
-          error: "Daily limit reached",
-          dailyLimit: DAILY_CHAR_LIMIT,
-          used: currentUsage,
-          remaining: 0,
-        },
-        { status: 429 }
-      );
-    }
+    // If DB is missing/unavailable, keep TTS functional and skip quota tracking.
+    if (usageTrackingEnabled) {
+      try {
+        currentUsage = await getDailyUsage(userId);
+        remaining = DAILY_CHAR_LIMIT - currentUsage;
+      } catch (usageError) {
+        usageTrackingEnabled = false;
+        console.error("[TTS_USAGE_READ_ERROR]", usageError);
+      }
 
-    if (trimmed.length > remaining) {
-      return NextResponse.json(
-        {
-          error: "Would exceed daily limit",
-          dailyLimit: DAILY_CHAR_LIMIT,
-          used: currentUsage,
-          remaining,
-        },
-        { status: 429 }
-      );
+      if (usageTrackingEnabled && remaining <= 0) {
+        return NextResponse.json(
+          {
+            error: "Daily limit reached",
+            dailyLimit: DAILY_CHAR_LIMIT,
+            used: currentUsage,
+            remaining: 0,
+          },
+          { status: 429 }
+        );
+      }
+
+      if (usageTrackingEnabled && trimmed.length > remaining) {
+        return NextResponse.json(
+          {
+            error: "Would exceed daily limit",
+            dailyLimit: DAILY_CHAR_LIMIT,
+            used: currentUsage,
+            remaining,
+          },
+          { status: 429 }
+        );
+      }
     }
 
     // Validate speed
@@ -94,22 +109,40 @@ export async function POST(req: Request) {
     // Generate speech
     const audioBuffer = await generateSpeech(trimmed, { speed: speechSpeed });
 
-    // Record usage
-    await recordUsage(userId, trimmed.length);
+    // Record usage, but don't fail TTS on usage-write errors.
+    if (usageTrackingEnabled) {
+      try {
+        await recordUsage(userId, trimmed.length);
+      } catch (usageError) {
+        usageTrackingEnabled = false;
+        console.error("[TTS_USAGE_WRITE_ERROR]", usageError);
+      }
+    }
 
     // Return audio with usage headers
     return new NextResponse(audioBuffer, {
       headers: {
         "Content-Type": "audio/mpeg",
-        "X-TTS-Characters-Used": String(currentUsage + trimmed.length),
-        "X-TTS-Characters-Remaining": String(remaining - trimmed.length),
+        "X-TTS-Characters-Used": String(usageTrackingEnabled ? currentUsage + trimmed.length : 0),
+        "X-TTS-Characters-Remaining": String(usageTrackingEnabled ? remaining - trimmed.length : DAILY_CHAR_LIMIT),
         "X-TTS-Daily-Limit": String(DAILY_CHAR_LIMIT),
+        "X-TTS-Usage-Tracking": usageTrackingEnabled ? "enabled" : "disabled",
       },
     });
   } catch (error) {
     if (error instanceof TTSValidationError) {
       console.error("[TTS_VALIDATION_ERROR]", error.message);
       return new NextResponse(error.message, { status: 400 });
+    }
+    if (error instanceof TTSProviderError) {
+      console.error("[TTS_PROVIDER_ERROR]", error.message);
+      if (error.statusCode === 429) {
+        return new NextResponse("TTS provider rate limit reached. Please try again soon.", { status: 429 });
+      }
+      if (error.statusCode >= 500) {
+        return new NextResponse("TTS provider is temporarily unavailable. Please try again.", { status: 503 });
+      }
+      return new NextResponse(error.message, { status: 502 });
     }
     console.error("[TTS_ERROR]", error instanceof Error ? error.message : String(error), error);
     return new NextResponse(
@@ -127,15 +160,30 @@ export async function GET() {
   }
 
   try {
+    if (!isUsageTrackingConfigured()) {
+      return NextResponse.json({
+        dailyLimit: DAILY_CHAR_LIMIT,
+        used: 0,
+        remaining: DAILY_CHAR_LIMIT,
+        usageTracking: "disabled",
+      });
+    }
+
     const currentUsage = await getDailyUsage(userId);
 
     return NextResponse.json({
       dailyLimit: DAILY_CHAR_LIMIT,
       used: currentUsage,
       remaining: Math.max(0, DAILY_CHAR_LIMIT - currentUsage),
+      usageTracking: "enabled",
     });
   } catch (error) {
-    console.error("[TTS_USAGE]", error);
-    return new NextResponse("Internal Error", { status: 500 });
+    console.error("[TTS_USAGE_ERROR]", error);
+    return NextResponse.json({
+      dailyLimit: DAILY_CHAR_LIMIT,
+      used: 0,
+      remaining: DAILY_CHAR_LIMIT,
+      usageTracking: "disabled",
+    });
   }
 }
