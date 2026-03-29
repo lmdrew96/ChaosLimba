@@ -208,7 +208,7 @@ export default function CumSePronuntaPage() {
           Cum se pronunță?
         </h1>
         <p className="text-muted-foreground">
-          Listen to Romanian pronunciation powered by ElevenLabs
+          Listen to Romanian pronunciation powered by Google Cloud TTS
         </p>
       </div>
 

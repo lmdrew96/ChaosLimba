@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { ttsUsage } from "@/lib/db/schema";
 import { eq, and, gte, sql } from "drizzle-orm";
-import { generateSpeech, TTSProviderError, TTSValidationError } from "@/lib/ai/elevenlabs";
+import { generateRomanianAudio, GoogleTTSError, GoogleTTSProviderError } from "@/lib/tts/google-cloud";
 
 const DAILY_CHAR_LIMIT = 2000;
 const MAX_TEXT_LENGTH = 200;
@@ -106,8 +106,12 @@ export async function POST(req: Request) {
     // Validate speed
     const speechSpeed = typeof speed === "number" ? Math.max(0.5, Math.min(2.0, speed)) : 1.0;
 
-    // Generate speech
-    const audioBuffer = await generateSpeech(trimmed, { speed: speechSpeed });
+    // Generate speech via Google Cloud TTS
+    const ttsResult = await generateRomanianAudio(trimmed, {
+      speakingRate: speechSpeed,
+      audioEncoding: "MP3",
+      voice: "female",
+    });
 
     // Record usage, but don't fail TTS on usage-write errors.
     if (usageTrackingEnabled) {
@@ -120,7 +124,9 @@ export async function POST(req: Request) {
     }
 
     // Return audio with usage headers
-    return new NextResponse(audioBuffer, {
+    const audioBytes = new Uint8Array(ttsResult.audioContent);
+
+    return new NextResponse(audioBytes, {
       headers: {
         "Content-Type": "audio/mpeg",
         "X-TTS-Characters-Used": String(usageTrackingEnabled ? currentUsage + trimmed.length : 0),
@@ -130,19 +136,22 @@ export async function POST(req: Request) {
       },
     });
   } catch (error) {
-    if (error instanceof TTSValidationError) {
-      console.error("[TTS_VALIDATION_ERROR]", error.message);
-      return new NextResponse(error.message, { status: 400 });
-    }
-    if (error instanceof TTSProviderError) {
+    if (error instanceof GoogleTTSProviderError) {
       console.error("[TTS_PROVIDER_ERROR]", error.message);
       if (error.statusCode === 429) {
         return new NextResponse("TTS provider rate limit reached. Please try again soon.", { status: 429 });
+      }
+      if (error.statusCode === 401 || error.statusCode === 403) {
+        return new NextResponse("TTS provider credentials are invalid or missing permissions.", { status: 503 });
       }
       if (error.statusCode >= 500) {
         return new NextResponse("TTS provider is temporarily unavailable. Please try again.", { status: 503 });
       }
       return new NextResponse(error.message, { status: 502 });
+    }
+    if (error instanceof GoogleTTSError) {
+      console.error("[TTS_CONFIG_ERROR]", error.message);
+      return new NextResponse("TTS service is not configured correctly.", { status: 503 });
     }
     console.error("[TTS_ERROR]", error instanceof Error ? error.message : String(error), error);
     return new NextResponse(

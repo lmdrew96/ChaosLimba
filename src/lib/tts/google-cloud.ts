@@ -1,6 +1,6 @@
 /**
  * Google Cloud Text-to-Speech for Romanian audio generation
- * Used for longer-form content (podcasts, lessons) — distinct from ElevenLabs (short pronunciation clips)
+ * Primary provider for pronunciation clips and longer-form generated content
  * Pricing: $16 per 1M Wavenet characters ($0.000016/char)
  */
 
@@ -11,6 +11,38 @@ export class GoogleTTSError extends Error {
   constructor(message: string, options?: ErrorOptions) {
     super(message, options);
     this.name = 'GoogleTTSError';
+  }
+}
+
+export class GoogleTTSProviderError extends GoogleTTSError {
+  statusCode: number;
+
+  constructor(message: string, statusCode: number, options?: ErrorOptions) {
+    super(message, options);
+    this.name = 'GoogleTTSProviderError';
+    this.statusCode = statusCode;
+  }
+}
+
+type GoogleAPIErrorLike = {
+  code?: number;
+  message?: string;
+};
+
+function mapGoogleErrorCodeToHttpStatus(code?: number): number {
+  switch (code) {
+    case 3: // INVALID_ARGUMENT
+      return 400;
+    case 7: // PERMISSION_DENIED
+      return 403;
+    case 8: // RESOURCE_EXHAUSTED
+      return 429;
+    case 14: // UNAVAILABLE
+      return 503;
+    case 16: // UNAUTHENTICATED
+      return 401;
+    default:
+      return 502;
   }
 }
 
@@ -118,7 +150,12 @@ export async function generateRomanianAudio(
     };
   } catch (error) {
     if (error instanceof GoogleTTSError) throw error;
-    throw new GoogleTTSError('Google Cloud TTS synthesis failed', { cause: error });
+    const googleError = error as GoogleAPIErrorLike;
+    throw new GoogleTTSProviderError(
+      `Google Cloud TTS synthesis failed: ${googleError?.message ?? 'Unknown provider error'}`,
+      mapGoogleErrorCodeToHttpStatus(googleError?.code),
+      { cause: error }
+    );
   }
 }
 

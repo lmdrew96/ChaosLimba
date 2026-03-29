@@ -166,7 +166,7 @@ export type WordTimestamp = {
   end: number;   // seconds
 };
 
-// TTS Usage table - tracks ElevenLabs character usage per user per day
+// TTS Usage table - tracks TTS character usage per user per day
 export const ttsUsage = pgTable('tts_usage', {
   id: uuid('id').primaryKey().defaultRandom(),
   userId: text('user_id').notNull(),
