@@ -24,7 +24,7 @@ import { Button } from "@/components/ui/button"
 const navItems = [
   {
     name: "Dashboard",
-    href: "/",
+    href: "/home",
     icon: LayoutDashboard,
     description: "Your learning overview",
   },
@@ -120,7 +120,7 @@ export function Sidebar() {
       >
         <div className="flex h-full flex-col">
           <div className="flex h-16 items-center px-6 border-b border-border/40">
-            <Link href="/" className="flex items-center gap-2">
+            <Link href="/home" className="flex items-center gap-2">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 28"

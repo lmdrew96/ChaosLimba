@@ -197,7 +197,7 @@ export default function LandingPage() {
   // Redirect authenticated users straight to their dashboard
   useEffect(() => {
     if (isLoaded && isSignedIn) {
-      router.replace("/chaos-window")
+      router.replace("/home")
     }
   }, [isLoaded, isSignedIn, router])
 

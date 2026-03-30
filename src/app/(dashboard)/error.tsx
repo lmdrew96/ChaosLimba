@@ -46,7 +46,7 @@ export default function DashboardError({
               variant="outline"
               className="rounded-xl gap-2"
             >
-              <Link href="/">
+              <Link href="/home">
                 <Home className="h-4 w-4" />
                 Dashboard
               </Link>

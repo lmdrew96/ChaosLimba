@@ -55,7 +55,7 @@ export function TopBar() {
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border/40 bg-background/80 backdrop-blur-lg px-6">
       <div className="flex items-center gap-4">
-        <Link href="/" className="md:hidden flex items-center gap-2 ml-10">
+        <Link href="/home" className="md:hidden flex items-center gap-2 ml-10">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 28"
