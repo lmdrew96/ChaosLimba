@@ -133,9 +133,13 @@ export function ChaosChat({
     )
   }
 
+  let userMessageCount = 0;
+  let hasLockedReadyState = false;
+
   // Conversation messages
   messages.forEach((msg) => {
     if (msg.type === "user") {
+      userMessageCount++;
       chatElements.push(
         <ChaosChatMessage
           key={msg.id}
@@ -170,26 +174,28 @@ export function ChaosChat({
           />
         )
       }
+
+      // Readiness signal: show once if AI triggers it (min 3) or force show at 6
+      if (!hasLockedReadyState) {
+        const aiSaysReady = msg.aiResponse?.levelAssessmentReady === true;
+        if ((aiSaysReady && userMessageCount >= 3) || userMessageCount >= 6) {
+          hasLockedReadyState = true;
+          chatElements.push(
+            <div key={`${msg.id}-readiness-signal`} className="flex gap-2">
+              <div className="flex-shrink-0 h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center">
+                <GraduationCap className="h-4 w-4 text-primary" />
+              </div>
+              <div className="rounded-2xl rounded-tl-sm bg-primary/10 border border-primary/20 px-4 py-3 text-sm text-foreground/80">
+                I have a good sense of your level now! Feel free to keep chatting or end the session when you&apos;re ready. 🎓
+              </div>
+            </div>
+          )
+        }
+      }
     }
   })
 
-  // Readiness signal: show once after exactly 3 user messages
-  const userMessagesSoFar = messages.filter(m => m.type === 'user').length
-  if (userMessagesSoFar === 3) {
-    chatElements.push(
-      <div key="readiness-signal" className="flex gap-2">
-        <div className="flex-shrink-0 h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center">
-          <GraduationCap className="h-4 w-4 text-primary" />
-        </div>
-        <div className="rounded-2xl rounded-tl-sm bg-primary/10 border border-primary/20 px-4 py-3 text-sm text-foreground/80">
-          I have a good sense of your level now! Feel free to keep chatting or end the session when you&apos;re ready. 🎓
-        </div>
-      </div>
-    )
-  }
-
-  const userMessageCount = messages.filter(m => m.type === 'user').length
-  const showEndButton = userMessageCount >= 3 // Keep showing End button after 3+
+  const showEndButton = hasLockedReadyState;
 
   const canSubmitText = modality === "text" && textValue.trim().length >= 5
   const canSubmitSpeech = modality === "speech" && !!audioBlob

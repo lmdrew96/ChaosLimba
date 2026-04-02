@@ -99,6 +99,7 @@ export type TutorResponse = {
     nextQuestion: string;
     errorPatterns: string[];
     isCorrect: boolean;
+    levelAssessmentReady?: boolean;
 };
 
 export type GrammarError = {
@@ -569,7 +570,8 @@ Analyze the response and provide feedback in this JSON format:
   },
   "nextQuestion": "follow_up_question_at_${userLevel}_level${hasFullTranscript ? '_that_references_specific_content' : ''}",
   "errorPatterns": ["any_new_error_patterns_detected"],
-  "isCorrect": false
+  "isCorrect": false,
+  "levelAssessmentReady": false // Set to true ONLY IF you have asked enough questions (typically 3+) and confidently gauged the user's true proficiency level.
 }
 
 Focus on:
@@ -599,7 +601,8 @@ FINAL CHECK for nextQuestion: ${userLevel === 'A1' ? 'It MUST be under 10 words,
             vocabHelp, // Include vocabulary help if question was detected
             nextQuestion: parsed.nextQuestion,
             errorPatterns: parsed.errorPatterns || [],
-            isCorrect: parsed.isCorrect || false
+            isCorrect: parsed.isCorrect || false,
+            levelAssessmentReady: parsed.levelAssessmentReady || false
         };
 
     } catch (error) {
@@ -614,7 +617,8 @@ FINAL CHECK for nextQuestion: ${userLevel === 'A1' ? 'It MUST be under 10 words,
             vocabHelp, // Include vocabulary help even if grading fails
             nextQuestion: "Can you try that again in a different way?",
             errorPatterns: [],
-            isCorrect: false
+            isCorrect: false,
+            levelAssessmentReady: false
         };
     }
 }
