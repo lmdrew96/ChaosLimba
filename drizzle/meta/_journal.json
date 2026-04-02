@@ -57,6 +57,13 @@
       "when": 1770250660526,
       "tag": "0007_known_pandemic",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1775135331566,
+      "tag": "0008_lush_slyde",
+      "breakpoints": true
     }
   ]
 }

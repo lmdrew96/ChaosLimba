@@ -7,6 +7,7 @@ import { redirect } from "next/navigation"
 import { db } from "@/lib/db"
 import { userPreferences } from "@/lib/db/schema"
 import { eq } from "drizzle-orm"
+import { TutorTutorialOverlay } from "@/components/features/onboarding/TutorTutorialOverlay"
 
 export const metadata: Metadata = {
   title: "Dashboard",
@@ -21,6 +22,7 @@ export default async function DashboardLayout({
   // Check if user has completed onboarding
   const { userId } = await auth()
   let analyticsEnabled = false
+  let tutorialCompleted = false
 
   if (userId) {
     const prefs = await db
@@ -35,11 +37,13 @@ export default async function DashboardLayout({
     }
 
     analyticsEnabled = prefs[0]?.analyticsEnabled ?? false
+    tutorialCompleted = prefs[0]?.tutorialCompleted ?? false
   }
 
   return (
     <div className="min-h-screen bg-background">
       <UmamiAnalytics enabled={analyticsEnabled} />
+      {!tutorialCompleted && <TutorTutorialOverlay />}
       <Sidebar />
       <div className="md:pl-64">
         <TopBar />
