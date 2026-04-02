@@ -13,6 +13,7 @@ import {
   Play,
   RotateCcw,
   Volume2,
+  LogOut,
 } from "lucide-react"
 import { ConversationMessage } from "./ConversationHistory"
 import { GradingReport } from "./AIResponse"
@@ -46,6 +47,8 @@ interface ChaosChatProps {
   error: string | null
   // Grading reports keyed by message ID
   gradingReports: Map<string, GradingReport>
+  // Session control
+  onEndSession: () => void
 }
 
 export function ChaosChat({
@@ -70,6 +73,7 @@ export function ChaosChat({
   sessionReady,
   error,
   gradingReports,
+  onEndSession,
 }: ChaosChatProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -168,6 +172,24 @@ export function ChaosChat({
       }
     }
   })
+
+  // Readiness signal: show once after exactly 3 user messages
+  const userMessagesSoFar = messages.filter(m => m.type === 'user').length
+  if (userMessagesSoFar === 3) {
+    chatElements.push(
+      <div key="readiness-signal" className="flex gap-2">
+        <div className="flex-shrink-0 h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center">
+          <GraduationCap className="h-4 w-4 text-primary" />
+        </div>
+        <div className="rounded-2xl rounded-tl-sm bg-primary/10 border border-primary/20 px-4 py-3 text-sm text-foreground/80">
+          I have a good sense of your level now! Feel free to keep chatting or end the session when you&apos;re ready. 🎓
+        </div>
+      </div>
+    )
+  }
+
+  const userMessageCount = messages.filter(m => m.type === 'user').length
+  const showEndButton = userMessageCount >= 3 // Keep showing End button after 3+
 
   const canSubmitText = modality === "text" && textValue.trim().length >= 5
   const canSubmitSpeech = modality === "speech" && !!audioBlob
@@ -338,6 +360,22 @@ export function ChaosChat({
           {/* Character hint for text mode */}
           {modality === "text" && textValue.length > 0 && textValue.trim().length < 5 && (
             <p className="text-xs text-muted-foreground pl-14">Minim 5 caractere</p>
+          )}
+
+          {/* End Session button — surfaces after 3 exchanges so user doesn't need to scroll up */}
+          {showEndButton && (
+            <div className="flex justify-center pt-1">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={onEndSession}
+                className="text-muted-foreground hover:text-destructive gap-1.5 text-xs"
+              >
+                <LogOut className="h-3.5 w-3.5" />
+                End session
+              </Button>
+            </div>
           )}
         </div>
       </CardContent>

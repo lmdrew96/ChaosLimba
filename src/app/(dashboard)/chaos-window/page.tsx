@@ -739,8 +739,8 @@ export default function ChaosWindowPage() {
             </div>
           ) : (
             <div className="space-y-6">
-              {/* Session header with timer + end button */}
-              <div className="flex items-center justify-between">
+              {/* Sticky session header: timer + end button always visible */}
+              <div className="sticky top-0 z-10 -mx-6 px-6 py-3 bg-card/95 backdrop-blur-sm border-b border-border/50 flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <Atom className="h-5 w-5 text-destructive animate-pulse" />
                   <span className="font-semibold">Active Session</span>
@@ -764,7 +764,7 @@ export default function ChaosWindowPage() {
                     className="text-muted-foreground hover:text-destructive"
                   >
                     <Square className="mr-1.5 h-3.5 w-3.5" />
-                    End
+                    End Session
                   </Button>
                 </div>
               </div>
@@ -1031,6 +1031,7 @@ export default function ChaosWindowPage() {
                 sessionReady={!!sessionId}
                 error={error}
                 gradingReports={gradingReports}
+                onEndSession={handleEndSession}
               />
             </div>
           )}
