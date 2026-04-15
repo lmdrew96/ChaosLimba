@@ -38,7 +38,6 @@ export const contentItems = pgTable('content_items', {
   // Transcript fields (for audio content)
   transcript: text('transcript'), // Full transcript text
   transcriptSource: text('transcript_source'), // 'whisper', 'manual'
-  transcriptLanguage: text('transcript_language').default('ro'), // Language code (default Romanian)
 
   // Metadata fields
   languageFeatures: jsonb('language_features').$type<LanguageFeatures>(),
@@ -251,7 +250,6 @@ export const generatedContent = pgTable('generated_content', {
   // Audio
   audioUrl: text('audio_url'),
   audioCharacterCount: integer('audio_character_count'),
-  audioEstimatedCost: decimal('audio_estimated_cost', { precision: 8, scale: 6 }),
 
   // Error pattern linkage
   targetErrorType: text('target_error_type').$type<ErrorType>(),
@@ -260,7 +258,6 @@ export const generatedContent = pgTable('generated_content', {
 
   // Context
   userLevel: text('user_level').$type<'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2'>(),
-  sessionId: uuid('session_id').references(() => sessions.id),
   voiceGender: text('voice_gender').default('female'),
 
   // Tracking
@@ -350,7 +347,6 @@ export const grammarFeatureMap = pgTable('grammar_feature_map', {
   cefrLevel: text('cefr_level').$type<CEFRLevelEnum>().notNull(),
   category: text('category').$type<FeatureCategory>().notNull(), // 'grammar' | 'vocabulary_domain'
   description: text('description'), // Brief description for AI prompting
-  prerequisites: jsonb('prerequisites').$type<string[]>().default([]), // Soft ordering hints (featureKeys)
   sortOrder: integer('sort_order').default(0).notNull(), // Rough priority within level
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });

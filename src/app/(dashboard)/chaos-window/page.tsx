@@ -249,33 +249,27 @@ export default function ChaosWindowPage() {
     }
   }
 
-  // Fetch error patterns from Error Garden + build fossilization alerts
+  // Fetch error patterns + fossilization alerts from adaptation engine
   const fetchErrorPatterns = async () => {
     try {
+      // Fetch adaptation profile (includes properly-built fossilization alerts)
+      const adaptRes = await fetch('/api/adaptation/profile', { credentials: 'include' })
+      if (adaptRes.ok) {
+        const adaptData = await adaptRes.json()
+        setErrorPatterns(adaptData.fossilizingPatterns || [])
+        setFossilizationAlerts(adaptData.fossilizationAlerts || [])
+        return
+      }
+
+      // Fallback: fetch raw error patterns if adaptation endpoint fails
       const res = await fetch('/api/errors/patterns', { credentials: 'include' })
       if (res.ok) {
         const data = await res.json()
-        // Extract top 3 fossilizing patterns for AI to target
         const patterns = data.patterns
           .filter((p: any) => p.isFossilizing)
           .slice(0, 3)
           .map((p: any) => `${p.errorType}: ${p.category}`)
         setErrorPatterns(patterns)
-
-        // Build fossilization alerts from tier 2+ patterns (for tutor prompts)
-        const alerts: FossilizationAlert[] = data.patterns
-          .filter((p: any) => p.tier >= 2)
-          .slice(0, 3)
-          .map((p: any) => ({
-            pattern: `${p.errorType}: ${p.category}`,
-            tier: p.tier as 1 | 2 | 3,
-            examples: (p.examples || [])
-              .filter((e: any) => e.incorrect && e.correct)
-              .slice(0, 2)
-              .map((e: any) => ({ incorrect: e.incorrect, correct: e.correct })),
-          }))
-        setFossilizationAlerts(alerts)
-
       }
     } catch (err) {
       // Error patterns fetch failed — continue without targeting

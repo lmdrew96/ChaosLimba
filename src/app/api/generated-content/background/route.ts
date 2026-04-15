@@ -31,7 +31,6 @@ async function generateAndStore(
   userLevel: string,
   primaryErrorType: string,
   primaryCategory: string,
-  sessionId?: string,
 ): Promise<'generated' | 'cached'> {
   const now = new Date();
 
@@ -71,12 +70,10 @@ async function generateAndStore(
     englishText,
     audioUrl: url,
     audioCharacterCount: metadata.characterCount,
-    audioEstimatedCost: String(metadata.estimatedCost),
     targetErrorType: primaryErrorType as 'grammar' | 'pronunciation' | 'vocabulary' | 'word_order',
     targetCategory: primaryCategory,
     patternFingerprint: fingerprint,
     userLevel: userLevel as 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2',
-    sessionId,
     voiceGender: 'female',
     expiresAt,
   });
@@ -92,7 +89,6 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json();
-    const { sessionId } = body;
 
     // Get user level
     const [prefs] = await db
@@ -125,7 +121,7 @@ export async function POST(req: Request) {
       generateAndStore(
         userId, 'practice_sentences', result.fullText,
         result.sentences.map(s => s.english).join('\n'),
-        fingerprint, userLevel, primary.errorType, primary.category, sessionId
+        fingerprint, userLevel, primary.errorType, primary.category
       )
     );
     tasks.push({ type: 'practice_sentences', promise: practicePromise });
@@ -137,7 +133,7 @@ export async function POST(req: Request) {
         generateAndStore(
           userId, 'corrected_version', result.fullText,
           result.corrections.map(c => c.explanation).join('\n'),
-          fingerprint, userLevel, primary.errorType, primary.category, sessionId
+          fingerprint, userLevel, primary.errorType, primary.category
         )
       );
       tasks.push({ type: 'corrected_version', promise: correctPromise });
@@ -150,7 +146,7 @@ export async function POST(req: Request) {
         generateAndStore(
           userId, 'mini_lesson', result.romanianText,
           result.englishSummary,
-          fingerprint, userLevel, primary.errorType, primary.category, sessionId
+          fingerprint, userLevel, primary.errorType, primary.category
         )
       );
       tasks.push({ type: 'mini_lesson', promise: lessonPromise });

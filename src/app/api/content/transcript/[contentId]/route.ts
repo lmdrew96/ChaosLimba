@@ -77,7 +77,6 @@ export async function GET(
       .set({
         transcript,
         transcriptSource,
-        transcriptLanguage: 'ro',
         updatedAt: new Date()
       })
       .where(eq(contentItems.id, contentId));

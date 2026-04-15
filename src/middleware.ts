@@ -10,8 +10,6 @@ const isPublicRoute = createRouteMatcher([
   "/terms",
   "/api/webhooks(.*)",
   "/api/cron(.*)",
-  "/api/speech-to-text",
-  "/api/audio(.*)",
   "/api/chaos-window/initial-question",
   "/api/onboarding/tutor",
   "/api/onboarding/tutor-messages",

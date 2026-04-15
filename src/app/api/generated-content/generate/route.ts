@@ -153,7 +153,6 @@ export async function POST(req: Request) {
         englishText,
         audioUrl: url,
         audioCharacterCount: metadata.characterCount,
-        audioEstimatedCost: String(metadata.estimatedCost),
         targetErrorType: primaryPattern.errorType as 'grammar' | 'pronunciation' | 'vocabulary' | 'word_order',
         targetCategory: primaryPattern.category,
         patternFingerprint: fingerprint,
