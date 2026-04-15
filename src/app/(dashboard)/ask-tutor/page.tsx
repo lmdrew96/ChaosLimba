@@ -120,7 +120,7 @@ export default function AskTutorPage() {
   const showSuggestions = messages.length === 0 && !isLoading
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6 flex flex-col h-[calc(100vh-10rem)]">
+    <div className="max-w-2xl mx-auto space-y-6 flex flex-col h-[calc(100dvh-10rem)]">
       {/* Header */}
       <div className="flex-shrink-0">
         <h1 className="text-2xl font-bold flex items-center gap-2">

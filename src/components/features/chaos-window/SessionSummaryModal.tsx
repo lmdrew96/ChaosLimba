@@ -112,7 +112,7 @@ export function SessionSummaryModal({
 
         <div className="grid gap-4 py-4">
           {/* Stats Cards */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Card>
               <CardContent className="pt-6">
                 <div className="flex flex-col items-center">

@@ -112,7 +112,7 @@ export function PatternModal({ pattern, isOpen, onCloseAction }: PatternModalPro
 
     return (
         <Dialog open={isOpen} onOpenChange={onCloseAction}>
-            <DialogContent className="max-w-4xl max-h-[90vh] bg-gradient-to-br from-background to-background border-chart-4/20 p-0 gap-0 overflow-hidden text-foreground block">
+            <DialogContent className="w-full max-w-4xl max-h-[90dvh] bg-gradient-to-br from-background to-background border-chart-4/20 p-0 gap-0 overflow-hidden text-foreground block">
                 {/* Header */}
                 <div className="p-6 border-b border-border bg-muted/30">
                     <div className="flex items-start justify-between">
@@ -135,7 +135,7 @@ export function PatternModal({ pattern, isOpen, onCloseAction }: PatternModalPro
                     </div>
                 </div>
 
-                <div className="overflow-y-auto max-h-[calc(90vh-100px)] p-6">
+                <div className="overflow-y-auto max-h-[calc(90dvh-100px)] p-6">
                     <div className="space-y-8">
                         {/* Trend Section */}
                         <div className="bg-muted/30 rounded-xl p-6 border border-border/20">

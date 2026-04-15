@@ -783,7 +783,7 @@ export default function DeepFogPage() {
       {/* Content modal */}
       {selectedContent && (
         <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <Card className="max-w-4xl w-full max-h-[90vh] overflow-y-auto rounded-2xl border-accent/30">
+          <Card className="w-full max-w-4xl max-h-[90dvh] overflow-y-auto rounded-2xl border-accent/30">
             <CardHeader className="flex flex-row items-start justify-between sticky top-0 bg-card z-10 border-b border-border/40">
               <div className="flex items-center gap-2">
                 {userLevel && !browseAll ? (

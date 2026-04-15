@@ -128,7 +128,7 @@ export function TutorTutorialOverlay() {
     if (!isVisible) return null;
 
     return (
-        <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end pointer-events-none">
+        <div className="fixed bottom-3 right-3 sm:bottom-6 sm:right-6 z-50 flex flex-col items-end pointer-events-none">
             <AnimatePresence>
                 {!isMinimized && (
                     <motion.div
@@ -138,17 +138,17 @@ export function TutorTutorialOverlay() {
                         transition={{ duration: 0.2 }}
                         className="pointer-events-auto"
                     >
-                        <Card className="w-[380px] shadow-2xl border-primary/30 bg-background/95 backdrop-blur overflow-hidden flex flex-col mb-4">
+                        <Card className="w-[calc(100vw-2.5rem)] sm:w-[380px] shadow-2xl border-primary/30 bg-background/95 backdrop-blur overflow-hidden flex flex-col mb-4">
                             <CardHeader className="py-3 px-4 border-b bg-muted/30 flex flex-row items-center justify-between space-y-0">
                                 <CardTitle className="text-sm font-medium flex items-center gap-2">
                                     <Sparkles className="h-4 w-4 text-primary" />
                                     Tutor Tour Guide
                                 </CardTitle>
                                 <div className="flex items-center gap-1">
-                                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setIsMinimized(true)}>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 min-h-[44px] min-w-[44px]" onClick={() => setIsMinimized(true)}>
                                         <Minimize2 className="h-3.5 w-3.5" />
                                     </Button>
-                                    <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-destructive" onClick={() => completeTutorial()}>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 min-h-[44px] min-w-[44px] text-muted-foreground hover:text-destructive" onClick={() => completeTutorial()}>
                                         <X className="h-3.5 w-3.5" />
                                     </Button>
                                 </div>

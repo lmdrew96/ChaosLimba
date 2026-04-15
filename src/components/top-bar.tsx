@@ -92,7 +92,7 @@ export function TopBar() {
           variant="ghost"
           size="icon"
           onClick={() => setGuideOpen(true)}
-          className="h-9 w-9 rounded-full hover:bg-chart-4/10 transition-colors"
+          className="h-10 w-10 rounded-full hover:bg-chart-4/10 transition-colors"
         >
           <HelpCircle className="h-4 w-4 text-muted-foreground" />
         </Button>
@@ -102,7 +102,7 @@ export function TopBar() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-9 w-9 rounded-full hover:bg-primary/10 transition-colors"
+                className="h-10 w-10 rounded-full hover:bg-primary/10 transition-colors"
               >
                 <Sparkles className="h-4 w-4 text-muted-foreground" />
               </Button>

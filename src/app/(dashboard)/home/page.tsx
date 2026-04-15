@@ -170,7 +170,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         <Link href="/proficiency-tracker" className="block">
           <Card className="rounded-xl border-border/40 bg-card/50 backdrop-blur hover:border-primary/30 transition-all duration-200 h-full">
             <CardContent className="p-4">
