@@ -25,11 +25,13 @@ interface TutorOnboardingStepProps {
     selfAssessment?: string;
     data?: TutorOnboardingResult;
     onUpdate: (data: TutorOnboardingResult) => void;
+    onUseSelfAssessment?: () => void;
+    usedSelfAssessmentFallback?: boolean;
 }
 
 const FALLBACK_OPENING = "Bună! 👋 Welcome to ChaosLimbă! Let's chat a bit so I can find your level. Tell me about your Romanian learning experience!";
 
-export function TutorOnboardingStep({ selfAssessment, data, onUpdate }: TutorOnboardingStepProps) {
+export function TutorOnboardingStep({ selfAssessment, data, onUpdate, onUseSelfAssessment, usedSelfAssessmentFallback }: TutorOnboardingStepProps) {
     const [messages, setMessages] = useState<ChatMessage[]>(data?.conversationHistory || []);
     const [inputText, setInputText] = useState("");
     const [isLoading, setIsLoading] = useState(false);
@@ -275,6 +277,26 @@ export function TutorOnboardingStep({ selfAssessment, data, onUpdate }: TutorOnb
                 <p className="text-xs text-muted-foreground text-center">
                     💡 Speak naturally! Romanian, English, or a mix - whatever feels comfortable.
                 </p>
+
+                {/* Escape valve: after 2 exchanges, let users opt out of the chat
+                    and use their self-assessment level instead. No penalty. */}
+                {messages.length >= 4 && !assessmentComplete && !usedSelfAssessmentFallback && onUseSelfAssessment && (
+                    <div className="text-center pt-2">
+                        <button
+                            type="button"
+                            onClick={onUseSelfAssessment}
+                            className="text-xs text-muted-foreground underline hover:text-primary transition-colors"
+                        >
+                            Skip the chat — use my self-assessment level instead
+                        </button>
+                    </div>
+                )}
+
+                {usedSelfAssessmentFallback && (
+                    <div className="text-center text-xs text-chart-4 pt-2">
+                        ✓ Using your self-assessment level. You can continue, or keep chatting if you&apos;d like to refine it.
+                    </div>
+                )}
             </CardContent>
         </Card>
     );

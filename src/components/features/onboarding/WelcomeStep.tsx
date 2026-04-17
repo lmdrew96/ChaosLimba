@@ -102,7 +102,7 @@ export function WelcomeStep({ data, onUpdate }: WelcomeStepProps) {
                 <div className="rounded-xl bg-chart-3/5 border border-chart-3/20 p-4">
                     <p className="text-sm text-muted-foreground italic text-center">
                         💡 Don't worry about getting this exactly right! <br />
-                        The test ahead will help us fine-tune your level.
+                        A quick conversation next will help us fine-tune your level.
                     </p>
                 </div>
             </CardContent>

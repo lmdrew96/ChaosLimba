@@ -21,6 +21,7 @@ import {
     Trash2,
     Download,
     Database,
+    Eye,
 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { useRouter } from "next/navigation"
@@ -62,7 +63,8 @@ export default function SettingsPage() {
     const [resetErrorsPasscode, setResetErrorsPasscode] = useState("")
     const [showResetErrorsInput, setShowResetErrorsInput] = useState(false)
 
-    // Fetch preferences on mount
+    // Fetch preferences on mount and sync accessibility prefs into localStorage
+    // so the inline init script can apply them on the next load (no FOUC).
     useEffect(() => {
         const fetchPreferences = async () => {
             try {
@@ -70,6 +72,17 @@ export default function SettingsPage() {
                 if (!response.ok) throw new Error("Failed to fetch preferences")
                 const data = await response.json()
                 setPreferences(data.preferences)
+
+                if (typeof window !== "undefined" && data.preferences) {
+                    localStorage.setItem(
+                        "chaoslimba-reduce-motion",
+                        data.preferences.reduceMotion ? "true" : "false"
+                    )
+                    localStorage.setItem(
+                        "chaoslimba-font-scale",
+                        data.preferences.fontScale || "medium"
+                    )
+                }
             } catch {
                 // Error handled via state
                 setError("Failed to load your settings")
@@ -99,6 +112,23 @@ export default function SettingsPage() {
             const data = await response.json()
             setPreferences(data.preferences)
             setSaved(true)
+
+            // Apply accessibility prefs to <html> immediately and mirror to
+            // localStorage so the no-FOUC init script picks them up next load.
+            if (typeof document !== "undefined") {
+                if (field === "reduceMotion") {
+                    document.documentElement.classList.toggle("reduce-motion", !!value)
+                    localStorage.setItem("chaoslimba-reduce-motion", value ? "true" : "false")
+                }
+                if (field === "fontScale") {
+                    const root = document.documentElement
+                    root.classList.remove("font-scale-small", "font-scale-large", "font-scale-xlarge")
+                    if (value && value !== "medium") {
+                        root.classList.add(`font-scale-${value}`)
+                    }
+                    localStorage.setItem("chaoslimba-font-scale", value)
+                }
+            }
 
             // Clear saved indicator after 2 seconds
             setTimeout(() => setSaved(false), 2000)
@@ -280,6 +310,65 @@ export default function SettingsPage() {
                 </CardContent>
             </Card>
 
+            {/* Accessibility */}
+            <Card className="rounded-2xl border-border/40 bg-card/50 backdrop-blur">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                        <Eye className="h-5 w-5 text-primary" />
+                        Accessibility
+                    </CardTitle>
+                    <CardDescription>Sensory and readability controls</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    {/* Reduce motion */}
+                    <div className="flex items-center justify-between">
+                        <div className="space-y-1 flex-1 pr-4">
+                            <Label htmlFor="reduce-motion" className="text-base cursor-pointer">
+                                Reduce motion
+                            </Label>
+                            <p className="text-sm text-muted-foreground">
+                                Disable pulsing, spinning, and animated transitions. Your OS &ldquo;reduce motion&rdquo; setting is always respected; turn this on to override it upward.
+                            </p>
+                        </div>
+                        <Switch
+                            id="reduce-motion"
+                            checked={preferences?.reduceMotion || false}
+                            onCheckedChange={(checked) => updatePreference("reduceMotion", checked)}
+                            disabled={saving}
+                            className="data-[state=checked]:bg-primary"
+                        />
+                    </div>
+
+                    {/* Font scale */}
+                    <div className="space-y-3">
+                        <div>
+                            <Label className="text-base">Text size</Label>
+                            <p className="text-sm text-muted-foreground mt-1">
+                                Scales the entire interface. Takes effect immediately.
+                            </p>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                            {(["small", "medium", "large", "xlarge"] as const).map((scale) => {
+                                const labels = { small: "Small", medium: "Default", large: "Large", xlarge: "Extra Large" }
+                                const isActive = (preferences?.fontScale || "medium") === scale
+                                return (
+                                    <Button
+                                        key={scale}
+                                        variant={isActive ? "default" : "outline"}
+                                        size="sm"
+                                        disabled={saving}
+                                        onClick={() => updatePreference("fontScale", scale)}
+                                        className={isActive ? "bg-primary hover:bg-primary/80" : "border-primary/30 hover:bg-primary/10"}
+                                    >
+                                        {labels[scale]}
+                                    </Button>
+                                )
+                            })}
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+
             {/* Learning Preferences */}
             <Card className="rounded-2xl border-border/40 bg-card/50 backdrop-blur">
                 <CardHeader>
@@ -422,22 +511,33 @@ export default function SettingsPage() {
                     <CardDescription>Manage your notification preferences</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                    <div className="flex items-center justify-between">
-                        <div className="space-y-1 flex-1 pr-4">
-                            <Label htmlFor="email-notifications" className="text-base cursor-pointer">
-                                Weekly Learning Summary
-                            </Label>
-                            <p className="text-sm text-muted-foreground">
-                                Get a gentle weekly email with your progress – no streaks, no guilt
+                    <div className="space-y-3">
+                        <div>
+                            <Label className="text-base">Email digest</Label>
+                            <p className="text-sm text-muted-foreground mt-1">
+                                A gentle progress recap by email — no streaks, no guilt. Choose your cadence or turn it off entirely.
                             </p>
                         </div>
-                        <Switch
-                            id="email-notifications"
-                            checked={preferences?.emailNotifications || false}
-                            onCheckedChange={(checked) => updatePreference("emailNotifications", checked)}
-                            disabled={saving}
-                            className="data-[state=checked]:bg-primary"
-                        />
+                        <div className="flex flex-wrap gap-2">
+                            {([
+                                { value: "off" as const, label: "Off" },
+                                { value: "weekly" as const, label: "Weekly" },
+                            ]).map((opt) => {
+                                const isActive = (preferences?.emailFrequency || "off") === opt.value
+                                return (
+                                    <Button
+                                        key={opt.value}
+                                        variant={isActive ? "default" : "outline"}
+                                        size="sm"
+                                        disabled={saving}
+                                        onClick={() => updatePreference("emailFrequency", opt.value)}
+                                        className={isActive ? "bg-primary hover:bg-primary/80" : "border-primary/30 hover:bg-primary/10"}
+                                    >
+                                        {opt.label}
+                                    </Button>
+                                )
+                            })}
+                        </div>
                     </div>
 
                     <div className="rounded-xl bg-chart-3/5 border border-chart-3/20 p-4">

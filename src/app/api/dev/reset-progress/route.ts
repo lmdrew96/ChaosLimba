@@ -20,7 +20,7 @@ export async function POST() {
       languageLevel: "A1",
       onboardingCompleted: false,
       defaultChaosWindowDuration: 300,
-      emailNotifications: false,
+      emailFrequency: "off",
       analyticsEnabled: false,
       dataCollectionEnabled: false,
       createdAt: new Date(),

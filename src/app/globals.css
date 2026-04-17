@@ -613,4 +613,33 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Motion reduction: respect OS pref AND user-level override (.reduce-motion on <html>).
+     Disables decorative animations (pulse, spin loop, bounce, ping) and transitions.
+     Spinners that convey loading state still rotate via reduced-duration fallback. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  html.reduce-motion *,
+  html.reduce-motion *::before,
+  html.reduce-motion *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Font scale: applied via class on <html>, scales the root font-size so
+     all rem-based typography (which is most of the app) responds. */
+  html.font-scale-small { font-size: 14px; }
+  html.font-scale-large { font-size: 18px; }
+  html.font-scale-xlarge { font-size: 20px; }
 }

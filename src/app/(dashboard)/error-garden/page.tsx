@@ -527,7 +527,7 @@ function PatternCard({ pattern, onClick }: { pattern: ErrorPattern, onClick: () 
     0: null,
     1: { label: "Tier 1", color: "border-amber-500/50 bg-amber-500/10 text-amber-500" },
     2: { label: "Tier 2", color: "border-orange-500/50 bg-orange-500/10 text-orange-500" },
-    3: { label: "Tier 3", color: "border-destructive/50 bg-destructive/10 text-destructive animate-pulse" },
+    3: { label: "Tier 3", color: "border-primary/50 bg-primary/10 text-primary" },
   }
   const tierBadge = tierConfig[pattern.tier]
 

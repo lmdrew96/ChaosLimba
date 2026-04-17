@@ -19,6 +19,7 @@ import {
   ArrowUp,
   ArrowDown,
   Eye,
+  Sparkles,
 } from "lucide-react";
 import { ContentPlayer } from "@/components/features/content-player";
 import { DeepFogQuiz } from "@/components/features/deep-fog/DeepFogQuiz";
@@ -214,6 +215,17 @@ export default function DeepFogPage() {
 
     fetchContent();
   }, [filter, userLevel, browseAll]);
+
+  // "Start here" pin: the lowest-difficulty item in the loaded fog range.
+  // Reduces decision load when the user lands without a clear next step.
+  // Only surfaces in fog mode, with no search, when the grid would otherwise
+  // dump 50 equal-weight options at the user.
+  const recommendedItem = useMemo(() => {
+    if (browseAll || searchQuery.trim() || content.length === 0) return null;
+    return [...content].sort(
+      (a, b) => parseFloat(String(a.difficultyLevel)) - parseFloat(String(b.difficultyLevel))
+    )[0];
+  }, [content, browseAll, searchQuery]);
 
   // Client-side search + sort
   const filteredContent = useMemo(() => {
@@ -546,6 +558,38 @@ export default function DeepFogPage() {
         <Card className="rounded-xl border-destructive/30 bg-destructive/10">
           <CardContent className="p-4 text-center text-destructive">
             {error}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Start-here pin: only when fog-targeted, no search, content available */}
+      {!isLoading && !error && recommendedItem && (
+        <Card
+          role="button"
+          tabIndex={0}
+          onClick={() => setSelectedContent(recommendedItem)}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelectedContent(recommendedItem) } }}
+          className="rounded-xl cursor-pointer transition-all hover:scale-[1.01] hover:shadow-lg border-accent/40 bg-gradient-to-r from-accent/10 to-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        >
+          <CardContent className="p-5 flex items-center gap-4">
+            <div className="p-3 rounded-lg bg-accent/20 shrink-0">
+              <Sparkles className="h-6 w-6 text-accent" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-xs font-semibold uppercase tracking-wider text-accent">
+                  Recommended for you
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  &middot; lightest fog at your level
+                </span>
+              </div>
+              <h3 className="font-semibold truncate">{recommendedItem.title}</h3>
+              <p className="text-sm text-muted-foreground truncate">{recommendedItem.topic}</p>
+            </div>
+            <span className="hidden sm:inline-flex items-center text-sm text-accent shrink-0">
+              Enter Fog &rarr;
+            </span>
           </CardContent>
         </Card>
       )}

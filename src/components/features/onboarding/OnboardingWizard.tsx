@@ -22,12 +22,23 @@ const STEPS = [
 
 type StepId = (typeof STEPS)[number]["id"];
 
+// Direct mapping for the self-assessment escape valve.
+// Used when a learner opts out of the tutor chat — gives a clean starting CEFR
+// without relying on the default-to-50 score-averaging path in calculateCEFRLevel.
+const SELF_ASSESSMENT_TO_CEFR: Record<WelcomeData["selfAssessment"], CEFRLevel> = {
+    complete_beginner: "A1",
+    some_basics: "A2",
+    intermediate: "B1",
+    advanced: "B2",
+};
+
 // Types for collected data
 export interface OnboardingData {
     consentAccepted?: boolean;
     welcome?: WelcomeData;
     tutor?: TutorOnboardingResult;
     calculatedLevel?: CEFRLevel;
+    usedSelfAssessmentFallback?: boolean;
 }
 
 export function OnboardingWizard() {
@@ -53,22 +64,27 @@ export function OnboardingWizard() {
     const goToNext = useCallback(async () => {
         const nextIndex = currentIndex + 1;
         if (nextIndex < STEPS.length) {
-            // If moving to results, save the tutor-determined level
+            // If moving to results, save the determined level
             if (STEPS[nextIndex].id === "results") {
                 setIsSubmitting(true);
                 setError(null);
 
                 try {
-                    // Use the tutor's inferred level
-                    const tutorLevel = data.tutor?.inferredLevel || "A1";
+                    // Prefer tutor-inferred level; fall back to direct self-assessment
+                    // mapping if the user opted out of the chat (or never completed it).
+                    const tutorLevel = data.usedSelfAssessmentFallback && data.welcome?.selfAssessment
+                        ? SELF_ASSESSMENT_TO_CEFR[data.welcome.selfAssessment]
+                        : data.tutor?.inferredLevel
+                        ?? (data.welcome?.selfAssessment
+                            ? SELF_ASSESSMENT_TO_CEFR[data.welcome.selfAssessment]
+                            : "A1");
 
                     const response = await fetch("/api/onboarding/complete", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
                             welcome: data.welcome,
-                            tutor: data.tutor,
-                            // Pass tutorLevel directly for the new flow
+                            tutor: data.usedSelfAssessmentFallback ? undefined : data.tutor,
                             tutorLevel,
                         }),
                     });
@@ -113,7 +129,11 @@ export function OnboardingWizard() {
             case "welcome":
                 return !!data.welcome?.selfAssessment;
             case "tutor":
-                // Need at least a few exchanges and some confidence
+                // Either: enough exchanges + confidence from the tutor,
+                // OR the user opted out via the self-assessment escape valve.
+                if (data.usedSelfAssessmentFallback && data.welcome?.selfAssessment) {
+                    return true;
+                }
                 return (
                     data.tutor?.conversationHistory &&
                     data.tutor.conversationHistory.length >= 4 &&
@@ -209,6 +229,8 @@ export function OnboardingWizard() {
                             selfAssessment={data.welcome?.selfAssessment}
                             data={data.tutor}
                             onUpdate={(d) => updateStepData("tutor", d)}
+                            onUseSelfAssessment={() => updateStepData("usedSelfAssessmentFallback", true)}
+                            usedSelfAssessmentFallback={!!data.usedSelfAssessmentFallback}
                         />
                     )}
                     {currentStep === "results" && (

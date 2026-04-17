@@ -8,9 +8,11 @@ import { eq } from 'drizzle-orm';
 const DEFAULT_PREFERENCES = {
     languageLevel: 'A1' as const,
     defaultChaosWindowDuration: 300, // 5 minutes
-    emailNotifications: false,
+    emailFrequency: 'off' as const,
     analyticsEnabled: false,
     dataCollectionEnabled: false,
+    reduceMotion: false,
+    fontScale: 'medium' as const,
 };
 
 // GET /api/user/preferences - Get user preferences (create with defaults if not exists)
@@ -66,9 +68,11 @@ export async function PATCH(req: NextRequest) {
         const allowedFields = [
             'languageLevel',
             'defaultChaosWindowDuration',
-            'emailNotifications',
+            'emailFrequency',
             'analyticsEnabled',
             'dataCollectionEnabled',
+            'reduceMotion',
+            'fontScale',
         ];
 
         const updates: Partial<typeof userPreferences.$inferInsert> = {};
@@ -96,6 +100,28 @@ export async function PATCH(req: NextRequest) {
             if (typeof duration !== 'number' || duration < 300 || duration > 600) {
                 return NextResponse.json(
                     { error: 'Duration must be between 300 and 600 seconds (5-10 minutes)' },
+                    { status: 400 }
+                );
+            }
+        }
+
+        // Validate font scale if provided
+        if (updates.fontScale !== undefined) {
+            const validScales = ['small', 'medium', 'large', 'xlarge'];
+            if (!validScales.includes(updates.fontScale as string)) {
+                return NextResponse.json(
+                    { error: 'Invalid font scale' },
+                    { status: 400 }
+                );
+            }
+        }
+
+        // Validate email frequency if provided
+        if (updates.emailFrequency !== undefined) {
+            const validFrequencies = ['off', 'weekly'];
+            if (!validFrequencies.includes(updates.emailFrequency as string)) {
+                return NextResponse.json(
+                    { error: 'Invalid email frequency' },
                     { status: 400 }
                 );
             }

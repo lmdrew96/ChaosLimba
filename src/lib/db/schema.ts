@@ -147,9 +147,11 @@ export const userPreferences = pgTable('user_preferences', {
   onboardingCompleted: pgBoolean('onboarding_completed').default(false).notNull(), // Has user completed proficiency test
   tutorialCompleted: pgBoolean('tutorial_completed').default(false).notNull(), // Has user completed the interactive dashboard tutorial
   defaultChaosWindowDuration: integer('default_chaos_window_duration').default(300).notNull(), // 5 minutes default, in seconds
-  emailNotifications: pgBoolean('email_notifications').default(false).notNull(), // Opt-in weekly summaries
+  emailFrequency: text('email_frequency').$type<'off' | 'weekly'>().default('off').notNull(), // Email digest cadence
   analyticsEnabled: pgBoolean('analytics_enabled').default(false).notNull(), // Anonymous usage tracking
   dataCollectionEnabled: pgBoolean('data_collection_enabled').default(false).notNull(), // Error patterns for research
+  reduceMotion: pgBoolean('reduce_motion').default(false).notNull(), // User-level override on top of OS prefers-reduced-motion
+  fontScale: text('font_scale').$type<'small' | 'medium' | 'large' | 'xlarge'>().default('medium').notNull(), // Root font size scale for readability
   consentGivenAt: timestamp('consent_given_at'), // GDPR: when user accepted Privacy Policy + Terms
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),

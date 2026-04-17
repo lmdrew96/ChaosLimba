@@ -216,12 +216,21 @@ export function PatternModal({ pattern, isOpen, onCloseAction }: PatternModalPro
                                     <p className="text-primary/80 mb-3">{pattern.intervention}</p>
                                     <div className="flex flex-wrap gap-3 mb-4">
                                         {pattern.tier > 0 && (
-                                            <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${
-                                                pattern.tier === 3 ? 'border-destructive/40 text-destructive bg-destructive/10' :
-                                                pattern.tier === 2 ? 'border-orange-500/40 text-orange-500 bg-orange-500/10' :
-                                                'border-amber-500/40 text-amber-500 bg-amber-500/10'
-                                            }`}>
-                                                Tier {pattern.tier}: {pattern.tier === 3 ? 'Destabilize' : pattern.tier === 2 ? 'Push' : 'Nudge'}
+                                            <span
+                                                title={
+                                                    pattern.tier === 3
+                                                        ? "This pattern is becoming automatic. We're varying how it shows up so you can hear it fresh — not a failure signal."
+                                                        : pattern.tier === 2
+                                                        ? "We're targeting this pattern in your practice content and tutor questions."
+                                                        : "We're gently steering practice toward this pattern."
+                                                }
+                                                className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold cursor-help ${
+                                                    pattern.tier === 3 ? 'border-primary/40 text-primary bg-primary/10' :
+                                                    pattern.tier === 2 ? 'border-orange-500/40 text-orange-500 bg-orange-500/10' :
+                                                    'border-amber-500/40 text-amber-500 bg-amber-500/10'
+                                                }`}
+                                            >
+                                                Tier {pattern.tier}: {pattern.tier === 3 ? 'Stretch' : pattern.tier === 2 ? 'Push' : 'Nudge'}
                                             </span>
                                         )}
                                         {pattern.interventionCount > 0 && (

@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import {
   Wrench,
   Play,
+  Pause,
   Timer,
   Square,
   Loader2,
@@ -49,6 +50,7 @@ export default function WorkshopPage() {
   // Timer state
   const [timerMode, setTimerMode] = useState<TimerMode>(null)
   const [timeRemaining, setTimeRemaining] = useState(0)
+  const [isPaused, setIsPaused] = useState(false)
   const timerRef = useRef<NodeJS.Timeout | null>(null)
   const sessionStartRef = useRef<number | null>(null)
 
@@ -60,9 +62,10 @@ export default function WorkshopPage() {
   // Warn before navigating away during active session
   useNavigationGuard(isActive && !!sessionId)
 
-  // Timer countdown
+  // Timer countdown — skips ticking while paused so the user can step away
+  // mid-challenge without ending the session.
   useEffect(() => {
-    if (timerMode && isActive && timeRemaining > 0) {
+    if (timerMode && isActive && timeRemaining > 0 && !isPaused) {
       timerRef.current = setInterval(() => {
         setTimeRemaining((prev) => {
           if (prev <= 1) {
@@ -77,7 +80,7 @@ export default function WorkshopPage() {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current)
     }
-  }, [timerMode, isActive, timeRemaining > 0]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [timerMode, isActive, timeRemaining > 0, isPaused]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Fetch user level on mount
   useEffect(() => {
@@ -143,6 +146,7 @@ export default function WorkshopPage() {
   const handleStartSession = async (timer: TimerMode) => {
     setTimerMode(timer)
     if (timer) setTimeRemaining(timer)
+    setIsPaused(false)
     setIsActive(true)
     setChallengeCount(0)
     setFeaturesExplored([])
@@ -280,6 +284,7 @@ export default function WorkshopPage() {
     setShowingFeedback(false)
     setTimerMode(null)
     setTimeRemaining(0)
+    setIsPaused(false)
     setSessionId(null)
     sessionStartRef.current = null
   }
@@ -380,9 +385,29 @@ export default function WorkshopPage() {
 
         <div className="flex items-center gap-3">
           {timerMode && timeRemaining > 0 && (
-            <span className="text-sm font-mono text-muted-foreground" role="timer" aria-label={`${formatTime(timeRemaining)} remaining`} aria-live="off">
-              {formatTime(timeRemaining)}
-            </span>
+            <>
+              <span
+                className={`text-sm font-mono ${isPaused ? "text-muted-foreground/50" : "text-muted-foreground"}`}
+                role="timer"
+                aria-label={`${formatTime(timeRemaining)} remaining${isPaused ? ", paused" : ""}`}
+                aria-live="off"
+              >
+                {formatTime(timeRemaining)}
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsPaused((p) => !p)}
+                className="text-muted-foreground hover:text-accent"
+                aria-label={isPaused ? "Resume timer" : "Pause timer"}
+              >
+                {isPaused ? (
+                  <><Play className="mr-1.5 h-3.5 w-3.5" />Resume</>
+                ) : (
+                  <><Pause className="mr-1.5 h-3.5 w-3.5" />Pause</>
+                )}
+              </Button>
+            </>
           )}
           <Button
             variant="ghost"

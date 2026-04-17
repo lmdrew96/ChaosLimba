@@ -306,7 +306,7 @@ function buildFossilizationPromptSection(alerts: FossilizationAlert[]): string {
             );
         } else {
             sections.push(
-                `FOSSILIZATION ALERT (${alert.pattern}${modalityNote}${recencyNote}): The learner consistently produces the wrong form here.${alert.primaryModality === 'speech' ? ' This error mostly occurs when speaking — you might say "I noticed when you speak, you tend to..."' : alert.primaryModality === 'text' ? ' This error mostly occurs in writing — you might say "I noticed in your writing, you tend to..."' : ''} Design your question to require the correct form. Examples: ${exampleText}`
+                `FOSSILIZATION ALERT (${alert.pattern}${modalityNote}${recencyNote}): The learner consistently produces the wrong form here.${alert.primaryModality === 'speech' ? ' This pattern shows up most in speech — naturally invite them to say their answer aloud (e.g., "Let\'s try this one out loud..."). Avoid surveillance-coded framing like "I noticed when you speak, you tend to..."' : alert.primaryModality === 'text' ? ' This pattern shows up most in writing — naturally invite a written response (e.g., "Let\'s see this one in writing..."). Avoid surveillance-coded framing like "I noticed in your writing, you tend to..."' : ''} Design your question to require the correct form. Examples: ${exampleText}`
             );
         }
     }

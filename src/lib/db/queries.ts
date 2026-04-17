@@ -1190,7 +1190,7 @@ export async function getWeeklySummaryUsers(): Promise<string[]> {
   const users = await db
     .select({ userId: userPreferences.userId })
     .from(userPreferences)
-    .where(eq(userPreferences.emailNotifications, true));
+    .where(eq(userPreferences.emailFrequency, 'weekly'));
 
   return users.map((u) => u.userId);
 }
