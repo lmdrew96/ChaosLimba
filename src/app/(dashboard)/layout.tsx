@@ -8,6 +8,7 @@ import { db } from "@/lib/db"
 import { userPreferences } from "@/lib/db/schema"
 import { eq } from "drizzle-orm"
 import { TutorTutorialOverlay } from "@/components/features/onboarding/TutorTutorialOverlay"
+import { InstallPrompt } from "@/components/pwa/InstallPrompt"
 
 export const metadata: Metadata = {
   title: "Dashboard",
@@ -49,6 +50,7 @@ export default async function DashboardLayout({
         <TopBar />
         <main id="main-content" className="p-6">{children}</main>
       </div>
+      <InstallPrompt />
     </div>
   )
 }

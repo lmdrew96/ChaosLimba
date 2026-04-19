@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { Footer } from "@/components/layout/Footer";
 import { Toaster } from "@/components/ui/sonner";
 import { themeInitScript } from "@/lib/theme-init";
+import { PWARegister } from "@/components/pwa/PWARegister";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -21,9 +22,15 @@ export const metadata: Metadata = {
   title: "ChaosLimbă",
   description:
       "AI-powered Romanian language learning through productive confusion and structured chaos",
+  applicationName: "ChaosLimbă",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "ChaosLimbă",
+  },
   icons: {
     icon: '/logo.svg',
-    apple: '/logo.svg',
+    apple: '/apple-touch-icon.png',
   },
   openGraph: {
     title: "ChaosLimbă",
@@ -38,6 +45,12 @@ export const metadata: Metadata = {
     title: "ChaosLimbă",
     description: "AI-powered Romanian language learning for ADHD brains",
   },
+}
+
+export const viewport: Viewport = {
+  themeColor: "#1E1830",
+  width: "device-width",
+  initialScale: 1,
 }
 
 export default function RootLayout({
@@ -65,6 +78,7 @@ export default function RootLayout({
               <Footer />
             </div>
             <Toaster richColors closeButton position="bottom-right" />
+            <PWARegister />
           </ThemeProvider>
         </ClerkProvider>
       </body>
