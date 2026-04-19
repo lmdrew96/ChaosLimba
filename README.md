@@ -1,8 +1,8 @@
 # ChaosLimbă - Adaptive Romanian Language Learning Platform
 
-**Version:** 3.1
+**Version:** 3.2
 **Architecture:** 10-Component AI Ensemble with Dual-Path Routing + Adaptation Engine
-**Status:** MVP Development (99.5% Complete)
+**Status:** MVP Development (99.5% Complete) — installable as a Progressive Web App
 
 ## Overview
 
@@ -16,6 +16,7 @@ ChaosLimbă is a sophisticated adaptive language learning platform designed spec
 - **3-Tier Adaptation Engine**: Fossilization detection with escalating intervention (nudge → push → destabilize)
 - **Grammar Workshop**: Targeted micro-challenges (transform, complete, fix, rewrite) with vocab exercises
 - **Smart Content Selection**: Weighted random content targeting based on error patterns and adaptation profile
+- **Installable PWA**: Web app manifest + service worker, works as a standalone app on desktop and mobile home screens
 - **Cost Optimized**: $0-5/month (72-100% under original budget — nearly all FREE APIs)
 
 ## Architecture Overview
@@ -133,24 +134,54 @@ Analyzes user input (speech or text) and returns comprehensive grading report.
 Create a `.env.local` file:
 
 ```bash
-# Authentication
+# --- Required ---
+
+# Authentication (Clerk)
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_key
 CLERK_SECRET_KEY=your_clerk_secret
 
-# Database
+# Database (Neon Postgres)
 DATABASE_URL=postgresql://...
 
 # AI Providers
-ANTHROPIC_API_KEY=your_anthropic_key     # For Claude Haiku 4.5 grammar checking
-GROQ_API_KEY=your_groq_api_key           # For speech recognition & AI tutor
-HUGGINGFACE_API_TOKEN=your_hf_token      # For pronunciation & semantic analysis
+ANTHROPIC_API_KEY=your_anthropic_key     # Claude Haiku 4.5 grammar checking
+GROQ_API_KEY=your_groq_api_key           # Whisper speech recognition + Llama 3.3 tutor/workshop
+HUGGINGFACE_API_KEY=your_hf_token        # Pronunciation + semantic analysis (HUGGINGFACE_API_TOKEN also accepted)
 
-# Cloudflare R2 Storage
-CLOUDFLARE_R2_ACCOUNT_ID=your_account_id
-CLOUDFLARE_R2_ACCESS_KEY_ID=your_access_key
-CLOUDFLARE_R2_SECRET_ACCESS_KEY=your_secret_key
-CLOUDFLARE_R2_BUCKET_NAME=your_bucket_name
-NEXT_PUBLIC_R2_PUBLIC_URL=your_public_url
+# Cloudflare R2 Storage (audio assets)
+R2_ENDPOINT=your_r2_endpoint
+R2_ACCESS_KEY_ID=your_access_key
+R2_SECRET_ACCESS_KEY=your_secret_key
+R2_BUCKET_NAME=your_bucket_name
+R2_PUBLIC_URL=your_public_url
+
+# --- Optional ---
+
+# Clerk webhook signature (for user sync)
+CLERK_WEBHOOK_SECRET=whsec_...
+
+# Email notifications (Resend)
+RESEND_API_KEY=your_resend_key
+RESEND_FROM_EMAIL="ChaosLimbă <onboarding@resend.dev>"
+
+# ElevenLabs TTS (alternative voice pipeline)
+ELEVENLABS_API_KEY=your_elevenlabs_key
+
+# Google Cloud TTS (used for bulk content audio generation)
+GOOGLE_TTS_CREDENTIALS_JSON='{"type":"service_account",...}'
+# or point to a key file:
+# GOOGLE_APPLICATION_CREDENTIALS=./google-tts-credentials.json
+
+# Analytics (Umami)
+NEXT_PUBLIC_UMAMI_URL=https://your-umami.example.com
+NEXT_PUBLIC_UMAMI_WEBSITE_ID=your_website_id
+
+# Cron / app URL
+CRON_SECRET=a_random_secret
+NEXT_PUBLIC_APP_URL=https://chaoslimba.adhdesigns.dev
+
+# Dev tooling
+DEV_PASSCODE=chaoslimba-dev   # guards /api/dev/* routes in local dev
 ```
 
 ### Installation
@@ -218,7 +249,7 @@ pnpm dev
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:5001](http://localhost:5001) with your browser to see the result. (The dev server binds to port 5001 — see `package.json` scripts.)
 
 ### Database Setup
 
@@ -307,6 +338,9 @@ Grammar and vocabulary micro-challenge system with 4 grammar types (transform, c
 
 ### Adaptive Tutoring
 Llama 3.3 70B-powered conversational system (via Groq, FREE) that generates "productive confusion" responses tailored to individual learner patterns. Receives fossilization alerts from the Adaptation Engine to target weak structures.
+
+### Progressive Web App
+Installable on desktop and mobile via the browser's "Add to Home Screen" flow. Ships a web app manifest (`src/app/manifest.ts`), a conservative service worker (`public/sw.js`) that precaches static assets and serves an offline fallback, and an in-app install prompt that appears for eligible visitors on the dashboard. API, Clerk, and webhook requests always go directly to the network — user-specific responses are never cached.
 
 ## Performance Metrics
 
