@@ -138,7 +138,7 @@ export class FeedbackAggregator {
    * Main aggregation function that processes component outputs and generates unified report
    */
   static async aggregateFeedback(input: AggregatorInput): Promise<AggregatedReport> {
-    const startTime = Date.now();
+    const startTime = performance.now();
 
     // Validate required inputs
     this.validateInput(input);
@@ -152,7 +152,7 @@ export class FeedbackAggregator {
     // Calculate weighted overall score
     const overallScore = this.calculateOverallScore(input);
 
-    const processingTime = Date.now() - startTime;
+    const processingTime = performance.now() - startTime;
 
     const report: AggregatedReport = {
       inputType: input.inputType,

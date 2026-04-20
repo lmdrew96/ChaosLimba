@@ -54,6 +54,23 @@ export const STRESS_MINIMAL_PAIRS: Record<string, MinimalPair> = {
     }
   },
 
+  "copiii": {
+    "CO-pii": {
+      meaning: "children",
+      category: "people",
+      ipa: "ˈko.pi.i",
+      severity: "high",
+      example_sentence: "Copiii se joacă în parc."
+    },
+    "co-PII": {
+      meaning: "copies",
+      category: "documents",
+      ipa: "ko.ˈpi.i",
+      severity: "high",
+      example_sentence: "Fă trei copii ale documentului."
+    }
+  },
+
   "cara": {
     "CA-ra": {
       meaning: "face (noun)",
