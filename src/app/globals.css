@@ -605,6 +605,95 @@
   --sidebar-ring: oklch(0.72 0.12 350);
 }
 
+/* ── Theme: Chaos Suite (Lab Notebook) ── */
+.theme-chaos {
+  --radius: 0.625rem;
+
+  --adhd-lavender: #DBD5E2;
+  --adhd-bg:       #F7F5FA;
+  --adhd-dark:     #1E1830;
+  --adhd-purple:   #88739E;
+  --adhd-amber:    #DFA649;
+  --adhd-olive:    #849440;
+  --adhd-sage:     #8CBDB9;
+  --adhd-teal:     #244952;
+  --adhd-green:    #97D181;
+
+  --background:             var(--adhd-lavender);
+  --foreground:             var(--adhd-dark);
+  --card:                   var(--adhd-bg);
+  --card-foreground:        var(--adhd-dark);
+  --popover:                var(--adhd-bg);
+  --popover-foreground:     var(--adhd-dark);
+  --primary:                var(--adhd-purple);
+  --primary-foreground:     var(--adhd-bg);
+  --secondary:              var(--adhd-bg);
+  --secondary-foreground:   var(--adhd-dark);
+  --muted:                  color-mix(in srgb, var(--adhd-lavender) 60%, white);
+  --muted-foreground:       var(--adhd-purple);
+  --accent:                 var(--adhd-purple);
+  --accent-foreground:      var(--adhd-bg);
+  --destructive:            var(--adhd-amber);
+  --destructive-foreground: var(--adhd-dark);
+  --border:                 color-mix(in srgb, var(--adhd-dark) 10%, transparent);
+  --input:                  color-mix(in srgb, var(--adhd-dark) 8%, transparent);
+  --ring:                   var(--adhd-purple);
+
+  --success:                var(--adhd-olive);
+  --success-foreground:     var(--adhd-bg);
+  --warning:                var(--adhd-amber);
+  --warning-foreground:     var(--adhd-dark);
+
+  --chart-1: var(--adhd-purple);
+  --chart-2: var(--adhd-amber);
+  --chart-3: var(--adhd-olive);
+  --chart-4: var(--adhd-sage);
+  --chart-5: var(--adhd-teal);
+
+  --sidebar:                      var(--adhd-dark);
+  --sidebar-foreground:           var(--adhd-bg);
+  --sidebar-primary:              var(--adhd-amber);
+  --sidebar-primary-foreground:   var(--adhd-dark);
+  --sidebar-accent:               color-mix(in srgb, var(--adhd-bg) 10%, transparent);
+  --sidebar-accent-foreground:    var(--adhd-bg);
+  --sidebar-border:               color-mix(in srgb, var(--adhd-bg) 12%, transparent);
+  --sidebar-ring:                 var(--adhd-amber);
+}
+
+.theme-chaos.dark {
+  --background:             var(--adhd-dark);
+  --foreground:             var(--adhd-bg);
+  --card:                   color-mix(in srgb, var(--adhd-dark) 85%, var(--adhd-purple));
+  --card-foreground:        var(--adhd-bg);
+  --popover:                color-mix(in srgb, var(--adhd-dark) 85%, var(--adhd-purple));
+  --popover-foreground:     var(--adhd-bg);
+  --primary:                var(--adhd-purple);
+  --primary-foreground:     var(--adhd-bg);
+  --secondary:              color-mix(in srgb, var(--adhd-dark) 85%, var(--adhd-purple));
+  --secondary-foreground:   var(--adhd-bg);
+  --muted:                  color-mix(in srgb, var(--adhd-dark) 80%, var(--adhd-purple));
+  --muted-foreground:       var(--adhd-lavender);
+  --accent:                 var(--adhd-amber);
+  --accent-foreground:      var(--adhd-dark);
+  --destructive:            var(--adhd-amber);
+  --destructive-foreground: var(--adhd-dark);
+  --border:                 color-mix(in srgb, var(--adhd-bg) 12%, transparent);
+  --input:                  color-mix(in srgb, var(--adhd-bg) 15%, transparent);
+  --ring:                   var(--adhd-amber);
+
+  --success:                var(--adhd-green);
+  --success-foreground:     var(--adhd-dark);
+
+  --sidebar:                      #0F0B1C;
+  --sidebar-foreground:           var(--adhd-bg);
+  --sidebar-primary:              var(--adhd-amber);
+  --sidebar-primary-foreground:   var(--adhd-dark);
+  --sidebar-accent:               color-mix(in srgb, var(--adhd-bg) 8%, transparent);
+  --sidebar-accent-foreground:    var(--adhd-bg);
+  --sidebar-border:               color-mix(in srgb, var(--adhd-bg) 10%, transparent);
+  --sidebar-ring:                 var(--adhd-amber);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

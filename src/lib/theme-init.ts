@@ -17,7 +17,8 @@ export const themeInitScript = `
       bathhouse: 'theme-bathhouse',
       vinyl: 'theme-vinyl',
       'neon-circuit': 'theme-neon-circuit',
-      'soft-bloom': 'theme-soft-bloom'
+      'soft-bloom': 'theme-soft-bloom',
+      chaos: 'theme-chaos'
     };
     if (theme && themeMap[theme]) {
       document.documentElement.classList.add(themeMap[theme]);

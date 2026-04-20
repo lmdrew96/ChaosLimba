@@ -177,7 +177,7 @@ const DEMO_ERROR_PATTERNS: DemoErrorPattern[] = [
 
 // ─── THEME DATA ────────────────────────────────────────────────────────────────
 
-type Theme = "default" | "forest" | "nostalgia" | "wild-runes" | "bathhouse" | "vinyl" | "neon-circuit" | "soft-bloom"
+type Theme = "default" | "forest" | "nostalgia" | "wild-runes" | "bathhouse" | "vinyl" | "neon-circuit" | "soft-bloom" | "chaos"
 
 interface ThemeOption {
   id: Theme
@@ -196,6 +196,7 @@ const THEMES: ThemeOption[] = [
   { id: "vinyl", name: "Vinyl Era", description: "1970s warmth, retro soul", lightColors: ["#F2ECD8", "#C06830", "#C8A830", "#608848", "#984030"], darkColors: ["#302018", "#E08838", "#E0C040", "#58A050", "#F0E8D0"] },
   { id: "neon-circuit", name: "Neon Circuit", description: "Cyberpunk glow and electric edge", lightColors: ["#EEF0F8", "#2858D0", "#D038A0", "#48C060", "#E06030"], darkColors: ["#0C1020", "#4890FF", "#F048B0", "#50F078", "#E8EAF0"] },
   { id: "soft-bloom", name: "Soft Bloom", description: "Gentle pastels, calm and dreamy", lightColors: ["#F5E8EE", "#D88898", "#98D8B8", "#B8A8D8", "#D89870"], darkColors: ["#281830", "#E888A0", "#60C898", "#A888D0", "#F0E0E8"] },
+  { id: "chaos", name: "Lab Notebook", description: "Composition notebook — lavender paper, mauve ink", lightColors: ["#DBD5E2", "#88739E", "#DFA649", "#849440", "#1E1830"], darkColors: ["#1E1830", "#88739E", "#DFA649", "#97D181", "#F7F5FA"] },
 ]
 
 // ─── CHALLENGE TYPE CONFIG ─────────────────────────────────────────────────────
@@ -303,10 +304,11 @@ export default function DemoPage() {
   useEffect(() => {
     if (!mounted) return
     const html = document.documentElement
-    html.classList.remove("theme-forest", "theme-nostalgia", "theme-wild-runes", "theme-bathhouse", "theme-vinyl", "theme-neon-circuit", "theme-soft-bloom")
+    html.classList.remove("theme-forest", "theme-nostalgia", "theme-wild-runes", "theme-bathhouse", "theme-vinyl", "theme-neon-circuit", "theme-soft-bloom", "theme-chaos")
     const themeClassMap: Record<string, string> = {
       forest: "theme-forest", nostalgia: "theme-nostalgia", "wild-runes": "theme-wild-runes",
       bathhouse: "theme-bathhouse", vinyl: "theme-vinyl", "neon-circuit": "theme-neon-circuit", "soft-bloom": "theme-soft-bloom",
+      chaos: "theme-chaos",
     }
     const themeClass = themeClassMap[selectedTheme]
     if (themeClass) html.classList.add(themeClass)

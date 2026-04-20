@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { Check, Palette, Sun, Moon } from "lucide-react"
 import { useTheme } from "next-themes"
 
-type Theme = "default" | "forest" | "nostalgia" | "wild-runes" | "bathhouse" | "vinyl" | "neon-circuit" | "soft-bloom"
+type Theme = "default" | "forest" | "nostalgia" | "wild-runes" | "bathhouse" | "vinyl" | "neon-circuit" | "soft-bloom" | "chaos"
 
 interface ThemeOption {
   id: Theme
@@ -71,6 +71,13 @@ const THEMES: ThemeOption[] = [
     lightColors: ["#F5E8EE", "#D88898", "#98D8B8", "#B8A8D8", "#D89870"],
     darkColors: ["#281830", "#E888A0", "#60C898", "#A888D0", "#F0E0E8"],
   },
+  {
+    id: "chaos",
+    name: "Lab Notebook",
+    description: "Composition notebook — lavender paper, mauve ink, dark binding",
+    lightColors: ["#DBD5E2", "#88739E", "#DFA649", "#849440", "#1E1830"],
+    darkColors: ["#1E1830", "#88739E", "#DFA649", "#97D181", "#F7F5FA"],
+  },
 ]
 
 export default function ThemeSelector() {
@@ -94,7 +101,7 @@ export default function ThemeSelector() {
     const html = document.documentElement
 
     // Remove all custom theme classes (NOT "dark" — next-themes owns that)
-    html.classList.remove("theme-forest", "theme-nostalgia", "theme-wild-runes", "theme-bathhouse", "theme-vinyl", "theme-neon-circuit", "theme-soft-bloom")
+    html.classList.remove("theme-forest", "theme-nostalgia", "theme-wild-runes", "theme-bathhouse", "theme-vinyl", "theme-neon-circuit", "theme-soft-bloom", "theme-chaos")
 
     // Apply selected theme
     const themeClassMap: Record<string, string> = {
@@ -105,6 +112,7 @@ export default function ThemeSelector() {
       vinyl: "theme-vinyl",
       "neon-circuit": "theme-neon-circuit",
       "soft-bloom": "theme-soft-bloom",
+      chaos: "theme-chaos",
     }
     const themeClass = themeClassMap[selectedTheme]
     if (themeClass) {
